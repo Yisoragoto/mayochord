@@ -1,0 +1,30 @@
+{
+  "name": "mayochord",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @mayochord/web dev",
+    "build": "pnpm --filter @mayochord/web build",
+    "preview": "pnpm --filter @mayochord/web preview",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "e2e": "pnpm --filter @mayochord/web e2e"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "26.6.5",
+    "@vitest/coverage-v8": "5.0.4",
+    "typescript": "7.0.2",
+    "vitest": "5.0.4"
+  }
+}

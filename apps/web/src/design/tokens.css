@@ -1,0 +1,128 @@
+/*
+ * MayoChord 设计令牌（视觉方向：真夜中 — 墨蓝黑 + 钠灯琥珀，M0 由用户选定）。
+ *
+ * 所有颜色、字体、圆角、动效时长都是 CSS 变量。深浅色由 data-theme（dark | light）决定，
+ * 默认写在 <html> 上；任意子元素也可以设置 data-theme 局部覆盖（/design 页面的并排对比就是这样做的）。
+ * 变量命名沿用 shadcn/ui 的约定（background、foreground、primary…），再加上键盘与判定相关的令牌。
+ */
+
+/* ---------- 与方向、主题无关的令牌 ---------- */
+:root {
+  --font-music: "Noto Music";
+  --font-cjk: "Noto Sans SC Variable", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Mono", monospace;
+
+  --dur-instant: 80ms;
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* 谱架距离（约 1 米）可读的和弦名字号 */
+  --text-chord-stage: clamp(5.5rem, 16vw, 12rem);
+  --text-chord-lg: clamp(3rem, 8vw, 5.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}
+
+:root {
+  --font-ui: var(--font-music), "Instrument Sans Variable", var(--font-cjk);
+  --font-display: var(--font-music), "Bricolage Grotesque Variable", var(--font-cjk);
+  --font-heading-cjk: var(--font-cjk);
+  --display-weight: 700;
+  --display-tracking: -0.035em;
+  --radius: 0.75rem;
+  --radius-key: 0.3rem;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0b0d12;
+  --foreground: #ece8df;
+  --card: #12151d;
+  --card-foreground: #ece8df;
+  --popover: #161a24;
+  --popover-foreground: #ece8df;
+  --surface-2: #191d28;
+  --muted: #191d28;
+  --muted-foreground: #959cac;
+  --subtle-foreground: #6b7385;
+  --border: #252a37;
+  --border-strong: #3a4154;
+  --input: #2c3242;
+  --primary: #f2a93b;
+  --primary-foreground: #1b1205;
+  --secondary: #1d2230;
+  --secondary-foreground: #ece8df;
+  --accent: #6cc4c8;
+  --accent-foreground: #06191a;
+  --destructive: #ff6f61;
+  --success: #7fd49b;
+  --warning: #f2c94c;
+  --ring: #f2a93b;
+  --glow: rgb(242 169 59 / 0.18);
+
+  --key-bed: #06070a;
+  --key-white: #e7e3da;
+  --key-white-edge: #b4aea1;
+  --key-black: #1b1f29;
+  --key-black-top: #2c3140;
+  --key-pressed: #f7d79e;
+  --key-pressed-black: #b9873a;
+  --key-label: #4b5163;
+  --hand-left: #6cc4c8;
+  --hand-right: #f2a93b;
+  --mark-correct: #7fd49b;
+  --mark-extra: #ff6f61;
+  --mark-missing: #8fb1ff;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --background: #f3efe6;
+  --foreground: #16181f;
+  --card: #fbf8f2;
+  --card-foreground: #16181f;
+  --popover: #fffdf9;
+  --popover-foreground: #16181f;
+  --surface-2: #ebe5d8;
+  --muted: #ebe5d8;
+  --muted-foreground: #585d69;
+  --subtle-foreground: #7c808a;
+  --border: #dad2c2;
+  --border-strong: #bfb5a2;
+  --input: #cfc6b4;
+  --primary: #9c5500;
+  --primary-foreground: #fff8ec;
+  --secondary: #e7e0d1;
+  --secondary-foreground: #16181f;
+  --accent: #126e73;
+  --accent-foreground: #f2fbfb;
+  --destructive: #c0352a;
+  --success: #1d7f47;
+  --warning: #9a6a00;
+  --ring: #9c5500;
+  --glow: rgb(156 85 0 / 0.12);
+
+  --key-bed: #cfc6b4;
+  --key-white: #fffdf8;
+  --key-white-edge: #d9d1c1;
+  --key-black: #22252e;
+  --key-black-top: #3a3f4c;
+  --key-pressed: #f6cf8f;
+  --key-pressed-black: #8a5a14;
+  --key-label: #9a968c;
+  --hand-left: #12807f;
+  --hand-right: #c06a00;
+  --mark-correct: #1d7f47;
+  --mark-extra: #c0352a;
+  --mark-missing: #2d5fd0;
+}

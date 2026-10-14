@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="MayoChord：用 MIDI 键盘自动测量、自动安排的和弦练习系统。" />
+    <meta name="theme-color" content="#0b0d12" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>MayoChord</title>
+    <script>
+      // 在首次绘制前应用主题，避免闪烁。值由 stores/appearance.ts 写入 localStorage。
+      (() => {
+        let theme = 'system';
+        try {
+          theme = JSON.parse(localStorage.getItem('mayochord.appearance') || 'null')?.state?.theme || theme;
+        } catch {}
+        if (theme === 'system') {
+          theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

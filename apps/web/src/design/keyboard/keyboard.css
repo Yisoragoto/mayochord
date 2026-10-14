@@ -1,0 +1,81 @@
+.mc-keyboard .mc-key-body {
+  transition: transform var(--dur-instant) var(--ease-out);
+}
+.mc-keyboard .mc-key[data-pressed] .mc-key-body {
+  transform: translateY(1.5px);
+}
+
+.mc-keyboard .mc-key-white {
+  fill: var(--key-white);
+  transition: fill var(--dur-instant) var(--ease-out);
+}
+.mc-keyboard .mc-key-white-edge {
+  fill: var(--key-white-edge);
+  opacity: 0.55;
+}
+.mc-keyboard .mc-key[data-pressed] .mc-key-white {
+  fill: var(--key-pressed);
+}
+.mc-keyboard .mc-key[data-pressed] .mc-key-white-edge {
+  opacity: 0.2;
+}
+
+.mc-keyboard .mc-key-black {
+  fill: var(--key-black);
+  transition: fill var(--dur-instant) var(--ease-out);
+}
+.mc-keyboard .mc-key-black-top {
+  fill: var(--key-black-top);
+  transition: fill var(--dur-instant) var(--ease-out);
+}
+.mc-keyboard .mc-key[data-pressed] .mc-key-black,
+.mc-keyboard .mc-key[data-pressed] .mc-key-black-top {
+  fill: var(--key-pressed-black);
+}
+
+.mc-keyboard .mc-tint-correct {
+  fill: var(--mark-correct);
+  opacity: 0.3;
+}
+
+.mc-keyboard .mc-outline-missing {
+  fill: none;
+  stroke: var(--mark-missing);
+  stroke-width: 2;
+  stroke-dasharray: 5 3;
+  animation: mc-missing-pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes mc-missing-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.mc-keyboard .mc-key-label {
+  fill: var(--key-label);
+  font-family: var(--font-ui);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.mc-keyboard .mc-finger {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-keyboard .mc-outline-missing {
+    animation: none;
+  }
+  .mc-keyboard .mc-key[data-pressed] .mc-key-body {
+    transform: none;
+  }
+}
