@@ -24,6 +24,10 @@ declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
   }
+  interface StaticDataRouteOption {
+    /** 专注模式：隐藏导航，只保留练习内容（规格 5.2） */
+    focus?: boolean;
+  }
 }
 
 bootstrap();

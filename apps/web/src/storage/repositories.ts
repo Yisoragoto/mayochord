@@ -1,6 +1,6 @@
-import type { ReviewLog } from '@mayochord/core';
+import type { CardProgress, ReviewLog } from '@mayochord/core';
 import Dexie from 'dexie';
-import type { CalibrationRecord, MayoChordDB } from './db';
+import type { CalibrationRecord, MayoChordDB, SessionRecord } from './db';
 
 /**
  * 仓储接口（扩展点 4.2-6）。业务代码只依赖这些接口；现在的实现是 Dexie，
@@ -14,7 +14,22 @@ export interface ReviewLogRepository {
   byCard(cardId: string): Promise<ReviewLog[]>;
   /** ts >= since 的日志，按追加顺序 */
   since(ts: number): Promise<ReviewLog[]>;
+  /** 最近 limit 条日志，按追加顺序（旧 → 新） */
+  latest(limit: number): Promise<ReviewLog[]>;
   count(): Promise<number>;
+}
+
+/** 卡片进度缓存（可由日志重建） */
+export interface CardStateRepository {
+  getMany(cardIds: readonly string[]): Promise<Map<string, CardProgress>>;
+  put(progress: CardProgress): Promise<void>;
+  all(): Promise<CardProgress[]>;
+}
+
+export interface SessionRepository {
+  put(session: SessionRecord): Promise<void>;
+  /** 最近的 limit 轮练习，新的在前 */
+  recent(limit: number): Promise<SessionRecord[]>;
 }
 
 export interface SettingsRepository {
@@ -31,6 +46,8 @@ export interface Repositories {
   reviewLogs: ReviewLogRepository;
   settings: SettingsRepository;
   calibrations: CalibrationRepository;
+  cardStates: CardStateRepository;
+  sessions: SessionRepository;
 }
 
 const stripSeq = ({ seq: _seq, ...log }: ReviewLog & { seq?: number }): ReviewLog => log;
@@ -55,6 +72,10 @@ export function createDexieRepositories(db: MayoChordDB): Repositories {
         const rows = await db.reviewLogs.where('ts').aboveOrEqual(ts).sortBy('seq');
         return rows.map(stripSeq);
       },
+      async latest(limit) {
+        const rows = await db.reviewLogs.orderBy('seq').reverse().limit(limit).toArray();
+        return rows.reverse().map(stripSeq);
+      },
       count: () => db.reviewLogs.count(),
     },
     settings: {
@@ -70,6 +91,30 @@ export function createDexieRepositories(db: MayoChordDB): Repositories {
       async put(record) {
         await db.calibrations.put(record);
       },
+    },
+    cardStates: {
+      async getMany(cardIds) {
+        const rows = await db.cardStates.bulkGet([...cardIds]);
+        const out = new Map<string, CardProgress>();
+        for (const r of rows) if (r) out.set(r.cardId, r.progress);
+        return out;
+      },
+      async put(progress) {
+        await db.cardStates.put({
+          cardId: progress.cardId,
+          due: progress.memory?.due ?? Number.MAX_SAFE_INTEGER,
+          progress,
+        });
+      },
+      async all() {
+        return (await db.cardStates.toArray()).map((r) => r.progress);
+      },
+    },
+    sessions: {
+      async put(session) {
+        await db.sessions.put(session);
+      },
+      recent: (limit) => db.sessions.orderBy('startedAt').reverse().limit(limit).toArray(),
     },
   };
 }

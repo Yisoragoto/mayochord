@@ -5,21 +5,13 @@ import { startComputerKeyboard, useComputerKeyboard } from '@/input/computer-key
 import { inputHub } from '@/input/hub';
 import { liveInput } from '@/input/live';
 import { useMidi, webMidi } from '@/input/webmidi';
-import { type Repositories, repositories } from '@/storage';
+import { tryRepositories } from '@/storage';
 import { bindAppearanceToDocument } from '@/stores/appearance';
 import { loadSettings, useSettings } from '@/stores/settings';
 
-function safeRepositories(): Repositories | null {
-  try {
-    return repositories();
-  } catch {
-    return null;
-  }
-}
-
 export const calibration = new CalibrationController(
   inputHub,
-  () => safeRepositories()?.calibrations ?? null,
+  () => tryRepositories()?.calibrations ?? null,
 );
 
 /**
@@ -67,7 +59,7 @@ export function bootstrap() {
     prev = settings;
   });
 
-  const repos = safeRepositories();
+  const repos = tryRepositories();
 
   // MIDI 输入设备变化时加载它的校准数据
   let lastDevice: string | null = null;

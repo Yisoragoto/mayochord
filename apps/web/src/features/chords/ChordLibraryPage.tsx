@@ -53,26 +53,28 @@ export function ChordLibraryPage() {
 
       <NamingCheatSheet />
 
-      {groups.map((g) => (
-        <section key={g.id} aria-labelledby={`group-${g.id}`} className="space-y-4">
-          <div>
-            <h2 id={`group-${g.id}`} className="flex items-baseline gap-3 text-lg font-semibold">
-              {g.title}
-              <span className="font-mono text-xs font-normal text-subtle-foreground tabular">
-                {g.chords.length}
-              </span>
-            </h2>
-            {g.hint && <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{g.hint}</p>}
-          </div>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {g.chords.map((c) => (
-              <li key={c.id}>
-                <ChordCard chord={c} range={sharedRange(g.chords.map((x) => x.reference))} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {groups
+        .filter((g) => g.chords.length > 0)
+        .map((g) => (
+          <section key={g.id} aria-labelledby={`group-${g.id}`} className="space-y-4">
+            <div>
+              <h2 id={`group-${g.id}`} className="flex items-baseline gap-3 text-lg font-semibold">
+                {g.title}
+                <span className="font-mono text-xs font-normal text-subtle-foreground tabular">
+                  {g.chords.length}
+                </span>
+              </h2>
+              {g.hint && <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{g.hint}</p>}
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {g.chords.map((c) => (
+                <li key={c.id}>
+                  <ChordCard chord={c} range={sharedRange(g.chords.map((x) => x.reference))} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
     </div>
   );
 }

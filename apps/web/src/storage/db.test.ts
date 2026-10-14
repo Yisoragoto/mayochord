@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import type { ReviewLog } from '@mayochord/core';
+import { emptyProgress, type ReviewLog, reviewMemory } from '@mayochord/core';
 import Dexie from 'dexie';
 import { afterEach, describe, expect, it } from 'vitest';
 import { MayoChordDB } from './db';
@@ -58,6 +58,42 @@ describe('ReviewLogRepository', () => {
     await repos.reviewLogs.append(log('a', 'x', 1));
     await expect(repos.reviewLogs.append(log('a', 'x', 2))).rejects.toThrow();
     expect(await repos.reviewLogs.count()).toBe(1);
+  });
+});
+
+describe('最近的日志、卡片进度、练习记录', () => {
+  it('latest 按追加顺序返回最后 n 条', async () => {
+    const repos = createDexieRepositories(freshDb());
+    await repos.reviewLogs.appendMany([log('a', 'x', 3), log('b', 'x', 1), log('c', 'x', 2)]);
+    expect((await repos.reviewLogs.latest(2)).map((l) => l.id)).toEqual(['b', 'c']);
+    expect((await repos.reviewLogs.latest(10)).map((l) => l.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('卡片进度读写', async () => {
+    const repos = createDexieRepositories(freshDb());
+    const fresh = emptyProgress('chord:c:name:any');
+    const reviewed = { ...emptyProgress('chord:g:name:any'), memory: reviewMemory(null, 3, 1000) };
+    await repos.cardStates.put(fresh);
+    await repos.cardStates.put(reviewed);
+    const got = await repos.cardStates.getMany(['chord:c:name:any', 'chord:g:name:any', 'nope']);
+    expect([...got.keys()]).toEqual(['chord:c:name:any', 'chord:g:name:any']);
+    expect(got.get('chord:g:name:any')).toEqual(reviewed);
+    expect(await repos.cardStates.all()).toHaveLength(2);
+  });
+
+  it('练习记录：新的在前', async () => {
+    const repos = createDexieRepositories(freshDb());
+    const rec = (id: string, startedAt: number) => ({
+      id,
+      startedAt,
+      endedAt: null,
+      kind: 'practice' as const,
+      config: {},
+      summary: null,
+    });
+    await repos.sessions.put(rec('a', 1));
+    await repos.sessions.put(rec('b', 2));
+    expect((await repos.sessions.recent(5)).map((s) => s.id)).toEqual(['b', 'a']);
   });
 });
 

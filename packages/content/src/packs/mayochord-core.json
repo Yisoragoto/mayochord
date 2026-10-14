@@ -1,6 +1,6 @@
 {
   "id": "mayochord-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "schemaVersion": 1,
   "name": {
     "zh-CN": "MayoChord 内置内容",
@@ -401,7 +401,7 @@
       "id": "dm7-ref",
       "chordId": "dm7",
       "reference": true,
-      "status": "tentative",
+      "status": "confirmed",
       "notes": [
         {
           "pitch": "D3",
@@ -425,14 +425,14 @@
         }
       ],
       "note": {
-        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），2026-10-14 用户采纳。"
       }
     },
     {
       "id": "g7-ref",
       "chordId": "g7",
       "reference": true,
-      "status": "tentative",
+      "status": "confirmed",
       "notes": [
         {
           "pitch": "G3",
@@ -456,14 +456,14 @@
         }
       ],
       "note": {
-        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），2026-10-14 用户采纳。"
       }
     },
     {
       "id": "cmaj7-ref",
       "chordId": "cmaj7",
       "reference": true,
-      "status": "tentative",
+      "status": "confirmed",
       "notes": [
         {
           "pitch": "C3",
@@ -487,14 +487,14 @@
         }
       ],
       "note": {
-        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），2026-10-14 用户采纳。"
       }
     },
     {
       "id": "d-ref",
       "chordId": "d",
       "reference": true,
-      "status": "tentative",
+      "status": "confirmed",
       "notes": [
         {
           "pitch": "D3",
@@ -518,14 +518,14 @@
         }
       ],
       "note": {
-        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），2026-10-14 用户采纳。"
       }
     },
     {
       "id": "bm-ref",
       "chordId": "bm",
       "reference": true,
-      "status": "tentative",
+      "status": "confirmed",
       "notes": [
         {
           "pitch": "B2",
@@ -549,7 +549,7 @@
         }
       ],
       "note": {
-        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），2026-10-14 用户采纳。"
       }
     }
   ],
@@ -627,7 +627,7 @@
       },
       "key": "G",
       "description": {
-        "zh-CN": "IV – V – iii – vi。D、Bm 的键位按就近转位设计，待确认。"
+        "zh-CN": "IV – V – iii – vi。D、Bm 的键位按就近转位设计。"
       },
       "steps": [
         {
@@ -699,7 +699,7 @@
       },
       "key": "C",
       "description": {
-        "zh-CN": "键位按就近转位设计，待确认。"
+        "zh-CN": "键位按就近转位设计：右手每次只移动半音或全音。"
       },
       "steps": [
         {

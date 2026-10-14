@@ -13,7 +13,6 @@ import { Check, CircleDashed, TriangleAlert, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { KeyMark } from '@/design/keyboard/Keyboard';
 import { Button } from '@/design/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
 import { MidiConnectButton } from '@/features/midi/MidiDevicePanel';
@@ -22,7 +21,7 @@ import { liveInput, useLiveInput } from '@/input/live';
 import { PlayableKeyboard, releaseOnscreenNotes } from '@/input/PlayableKeyboard';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/stores/settings';
-import { keyboardRange } from './voicing-view';
+import { judgeMarks, keyboardRange } from './voicing-view';
 
 interface TrialResult {
   id: number;
@@ -36,25 +35,6 @@ interface TrialResult {
 
 const names = (notes: readonly number[]) =>
   notes.map((n) => prettyAccidentals(midiToName(n))).join(' ');
-
-/** 判定结果 → 键盘标记：按对的、多按的、少按的（少按的标在参考键位上，带指法）。 */
-function resultMarks(chord: ChordEntry, r: TrialResult): Map<number, KeyMark> {
-  const ref = new Map(chord.reference.notes.map((n) => [n.midi, n]));
-  const marks = new Map<number, KeyMark>();
-  const extra = new Set(r.judge.extra);
-  for (const n of r.attempt.notes) {
-    const hand = ref.get(n)?.hand;
-    marks.set(n, extra.has(n) ? { kind: 'extra' } : { kind: 'correct', ...(hand ? { hand } : {}) });
-  }
-  for (const n of r.judge.missing) {
-    const v = ref.get(n);
-    const mark: KeyMark = { kind: 'missing' };
-    if (v?.hand) mark.hand = v.hand;
-    if (v?.finger !== undefined) mark.finger = v.finger;
-    marks.set(n, mark);
-  }
-  return marks;
-}
 
 export function TrialPanel({ chord }: { chord: ChordEntry }) {
   const { t } = useTranslation();
@@ -86,7 +66,9 @@ export function TrialPanel({ chord }: { chord: ChordEntry }) {
     [target, mode],
   );
 
-  const marks = result ? resultMarks(chord, result) : undefined;
+  const marks = result
+    ? judgeMarks(chord.reference, result.attempt.notes, result.judge)
+    : undefined;
 
   let status: ReactNode;
   let tone: 'idle' | 'ok' | 'bad' | 'warn' = 'idle';

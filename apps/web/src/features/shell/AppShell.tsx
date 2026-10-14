@@ -1,5 +1,5 @@
-import { Link } from '@tanstack/react-router';
-import { Activity, CalendarCheck2, Library, Settings } from 'lucide-react';
+import { Link, useMatches } from '@tanstack/react-router';
+import { Activity, CalendarCheck2, Dumbbell, Library, Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TooltipProvider } from '@/design/ui/tooltip';
@@ -8,6 +8,7 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 
 const NAV = [
   { to: '/', key: 'today', icon: CalendarCheck2 },
+  { to: '/practice', key: 'practice', icon: Dumbbell },
   { to: '/chords', key: 'chords', icon: Library },
   { to: '/monitor', key: 'monitor', icon: Activity },
   { to: '/settings', key: 'settings', icon: Settings },
@@ -15,6 +16,14 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
+  const focus = useMatches({ select: (ms) => ms.some((m) => m.staticData.focus === true) });
+  if (focus) {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <main id="main">{children}</main>
+      </TooltipProvider>
+    );
+  }
   return (
     <TooltipProvider delayDuration={300}>
       <a
@@ -24,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {t('app.skipToContent')}
       </a>
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:gap-6">
           <Link to="/" className="rounded-sm text-lg" aria-label={t('app.name')}>
             <Wordmark />
           </Link>
@@ -33,7 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={to}
                 to={to}
-                className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground data-[status=active]:bg-surface-2 data-[status=active]:text-foreground"
+                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground data-[status=active]:bg-surface-2 data-[status=active]:text-foreground"
                 activeOptions={{ exact: to === '/' }}
               >
                 <Icon className="size-4" aria-hidden />
@@ -59,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label={t('nav.primary')}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden"
       >
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-5">
           {NAV.map(({ to, key, icon: Icon }) => (
             <li key={to}>
               <Link

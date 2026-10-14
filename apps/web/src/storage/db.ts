@@ -1,4 +1,4 @@
-import type { ReviewLog } from '@mayochord/core';
+import type { CardProgress, ReviewLog, SessionSummary } from '@mayochord/core';
 import Dexie, { type Table } from 'dexie';
 
 /**
@@ -31,17 +31,25 @@ export interface CalibrationRecord {
   updatedAt: number;
 }
 
-/** 卡片记忆状态（M2 起使用）：由 reviewLogs 重放得到的缓存，可以随时重建 */
+/**
+ * 卡片学习进度（FSRS 记忆状态 + 新卡阶段）：由 reviewLogs 重放得到的缓存，可以随时重建。
+ * due 单独存一份用于索引（新卡没有到期时间，存 Number.MAX_SAFE_INTEGER）。
+ */
 export interface CardStateRecord {
   cardId: string;
   due: number;
-  [field: string]: unknown;
+  progress: CardProgress;
 }
 
+/** 一轮练习的记录 */
 export interface SessionRecord {
   id: string;
   startedAt: number;
-  [field: string]: unknown;
+  endedAt: number | null;
+  kind: 'practice';
+  /** 练习配置，例如 { group, drill, mode, length } */
+  config: Record<string, unknown>;
+  summary: SessionSummary | null;
 }
 
 /** 用户导入的内容包（原始 JSON，导入时已通过 Zod 校验） */

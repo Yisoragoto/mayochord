@@ -20,6 +20,8 @@ export const SettingsSchema = z.object({
   onscreenMode: z.enum(['momentary', 'latch']).catch('momentary'),
   /** 屏幕键盘、电脑键盘弹奏时由网页发声（MIDI 键盘有自己的声音，不受影响） */
   onscreenSound: z.boolean().catch(true),
+  /** 练习时答对、答错的提示音 */
+  feedbackSound: z.boolean().catch(false),
   /** 上次手动选择的 MIDI 输入设备名 */
   preferredInputName: z.string().nullable().catch(null),
 });

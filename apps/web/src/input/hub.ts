@@ -1,15 +1,8 @@
-import type { InputSourceKind } from '@mayochord/core';
-import { createNoteMerger, type InputEvent, shiftNotes } from '@mayochord/core';
+import { createNoteMerger, type InputEvent, shiftNotes, sourceKind } from '@mayochord/core';
+
+export { sourceKind };
 
 type Listener = (e: InputEvent) => void;
-
-/** 输入源 ID → 输入源类型（写入作答日志，用于判断齐整度是否有意义）。 */
-export function sourceKind(source: string): InputSourceKind {
-  if (source.startsWith('webmidi')) return 'midi';
-  if (source === 'onscreen') return 'onscreen';
-  if (source === 'keyboard') return 'keyboard';
-  return 'manual';
-}
 
 /**
  * 输入汇流：把 Web MIDI、屏幕键盘、电脑键盘的事件合并成一条统一的事件流。

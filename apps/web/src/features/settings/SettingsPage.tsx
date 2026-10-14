@@ -259,6 +259,11 @@ function InputPanel() {
         checked={settings.onscreenSound}
         onChange={(v) => update({ onscreenSound: v })}
       />
+      <SwitchRow
+        label={t('settings.feedbackSound')}
+        checked={settings.feedbackSound}
+        onChange={(v) => update({ feedbackSound: v })}
+      />
     </div>
   );
 }

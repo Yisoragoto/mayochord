@@ -9,7 +9,7 @@ test('和弦库：列出第 11 节的和弦，进入详情页', async ({ page })
   await page.goto('chords');
   await expect(page.getByRole('heading', { name: '和弦库', level: 1 })).toBeVisible();
   await expect(page.getByRole('link', { name: '查看 Am7' })).toBeVisible();
-  await expect(page.getByText('待确认').first()).toBeVisible();
+  await expect(page.getByText('待确认')).toHaveCount(0);
   await page.getByRole('link', { name: '查看 Gm7' }).click();
   await expect(page).toHaveURL(/chords\/gm7$/);
   await expect(page.getByText('G · B♭ · D · F')).toBeVisible();

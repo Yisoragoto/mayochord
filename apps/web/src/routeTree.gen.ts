@@ -15,6 +15,8 @@ import { Route as MonitorRouteImport } from './routes/monitor'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ChordsIndexRouteImport } from './routes/chords/index'
 import { Route as ChordsChordIdRouteImport } from './routes/chords/$chordId'
+import { Route as PracticeIndexRouteImport } from './routes/practice/index'
+import { Route as PracticeSessionRouteImport } from './routes/practice/session'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +48,16 @@ const ChordsChordIdRoute = ChordsChordIdRouteImport.update({
   path: '/chords/$chordId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PracticeIndexRoute = PracticeIndexRouteImport.update({
+  id: '/practice/',
+  path: '/practice/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeSessionRoute = PracticeSessionRouteImport.update({
+  id: '/practice/session',
+  path: '/practice/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,7 +65,9 @@ export interface FileRoutesByFullPath {
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
+  '/practice/session': typeof PracticeSessionRoute
   '/chords/': typeof ChordsIndexRoute
+  '/practice/': typeof PracticeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +75,9 @@ export interface FileRoutesByTo {
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
+  '/practice/session': typeof PracticeSessionRoute
   '/chords': typeof ChordsIndexRoute
+  '/practice': typeof PracticeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,15 +86,31 @@ export interface FileRoutesById {
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
+  '/practice/session': typeof PracticeSessionRoute
   '/chords/': typeof ChordsIndexRoute
+  '/practice/': typeof PracticeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/design' | '/monitor' | '/settings' | '/chords/$chordId' | '/chords/'
+    | '/'
+    | '/design'
+    | '/monitor'
+    | '/settings'
+    | '/chords/$chordId'
+    | '/practice/session'
+    | '/chords/'
+    | '/practice/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/design' | '/monitor' | '/settings' | '/chords/$chordId' | '/chords'
+    | '/'
+    | '/design'
+    | '/monitor'
+    | '/settings'
+    | '/chords/$chordId'
+    | '/practice/session'
+    | '/chords'
+    | '/practice'
   id:
     | '__root__'
     | '/'
@@ -86,7 +118,9 @@ export interface FileRouteTypes {
     | '/monitor'
     | '/settings'
     | '/chords/$chordId'
+    | '/practice/session'
     | '/chords/'
+    | '/practice/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,7 +129,9 @@ export interface RootRouteChildren {
   MonitorRoute: typeof MonitorRoute
   SettingsRoute: typeof SettingsRoute
   ChordsChordIdRoute: typeof ChordsChordIdRoute
+  PracticeSessionRoute: typeof PracticeSessionRoute
   ChordsIndexRoute: typeof ChordsIndexRoute
+  PracticeIndexRoute: typeof PracticeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -142,6 +178,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChordsChordIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/practice/': {
+      id: '/practice/'
+      path: '/practice'
+      fullPath: '/practice/'
+      preLoaderRoute: typeof PracticeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice/session': {
+      id: '/practice/session'
+      path: '/practice/session'
+      fullPath: '/practice/session'
+      preLoaderRoute: typeof PracticeSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,7 +201,9 @@ const rootRouteChildren: RootRouteChildren = {
   MonitorRoute: MonitorRoute,
   SettingsRoute: SettingsRoute,
   ChordsChordIdRoute: ChordsChordIdRoute,
+  PracticeSessionRoute: PracticeSessionRoute,
   ChordsIndexRoute: ChordsIndexRoute,
+  PracticeIndexRoute: PracticeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

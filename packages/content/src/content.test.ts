@@ -69,11 +69,11 @@ describe('内置内容包', () => {
     }
   });
 
-  it('待确认的键位标记为 tentative，且由就近转位算法推导', () => {
-    const tentative = ['dm7', 'g7', 'cmaj7', 'd', 'bm'];
-    for (const id of tentative) {
-      expect(BUILTIN_PACK.chordById.get(id)?.reference.status, id).toBe('tentative');
-      expect(BUILTIN_PACK.voicingNotes.get(`${id}-ref`)?.['zh-CN']).toContain('待确认');
+  it('II–V–I 与 G 调王道进行的键位由就近转位算法推导（用户已采纳）', () => {
+    const derived = ['dm7', 'g7', 'cmaj7', 'd', 'bm'];
+    for (const id of derived) {
+      expect(BUILTIN_PACK.chordById.get(id)?.reference.status, id).toBe('confirmed');
+      expect(BUILTIN_PACK.voicingNotes.get(`${id}-ref`)?.['zh-CN']).toContain('采纳');
     }
     // 按进行顺序，从前一个和弦的键位推导下一个：右手就近转位，左手就近取根音
     const derive = (fromId: string, toId: string) => {

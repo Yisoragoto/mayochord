@@ -24,6 +24,8 @@ export interface ChordAttempt {
   newNotes: number[];
   /** notes 中每个音的按下时间 */
   onsets: Record<number, number>;
+  /** notes 中每个音来自哪个输入源 */
+  sources: Record<number, string>;
   /** 新按下的音里最早、最晚的按下时间 */
   firstOnset: number;
   lastOnset: number;
@@ -85,7 +87,12 @@ export class AttemptTracker {
     this.settled = true;
     const notes = this.heldNotes();
     const onsets: Record<number, number> = {};
-    for (const n of notes) onsets[n] = this.state.notes.get(n)?.t ?? this.lastChange;
+    const sources: Record<number, string> = {};
+    for (const n of notes) {
+      const held = this.state.notes.get(n);
+      onsets[n] = held?.t ?? this.lastChange;
+      sources[n] = held?.source ?? '';
+    }
     const start = this.gestureStart;
     const newNotes = notes.filter((n) => (onsets[n] as number) >= start);
     if (newNotes.length === 0) return null;
@@ -97,6 +104,7 @@ export class AttemptTracker {
       notes,
       newNotes,
       onsets,
+      sources,
       firstOnset,
       lastOnset,
       spreadMs,

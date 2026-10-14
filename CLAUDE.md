@@ -8,8 +8,9 @@
 | 里程碑 | 状态 |
 |---|---|
 | M0 骨架与真机验证 | 完成（commit a790c25） |
-| M1 核心与数据层 | 完成（用户确认，待确认键位采用默认推荐） |
-| M2–M6 | 未开始 |
+| M1 核心与数据层 | 完成（commit da0e0ab；用户采纳就近转位的推荐键位） |
+| M2 学习系统核心 | 完成（用户确认） |
+| M3–M6 | 未开始 |
 
 ## 常用命令（仓库根目录）
 
@@ -34,7 +35,7 @@ pnpm e2e          # Playwright（本地用已安装的 Chrome，CI 用 chromium�
 - **core 包**（`packages/core`）：纯 TypeScript，不依赖 React 和浏览器 API（tsconfig 的 `lib` 不含 DOM 来强制）。判定、评分、调度、时间分析都写成纯函数并测试。
 - **内部包不预构建**：`exports` 直接指向 `src/*.ts`，由 Vite/Vitest 编译。
 - **i18n**：界面文字放在 `apps/web/src/i18n/locales/`，默认 `zh-CN`，通过 `t()` 使用。`/design` 页面是开发用的组件展示页，说明文字不进 i18n。
-- **shadcn/ui 组件**在 `apps/web/src/design/ui/`。用 CLI 添加后要做两件事：把 `from "cn"` 改成 `from "@/lib/utils"`（CLI 在 monorepo 里解析别名有误）；删除 `dark:` 变体并把 `accent` 悬停色改为 `surface-2`（见下方设计系统）。
+- **shadcn/ui 组件**在 `apps/web/src/design/ui/`。用 CLI 添加后要做两件事：把 `from "cn"` 改成 `from "@/lib/utils"`（CLI 在 monorepo 里解析别名有误），并检查 CLI 有没有往 `package.json` 加一个无用的 `cn` 依赖（M0 时加过，M2 已删除）；删除 `dark:` 变体并把 `accent` 悬停色改为 `surface-2`（见下方设计系统）。
 - **路由**：TanStack Router 文件路由（`apps/web/src/routes/`），`routeTree.gen.ts` 由插件生成并提交到仓库。
 - **GitHub Pages**：browser history + 构建时把 `index.html` 复制为 `404.html`（`vite.config.ts` 的 `spaFallback` 插件）。`base` 默认 `/mayochord/`，可用环境变量 `MAYOCHORD_BASE` 覆盖。
 - **localStorage** 只存外观设置（`mayochord.appearance`，首屏脚本在 `index.html` 读取以避免闪烁）。业务数据一律走 Dexie。
@@ -54,7 +55,12 @@ packages/core/src/
   voicing/      Voicing 类型、声部进行配对、就近转位搜索、右手转位描述
   recognition/  按住音、自由识别、判定（judgeNotes、findUniformShift）、和弦尝试检测（AttemptTracker）
   log/          ReviewLog 类型（作答日志）
-  （M2 起：timing/ graph/ scheduler/ grading/ drill/ strategy/）
+  drill/        卡片（cards.ts）、一道题的判定流程（trial.ts，纯函数）、Drill 接口与注册表（drill.ts）
+  grading/      自动评分、个人反应时间中位数
+  scheduler/    FSRS 封装（memory.ts）、卡片进度与新卡三阶段（progress.ts）、练习内出题顺序（session.ts）、
+                85% 自适应（adaptive.ts）、轮次总结（summary.ts）
+  strategy/     调度策略对象：各项参数集中在这里（createDefaultStrategy）
+  （M3 起：graph/；M4 起：timing/）
 packages/content/src/
   schema/       Zod：内容包（含跨字段校验）、设备配置
   packs/        内置内容包 mayochord-core.json（第 11 节）
@@ -62,11 +68,12 @@ packages/content/src/
   load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
 apps/web/src/
   app/          bootstrap.ts：启动时连接输入源、汇流、实时输入、音源、存储、校准
-  routes/       /、/chords、/chords/$chordId、/monitor、/settings、/design
-  features/     shell、today、chords（和弦库、详情、试弹）、midi（设备面板）、monitor、settings、design-gallery
+  routes/       /、/practice、/practice/session（专注模式）、/chords、/chords/$chordId、/monitor、/settings、/design
+  features/     shell、today、practice（练习入口、专注模式、轮次总结、PracticeController）、
+                chords（和弦库、详情、试弹）、midi（设备面板）、monitor、settings、design-gallery
   input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
                 computer-keyboard.ts、PlayableKeyboard.tsx（屏幕键盘）
-  audio/        piano.ts（Tone.js + Salamander 采样，懒加载）、live-sound.ts
+  audio/        piano.ts（Tone.js + Salamander 采样，懒加载）、live-sound.ts、feedback-sound.ts（答对/答错提示音）
   storage/      Dexie 数据库 db.ts、仓储接口与实现 repositories.ts
   design/       tokens.css、ui/（shadcn）、keyboard/、staff/（VexFlow，懒加载）、ChordName、Wordmark
   stores/       Zustand：appearance、settings
@@ -111,7 +118,12 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
 | reviewLogs | `++seq, &id, ts, cardId, sessionId, [cardId+ts]` | 作答日志，只追加（仓储接口不提供修改、删除） |
 | settings | `key` | 'app' → AppSettings（Zod 校验，每个字段损坏时单独回退默认值） |
 | calibrations | `deviceKey` | 每个 MIDI 设备的音高偏移、实测音域 |
-| cardStates / sessions / userPacks | `cardId, due` / `id, startedAt` / `id` | M2 起使用 |
+| cardStates | `cardId, due` | `{ cardId, due, progress: CardProgress }`。**缓存**，可由 reviewLogs 重放重建（`replayProgress`）。新卡 due = `Number.MAX_SAFE_INTEGER` |
+| sessions | `id, startedAt` | 每轮练习：`{ id, startedAt, endedAt, kind: 'practice', config, summary }` |
+| userPacks | `id` | 用户导入的内容包（M6） |
+
+settings 表另有键 `'adaptive'`：`{ 'name-to-chord' | 'transition': { timeLimitMs, sinceAdjust } }`（85% 规则的当前时限）。
+M2 没有改表结构（新字段都不是索引），仍是 version 1。
 
 改表结构：新增 `this.version(n)`，保留旧版本声明，需要时写 `.upgrade()`，并在 `storage/db.test.ts` 加"旧数据升级后不丢失"的测试。
 
@@ -150,11 +162,72 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
 
 - 右手：在 G3–G5 内枚举 3 个音的组合（跨度 ≤ 12，不重复音级）；七和弦必须含三音、七音（有九音时含九音），三和弦三个音都要有；按声部进行移动总量 → 最大单步 → 跨度排序。
 - 左手：E2–B3 内离前一个左手音最近的根音。
-- 内置包里"待确认"的键位（Dm7、G7、CM7、D、Bm）就是这样推出来的，`content.test.ts` 会验证。
+- 内置包里 Dm7、G7、CM7、D、Bm 的键位就是这样推出来的（`content.test.ts` 验证），2026-10-14 用户采纳，状态为 confirmed。
 
-## 调度规则
+## 练习与调度规则（M2）
 
-M2 起记录（FSRS、自动评分、隐式重复等）。
+### 卡片（`drill/cards.ts`）
+
+- `ChordCard { kind: 'chord', id, topicId, chordId, cue, key, voicingMode }`；`TransitionCard { kind: 'transition', id, topicId, fromChordId, toChordId, voicingMode }`。
+- **卡片 ID 不含 topicId**：`chord:<chordId>:<cue>[@<key>]:<any|reference>`、`transition:<from>><to>:<any|reference>`。
+  同一个"看 Am 弹 Am"不管出现在哪个主题里都共享一份记忆状态。
+- `voicingMode`：any = 宽松判定（任意转位），reference = 严格判定（参考键位）。两者是不同的卡片。
+- M2 的卡片由练习入口的"和弦组"生成（每条进行一组 + 全部和弦），topicId 为 null。M3 起由知识图谱生成。
+
+### 一道题的流程（`drill/trial.ts`，看名弹和弦与和弦切换共用）
+
+- 状态：setup（仅切换题：先弹"从"和弦，不计分、不计时）→ awaiting（计时）→ retry（显示提示）→ done。
+- **第一次判定决定成绩**：弹对 → done；弹错 → retry 并显示键位提示（标出多按/少按）；超时 → retry。retry 中弹对才进入下一题，不改变成绩。可以跳过（awaiting 中跳过记为超时）。
+- **只按了目标的一部分（没有多按的音）不算作答**，继续等（初学者一个个按音时不会被立即判错；按得不齐会体现在齐整度上）。
+- **整体平移**（`findUniformShift`，OCTAVE/TRANSPOSE 被改动）不计成绩，提示重新校准。
+- 切换题里重新按一遍"从"和弦不算作答。出题时已经按着"从"和弦（例如上一题的目标）就直接开始计时。
+- **反应时间** = 这次新按下的音中最后一个的按下时间 − 计时起点。计时起点：看名弹和弦 = 出题时刻；切换 = "从"和弦弹稳（`stableAt`）的时刻（也就是界面亮出目标的时刻）。
+- **齐整度**只统计提示出现之后按下的音（保持下来的共同音不算），只对 MIDI 输入记录；屏幕键盘/电脑键盘记 null。
+- 超时判断用尝试的 `stableAt`：超时之后才弹稳的尝试按超时处理。
+- **第一次见到的卡片**（没有任何作答记录）一开始就显示键位（切换题同时显示"从"和弦的键位），记为用过提示。
+- 切换题只给切换卡记证据，不给目标和弦卡记（反应条件不同，不混进和弦卡的反应时间）。
+
+### 自动评分（`grading/grade.ts`，参数在 `DEFAULT_GRADING`）
+
+| 条件 | 评分 |
+|---|---|
+| 错误或超时 | Again (1) |
+| 正确，反应时间 > 个人中位数 × 1.5 | Hard (2) |
+| 正确，反应时间 < 个人中位数 × 0.6 | Easy (4) |
+| 正确，其他 | Good (3) |
+| 用了提示 | 最多 Hard |
+| MIDI 输入且没有同时落下（齐整度 > 窗口） | 最多 Hard（第 11 节"和弦的音同时落下"） |
+
+- 个人中位数：同一练习类型、同一类输入源，最近 50 条"正确、无提示"的显式日志；不足 5 条时为 null，此时正确一律 Good。
+
+### 记忆与进度（`scheduler/memory.ts`、`progress.ts`）
+
+- ts-fsrs 5.4.2，目标保持率 0.9，最长间隔 365 天，不加随机抖动，**关闭短期学习步骤**（`enable_short_term: false`）：按天调度，练习内的重复由会话自己安排。
+- **每张卡每个练习日只用第一次评分更新 FSRS**（练习日从凌晨 4 点开始，按本地时区）。同一天的后续作答照样写日志、影响阶段和统计，但不改间隔。
+- 新卡三阶段：focused（集中练）→ ordered（按顺序）→ mixed（随机），**连续 3 次达标**进入下一阶段（达标 = 正确、无提示、评分 ≥ Good；不达标清零连续次数，阶段不倒退）。
+- 卡片进度全部可由日志重放得到（`replayProgress`），cardStates 表只是缓存。
+
+### 一轮练习的出题顺序（`scheduler/session.ts`）
+
+- focused 阶段的卡集中练：同一张卡连续出现，直到进入 ordered，或本轮已练 6 次（先放一放）。
+- 每完成一个集中练块，先把已有的卡（ordered + mixed）轮一遍，再开始下一张新卡。开局如果有已学过的卡，也先轮一遍。
+- 一轮里 ordered 的卡按和弦组原顺序连续出现，mixed 的卡打乱；两块的先后随机。
+- 答错（不含集中练中的卡）在 3–5 题之后再出现；等待重做期间这张卡不从轮换里出。
+- 相邻两题尽量不是同一张卡（集中练除外）。
+
+### 85% 自适应（`scheduler/adaptive.ts`）
+
+- 每个练习类型一个时限：看名弹和弦初始 6 秒（1.5–15 秒），切换初始 5 秒（1–12 秒）。
+- 每题之后看最近 20 题（至少 10 题）的正确率：> 90% 时限 × 0.85，< 75% 时限 × 1.2；调整后至少再做 5 题才会再调。
+- 新时限从下一题生效，保存在 settings 表 `'adaptive'`。
+
+### 网页里的练习（`features/practice`）
+
+- `PracticeController`：出题 → 实时和弦尝试驱动 `stepTrial` → 评分 → 写日志、更新卡片进度、自适应 → 下一题（答对 650 ms 后，否则 900 ms 后）→ 轮次总结。计时器可注入（测试用手动推进的计时器，fake-indexeddb 与 vi.useFakeTimers 不兼容）。
+- 专注模式：路由 `staticData: { focus: true }`，`AppShell` 不渲染导航。Esc 结束这一轮；总结页 Esc 返回入口。
+- 点击切换模式的屏幕键盘：看名弹和弦每题结束自动松开（切换题保留，作为下一题的"从"和弦）。
+- IndexedDB 不可用时照常练习，提示无法保存。
+- 规格 6.7"反馈逐渐减少"、隐式重复、XP、防乱按在 M3 做。
 
 ## 设计系统
 

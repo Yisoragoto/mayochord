@@ -1,5 +1,17 @@
 import type { ChordSymbol } from '@mayochord/core';
-import { Check, Flame, Pause, Play, RotateCcw, SkipForward, Volume2, X } from 'lucide-react';
+import {
+  ArrowRight,
+  Check,
+  Flame,
+  Lightbulb,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipForward,
+  TriangleAlert,
+  Volume2,
+  X,
+} from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import { ChordName } from '@/design/ChordName';
@@ -95,6 +107,10 @@ function Specimen({ theme }: { theme: ResolvedTheme }) {
 
       {/* 练习界面（专注模式）缩影 */}
       <PracticePreview />
+
+      <Block title="练习反馈">
+        <FeedbackStates />
+      </Block>
 
       <Block title="和弦符号">
         <div className="flex flex-wrap items-baseline gap-x-7 gap-y-4">
@@ -283,36 +299,98 @@ function LegendGlyph({ mark }: { mark: KeyMark }) {
   }
 }
 
+/** 与 features/practice/PracticeSessionPage 的布局一致：原因标签、题目、剩余时间条、判定反馈、键盘 */
 function PracticePreview() {
   return (
     <div className="overflow-hidden rounded-[var(--radius)] border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5 text-xs text-muted-foreground">
-        <span className="font-mono tabular">7 / 20</span>
+        <span className="inline-flex items-center gap-1">
+          <X className="size-3.5" aria-hidden />
+          结束
+        </span>
         <div className="mx-4 h-1 flex-1 overflow-hidden rounded-full bg-surface-2">
           <div className="h-full w-[35%] rounded-full bg-primary" />
         </div>
-        <span className="inline-flex items-center gap-1 font-mono tabular">
-          <Flame className="size-3.5 text-primary" aria-hidden />5
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-mono text-primary tabular-nums">
+          <Flame className="size-3.5" aria-hidden />
+          连对 5
         </span>
       </div>
-      <div className="grid place-items-center gap-1 px-4 pt-8 pb-6">
-        <ChordName
-          symbol={{ root: 9, quality: 'm7' }}
-          size="lg"
-          className="text-[clamp(4rem,10vw,6.5rem)]"
-        />
-        <p className="text-xs text-muted-foreground">
-          下一个
+      <div className="grid place-items-center gap-3 px-4 pt-6 pb-5">
+        <p className="font-mono text-[10px] tracking-[0.2em] text-subtle-foreground uppercase">
+          按顺序
+        </p>
+        <div className="flex items-center gap-4">
+          <span className="text-subtle-foreground">
+            <ChordName symbol={{ root: 9, quality: 'm7' }} size="md" />
+          </span>
+          <ArrowRight className="size-6 text-primary" aria-hidden />
           <ChordName
             symbol={{ root: 7, quality: 'm7' }}
-            size="sm"
-            className="ml-2 align-baseline text-base text-foreground"
+            size="lg"
+            className="text-[clamp(4rem,10vw,6.5rem)] text-mark-correct"
           />
-        </p>
+        </div>
+        <div className="h-1 w-full max-w-xs overflow-hidden rounded-full bg-surface-2">
+          <div className="h-full w-[60%] rounded-full bg-primary/70" />
+        </div>
+        <FeedbackLine tone="ok">
+          <Check className="size-4" aria-hidden />
+          <span className="font-semibold">对了</span>
+          <span className="font-mono tabular-nums">0.82 秒</span>
+          <span className="text-muted-foreground">齐整度 24 毫秒</span>
+        </FeedbackLine>
       </div>
       <div className="px-3 pb-3">
         <Keyboard low={53} high={79} labels="none" />
       </div>
+    </div>
+  );
+}
+
+function FeedbackLine({
+  tone,
+  children,
+}: {
+  tone: 'idle' | 'ok' | 'bad' | 'warn';
+  children: React.ReactNode;
+}) {
+  return (
+    <p
+      className={cn(
+        'flex flex-wrap items-center justify-center gap-2 text-sm',
+        tone === 'idle' && 'text-muted-foreground',
+        tone === 'ok' && 'text-mark-correct',
+        tone === 'bad' && 'text-mark-extra',
+        tone === 'warn' && 'text-warning',
+      )}
+    >
+      {children}
+    </p>
+  );
+}
+
+/** 练习界面的判定反馈：等待 / 对了 / 弹错 / 没有同时落下 / 整体偏移 */
+function FeedbackStates() {
+  return (
+    <div className="grid gap-2 rounded-[var(--radius)] border border-border p-4">
+      <FeedbackLine tone="idle">
+        <Lightbulb className="size-4" aria-hidden />
+        第一次见到这个和弦：先照着键位弹
+      </FeedbackLine>
+      <FeedbackLine tone="bad">
+        <X className="size-4" aria-hidden />
+        少按了 E4 多按了 E♭4
+        <span className="text-muted-foreground">照着提示弹一遍再继续</span>
+      </FeedbackLine>
+      <FeedbackLine tone="warn">
+        <Check className="size-4" aria-hidden />
+        对了 <span className="text-muted-foreground">没有同时落下（126 毫秒）</span>
+      </FeedbackLine>
+      <FeedbackLine tone="warn">
+        <TriangleAlert className="size-4" aria-hidden />
+        整体高了 1 个八度：琴上的 OCTAVE 可能被改动了
+      </FeedbackLine>
     </div>
   );
 }
