@@ -22,7 +22,8 @@ export function ChordLibraryPage() {
   useDocumentTitle(t('chords.title'));
   const chords = BUILTIN_PACK.chords;
   const tentative = chords.filter((c) => c.reference.status === 'tentative');
-  const confirmed = chords.filter((c) => c.reference.status !== 'tentative');
+  const confirmed = chords.filter((c) => c.reference.status === 'confirmed');
+  const generated = chords.filter((c) => c.reference.status === 'generated');
   const groups: Group[] = [
     {
       id: 'triads',
@@ -33,6 +34,24 @@ export function ChordLibraryPage() {
       id: 'sevenths',
       title: t('chords.groupSevenths'),
       chords: confirmed.filter((c) => c.tones.length > 3),
+    },
+    {
+      id: 'generated-triads',
+      title: t('chords.groupGeneratedTriads'),
+      hint: t('chords.groupGeneratedHint'),
+      chords: generated.filter((c) => c.tones.length === 3 && c.bassName === undefined),
+    },
+    {
+      id: 'generated-sevenths',
+      title: t('chords.groupGeneratedSevenths'),
+      hint: t('chords.groupGeneratedHint'),
+      chords: generated.filter((c) => c.tones.length > 3 && c.bassName === undefined),
+    },
+    {
+      id: 'slash',
+      title: t('chords.groupSlash'),
+      hint: t('chords.groupSlashHint'),
+      chords: generated.filter((c) => c.bassName !== undefined),
     },
     {
       id: 'tentative',
@@ -98,6 +117,11 @@ function ChordCard({ chord, range }: { chord: ChordEntry; range: { low: number; 
         {chord.reference.status === 'tentative' && (
           <Badge variant="outline" className="border-warning/60 text-warning">
             {t('chords.tentative')}
+          </Badge>
+        )}
+        {chord.reference.status === 'generated' && (
+          <Badge variant="outline" className="text-muted-foreground">
+            {t('chords.generated')}
           </Badge>
         )}
       </div>

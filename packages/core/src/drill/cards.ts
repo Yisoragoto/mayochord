@@ -29,7 +29,27 @@ export interface TransitionCard {
   voicingMode: VoicingMode;
 }
 
-export type AnyCard = ChordCard | TransitionCard;
+/** 认音名：弹出任意八度的这个音 */
+export interface NoteCard {
+  kind: 'note';
+  id: string;
+  topicId: string | null;
+  /** 不带八度的音名（ASCII），例如 'Eb' */
+  note: string;
+}
+
+/** 音程：从 root 向上弹出 interval，例如 E 上方小二度（半音）= E F */
+export type IntervalName = 'm2' | 'M2' | 'm3' | 'M3' | 'P4' | 'P5';
+
+export interface IntervalCard {
+  kind: 'interval';
+  id: string;
+  topicId: string | null;
+  root: string;
+  interval: IntervalName;
+}
+
+export type AnyCard = ChordCard | TransitionCard | NoteCard | IntervalCard;
 
 export function chordCardId(
   chordId: string,
@@ -83,6 +103,28 @@ export function transitionCard(
   };
 }
 
+const slugNote = (name: string) => name.toLowerCase().replace('#', 's');
+
+export function noteCardId(note: string): string {
+  return `note:${slugNote(note)}`;
+}
+
+export function noteCard(note: string, topicId: string | null = null): NoteCard {
+  return { kind: 'note', id: noteCardId(note), topicId, note };
+}
+
+export function intervalCardId(root: string, interval: IntervalName): string {
+  return `interval:${slugNote(root)}:${interval}`;
+}
+
+export function intervalCard(
+  root: string,
+  interval: IntervalName,
+  topicId: string | null = null,
+): IntervalCard {
+  return { kind: 'interval', id: intervalCardId(root, interval), topicId, root, interval };
+}
+
 /** 一组和弦 → 每个和弦一张卡片（去重，保持顺序）。 */
 export function chordCardsFor(
   chordIds: readonly string[],
@@ -120,5 +162,7 @@ export function transitionCardsFor(
 
 /** 卡片涉及的和弦（用于"相邻两题不要是同一个和弦"等规则）。 */
 export function cardChords(card: AnyCard): string[] {
-  return card.kind === 'chord' ? [card.chordId] : [card.fromChordId, card.toChordId];
+  if (card.kind === 'chord') return [card.chordId];
+  if (card.kind === 'transition') return [card.fromChordId, card.toChordId];
+  return [];
 }

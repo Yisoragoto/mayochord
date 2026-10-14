@@ -11,12 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignRouteImport } from './routes/design'
+import { Route as GraphRouteImport } from './routes/graph'
 import { Route as MonitorRouteImport } from './routes/monitor'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ChordsIndexRouteImport } from './routes/chords/index'
 import { Route as ChordsChordIdRouteImport } from './routes/chords/$chordId'
+import { Route as LearnTopicIdRouteImport } from './routes/learn/$topicId'
 import { Route as PracticeIndexRouteImport } from './routes/practice/index'
 import { Route as PracticeSessionRouteImport } from './routes/practice/session'
+import { Route as ReviewTopicIdRouteImport } from './routes/review/$topicId'
+import { Route as TodayTaskTaskIdRouteImport } from './routes/today/task/$taskId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -26,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 const DesignRoute = DesignRouteImport.update({
   id: '/design',
   path: '/design',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GraphRoute = GraphRouteImport.update({
+  id: '/graph',
+  path: '/graph',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MonitorRoute = MonitorRouteImport.update({
@@ -48,6 +57,11 @@ const ChordsChordIdRoute = ChordsChordIdRouteImport.update({
   path: '/chords/$chordId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LearnTopicIdRoute = LearnTopicIdRouteImport.update({
+  id: '/learn/$topicId',
+  path: '/learn/$topicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PracticeIndexRoute = PracticeIndexRouteImport.update({
   id: '/practice/',
   path: '/practice/',
@@ -58,80 +72,118 @@ const PracticeSessionRoute = PracticeSessionRouteImport.update({
   path: '/practice/session',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReviewTopicIdRoute = ReviewTopicIdRouteImport.update({
+  id: '/review/$topicId',
+  path: '/review/$topicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TodayTaskTaskIdRoute = TodayTaskTaskIdRouteImport.update({
+  id: '/today/task/$taskId',
+  path: '/today/task/$taskId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
+  '/graph': typeof GraphRoute
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
+  '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
+  '/review/$topicId': typeof ReviewTopicIdRoute
   '/chords/': typeof ChordsIndexRoute
   '/practice/': typeof PracticeIndexRoute
+  '/today/task/$taskId': typeof TodayTaskTaskIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
+  '/graph': typeof GraphRoute
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
+  '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
+  '/review/$topicId': typeof ReviewTopicIdRoute
   '/chords': typeof ChordsIndexRoute
   '/practice': typeof PracticeIndexRoute
+  '/today/task/$taskId': typeof TodayTaskTaskIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
+  '/graph': typeof GraphRoute
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
+  '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
+  '/review/$topicId': typeof ReviewTopicIdRoute
   '/chords/': typeof ChordsIndexRoute
   '/practice/': typeof PracticeIndexRoute
+  '/today/task/$taskId': typeof TodayTaskTaskIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/design'
+    | '/graph'
     | '/monitor'
     | '/settings'
     | '/chords/$chordId'
+    | '/learn/$topicId'
     | '/practice/session'
+    | '/review/$topicId'
     | '/chords/'
     | '/practice/'
+    | '/today/task/$taskId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/design'
+    | '/graph'
     | '/monitor'
     | '/settings'
     | '/chords/$chordId'
+    | '/learn/$topicId'
     | '/practice/session'
+    | '/review/$topicId'
     | '/chords'
     | '/practice'
+    | '/today/task/$taskId'
   id:
     | '__root__'
     | '/'
     | '/design'
+    | '/graph'
     | '/monitor'
     | '/settings'
     | '/chords/$chordId'
+    | '/learn/$topicId'
     | '/practice/session'
+    | '/review/$topicId'
     | '/chords/'
     | '/practice/'
+    | '/today/task/$taskId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignRoute: typeof DesignRoute
+  GraphRoute: typeof GraphRoute
   MonitorRoute: typeof MonitorRoute
   SettingsRoute: typeof SettingsRoute
   ChordsChordIdRoute: typeof ChordsChordIdRoute
+  LearnTopicIdRoute: typeof LearnTopicIdRoute
   PracticeSessionRoute: typeof PracticeSessionRoute
+  ReviewTopicIdRoute: typeof ReviewTopicIdRoute
   ChordsIndexRoute: typeof ChordsIndexRoute
   PracticeIndexRoute: typeof PracticeIndexRoute
+  TodayTaskTaskIdRoute: typeof TodayTaskTaskIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -148,6 +200,13 @@ declare module '@tanstack/react-router' {
       path: '/design'
       fullPath: '/design'
       preLoaderRoute: typeof DesignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/graph': {
+      id: '/graph'
+      path: '/graph'
+      fullPath: '/graph'
+      preLoaderRoute: typeof GraphRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/monitor': {
@@ -178,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChordsChordIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/learn/$topicId': {
+      id: '/learn/$topicId'
+      path: '/learn/$topicId'
+      fullPath: '/learn/$topicId'
+      preLoaderRoute: typeof LearnTopicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/practice/': {
       id: '/practice/'
       path: '/practice'
@@ -192,18 +258,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticeSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/review/$topicId': {
+      id: '/review/$topicId'
+      path: '/review/$topicId'
+      fullPath: '/review/$topicId'
+      preLoaderRoute: typeof ReviewTopicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/today/task/$taskId': {
+      id: '/today/task/$taskId'
+      path: '/today/task/$taskId'
+      fullPath: '/today/task/$taskId'
+      preLoaderRoute: typeof TodayTaskTaskIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignRoute: DesignRoute,
+  GraphRoute: GraphRoute,
   MonitorRoute: MonitorRoute,
   SettingsRoute: SettingsRoute,
   ChordsChordIdRoute: ChordsChordIdRoute,
+  LearnTopicIdRoute: LearnTopicIdRoute,
   PracticeSessionRoute: PracticeSessionRoute,
+  ReviewTopicIdRoute: ReviewTopicIdRoute,
   ChordsIndexRoute: ChordsIndexRoute,
   PracticeIndexRoute: PracticeIndexRoute,
+  TodayTaskTaskIdRoute: TodayTaskTaskIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

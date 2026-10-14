@@ -1,3 +1,5 @@
+import type { DrillType } from '../drill/trial';
+
 /**
  * 85% 规则（规格 6.7，Wilson 等 2019）：根据最近 window 题的正确率调整时限，目标约 85%。
  * 正确率高于 high → 收紧（时限 × tightenFactor）；低于 low → 放宽（× loosenFactor）。
@@ -34,12 +36,11 @@ const BASE = {
 } as const;
 
 /** 各练习类型的默认参数与初始时限 */
-export const DEFAULT_ADAPTIVE: Record<
-  'name-to-chord' | 'transition',
-  { params: AdaptiveParams; initialMs: number }
-> = {
+export const DEFAULT_ADAPTIVE: Record<DrillType, { params: AdaptiveParams; initialMs: number }> = {
   'name-to-chord': { params: { ...BASE, minMs: 1500, maxMs: 15000 }, initialMs: 6000 },
   transition: { params: { ...BASE, minMs: 1000, maxMs: 12000 }, initialMs: 5000 },
+  'name-to-note': { params: { ...BASE, minMs: 1000, maxMs: 10000 }, initialMs: 4000 },
+  interval: { params: { ...BASE, minMs: 1500, maxMs: 12000 }, initialMs: 5000 },
 };
 
 export function initialAdaptiveState(initialMs: number): AdaptiveState {

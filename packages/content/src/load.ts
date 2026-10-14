@@ -1,16 +1,30 @@
 import {
+  type AnyCard,
+  buildTopicGraph,
   type ChordQuality,
   type ChordSymbol,
+  chordCard,
   chordTones,
+  closeVoicing,
   type Finger,
   type Hand,
+  intervalCard,
   nameToMidi,
+  noteCard,
   symbolFromNames,
+  type TopicGraph,
+  type TopicNode,
+  transitionCardsFor,
   type VoicedNote,
   type Voicing,
 } from '@mayochord/core';
 import type { z } from 'zod';
-import { type ContentPackData, ContentPackSchema, type I18nText } from './schema/pack';
+import {
+  type ContentPackData,
+  ContentPackSchema,
+  type I18nText,
+  type LessonData,
+} from './schema/pack';
 
 export interface ChordEntry {
   id: string;
@@ -32,6 +46,16 @@ export interface ProgressionEntry {
   steps: { chord: ChordEntry; voicing: Voicing; beats: number }[];
 }
 
+/** 知识图谱里的一个主题（已解析出卡片） */
+export interface TopicEntry extends TopicNode {
+  title: I18nText;
+  summary: I18nText;
+  /** 这个主题练习的卡片（topicId 指向本主题） */
+  cards: AnyCard[];
+  /** 卡片的判定方式：练习内容里的 voicingMode（认音名、音程题为 any） */
+  lesson: LessonData;
+}
+
 export interface LoadedPack {
   id: string;
   version: string;
@@ -43,6 +67,13 @@ export interface LoadedPack {
   progressionById: ReadonlyMap<string, ProgressionEntry>;
   /** 每个键位的设计说明（例如"待确认"的原因） */
   voicingNotes: ReadonlyMap<string, I18nText>;
+  topics: TopicEntry[];
+  topicById: ReadonlyMap<string, TopicEntry>;
+  graph: TopicGraph<TopicEntry>;
+  /** 所有主题里的卡片 */
+  cardById: ReadonlyMap<string, AnyCard>;
+  /** 卡片 → 包含它的主题 */
+  topicsOfCard: ReadonlyMap<string, readonly string[]>;
 }
 
 export type LoadResult = { ok: true; pack: LoadedPack } | { ok: false; issues: z.core.$ZodIssue[] };
@@ -69,11 +100,25 @@ export function loadContentPack(input: unknown): LoadResult {
   const voicingNotes = new Map<string, I18nText>();
   for (const v of data.voicings) if (v.note) voicingNotes.set(v.id, v.note);
 
+  // 没有给键位的和弦：自动生成密集排列的参考键位
+  for (const c of data.chords) {
+    if (data.voicings.some((v) => v.chordId === c.id)) continue;
+    const id = `${c.id}-ref`;
+    voicingById.set(id, {
+      id,
+      chordId: c.id,
+      notes: closeVoicing(c.root, c.quality, c.bass),
+      status: 'generated',
+    });
+  }
+
   const chords: ChordEntry[] = data.chords.map((c) => {
-    const voicings = data.voicings
-      .filter((v) => v.chordId === c.id)
-      .map((v) => voicingById.get(v.id) as Voicing);
-    const refId = data.voicings.find((v) => v.chordId === c.id && v.reference)?.id as string;
+    const own = data.voicings.filter((v) => v.chordId === c.id);
+    const voicings =
+      own.length > 0
+        ? own.map((v) => voicingById.get(v.id) as Voicing)
+        : [voicingById.get(`${c.id}-ref`) as Voicing];
+    const refId = own.length > 0 ? (own.find((v) => v.reference)?.id as string) : `${c.id}-ref`;
     const entry: ChordEntry = {
       id: c.id,
       rootName: c.root,
@@ -103,6 +148,60 @@ export function loadContentPack(input: unknown): LoadResult {
     return entry;
   });
 
+  const progressionById = new Map(progressions.map((p) => [p.id, p]));
+  const topics: TopicEntry[] = data.topics.map((t) => {
+    const pr = t.practice;
+    let cards: AnyCard[];
+    switch (pr.kind) {
+      case 'notes':
+        cards = pr.notes.map((n) => noteCard(n, t.id));
+        break;
+      case 'intervals':
+        cards = pr.items.map((i) => intervalCard(i.root, i.interval, t.id));
+        break;
+      case 'chords':
+        cards = [...new Set(pr.chords)].map((id) =>
+          chordCard(id, { voicingMode: pr.voicingMode, topicId: t.id }),
+        );
+        break;
+      case 'transitions': {
+        const seen = new Set<string>();
+        cards = pr.progressions
+          .flatMap((pid) =>
+            transitionCardsFor(
+              (progressionById.get(pid) as ProgressionEntry).steps.map((s) => s.chord.id),
+              { cyclic: true, voicingMode: pr.voicingMode, topicId: t.id },
+            ),
+          )
+          .filter((c) => {
+            if (seen.has(c.id)) return false;
+            seen.add(c.id);
+            return true;
+          });
+        break;
+      }
+    }
+    const entry: TopicEntry = {
+      id: t.id,
+      title: t.title,
+      summary: t.summary,
+      prerequisites: t.prerequisites,
+      encompasses: t.encompasses,
+      cards,
+      lesson: t.lesson,
+    };
+    if (t.interferenceGroup !== undefined) entry.interferenceGroup = t.interferenceGroup;
+    return entry;
+  });
+  const cardById = new Map<string, AnyCard>();
+  const topicsOfCard = new Map<string, string[]>();
+  for (const t of topics) {
+    for (const c of t.cards) {
+      if (!cardById.has(c.id)) cardById.set(c.id, c);
+      topicsOfCard.set(c.id, [...(topicsOfCard.get(c.id) ?? []), t.id]);
+    }
+  }
+
   return {
     ok: true,
     pack: {
@@ -113,8 +212,13 @@ export function loadContentPack(input: unknown): LoadResult {
       chordById,
       voicingById,
       progressions,
-      progressionById: new Map(progressions.map((p) => [p.id, p])),
+      progressionById,
       voicingNotes,
+      topics,
+      topicById: new Map(topics.map((t) => [t.id, t])),
+      graph: buildTopicGraph(topics),
+      cardById,
+      topicsOfCard,
     },
   };
 }

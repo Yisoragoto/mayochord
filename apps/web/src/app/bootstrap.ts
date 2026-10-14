@@ -5,6 +5,7 @@ import { startComputerKeyboard, useComputerKeyboard } from '@/input/computer-key
 import { inputHub } from '@/input/hub';
 import { liveInput } from '@/input/live';
 import { useMidi, webMidi } from '@/input/webmidi';
+import { setClockOffsetDays } from '@/lib/clock';
 import { tryRepositories } from '@/storage';
 import { bindAppearanceToDocument } from '@/stores/appearance';
 import { loadSettings, useSettings } from '@/stores/settings';
@@ -56,6 +57,7 @@ export function bootstrap() {
       liveInput.setOptions(settings);
     }
     webMidi.setPreferredName(settings.preferredInputName);
+    setClockOffsetDays(settings.devClockOffsetDays);
     prev = settings;
   });
 
@@ -76,6 +78,7 @@ export function bootstrap() {
         const { settings } = useSettings.getState();
         liveInput.setOptions(settings);
         webMidi.setPreferredName(settings.preferredInputName);
+        setClockOffsetDays(settings.devClockOffsetDays);
       })
       .catch(() => useSettings.setState({ loaded: true }));
   } else {

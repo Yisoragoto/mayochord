@@ -6,6 +6,7 @@ import {
   chordTones,
   nameToMidi,
   parseNoteName,
+  validateTopicGraph,
 } from '@mayochord/core';
 import { z } from 'zod';
 
@@ -66,6 +67,79 @@ export const ProgressionSchema = z.object({
   description: I18nTextSchema.optional(),
 });
 
+/** 课程讲解里的一步：文字 + 可选的键盘示范 */
+export const ExplainStepSchema = z.object({
+  text: I18nTextSchema,
+  demo: z
+    .object({
+      /** 在键盘上标出的音（带八度） */
+      notes: z.array(NoteName).min(1).optional(),
+      /** 或者直接示范一个和弦的参考键位 */
+      chord: ID.optional(),
+      /** 键上的数字：semitones = 从第一个音数半音（0、1、2…）；fingers = 指法 */
+      labels: z.enum(['semitones', 'fingers', 'none']).default('fingers'),
+      /** 播放方式 */
+      play: z.enum(['together', 'arpeggio', 'none']).default('together'),
+    })
+    .optional(),
+});
+
+const IntervalNameSchema = z.enum(['m2', 'M2', 'm3', 'M3', 'P4', 'P5']);
+
+/** 主题的练习内容：生成哪些卡片 */
+export const TopicPracticeSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('notes'), notes: z.array(PitchName).min(1) }),
+  z.object({
+    kind: z.literal('intervals'),
+    items: z.array(z.object({ root: PitchName, interval: IntervalNameSchema })).min(1),
+  }),
+  z.object({
+    kind: z.literal('chords'),
+    chords: z.array(ID).min(1),
+    voicingMode: z.enum(['any', 'reference']).default('any'),
+  }),
+  z.object({
+    kind: z.literal('transitions'),
+    /** 用这些进行里相邻和弦的切换（循环） */
+    progressions: z.array(ID).min(1),
+    voicingMode: z.enum(['any', 'reference']).default('any'),
+  }),
+]);
+
+/** 课程结构（规格 6.2）：讲解示范 → 引导练习 → 独立练习 → 掌握检查 */
+export const LessonSchema = z.object({
+  explain: z.array(ExplainStepSchema).min(1),
+  /** 引导练习：显示键位，每张卡弹一次（最多 count 张） */
+  guided: z.object({ count: z.number().int().min(1).default(6) }).default({ count: 6 }),
+  /** 独立练习：不显示提示，弹对 requiredCorrect 次 */
+  independent: z
+    .object({ requiredCorrect: z.number().int().min(1).default(8) })
+    .default({ requiredCorrect: 8 }),
+  /** 掌握检查：限时、无提示 */
+  mastery: z
+    .object({
+      questions: z.number().int().min(1).default(8),
+      minAccuracy: z.number().min(0).max(1).default(0.85),
+      timeLimitMs: z.number().int().min(1000).default(6000),
+    })
+    .default({ questions: 8, minAccuracy: 0.85, timeLimitMs: 6000 }),
+  /** 预计时长（分钟），每日任务编排用 */
+  minutes: z.number().positive().default(8),
+});
+
+export const TopicSchema = z.object({
+  id: ID,
+  title: I18nTextSchema,
+  summary: I18nTextSchema,
+  prerequisites: z.array(ID).default([]),
+  /** 包含关系与权重（隐式重复）。默认不设 = 0，只给确实相关的关系设置 */
+  encompasses: z.array(z.object({ topicId: ID, weight: z.number().min(0).max(1) })).default([]),
+  /** 同组的新主题不在同一天引入（例如 M7 与 7） */
+  interferenceGroup: z.string().optional(),
+  practice: TopicPracticeSchema,
+  lesson: LessonSchema,
+});
+
 const ContentPackBase = z.object({
   id: ID,
   version: z.string().regex(/^\d+\.\d+\.\d+$/, '版本号应为 semver，例如 1.0.0'),
@@ -74,6 +148,8 @@ const ContentPackBase = z.object({
   chords: z.array(ChordSchema),
   voicings: z.array(VoicingSchema),
   progressions: z.array(ProgressionSchema),
+  /** 知识图谱的主题节点（M3 起） */
+  topics: z.array(TopicSchema).default([]),
 });
 
 type PackInput = z.infer<typeof ContentPackBase>;
@@ -146,11 +222,43 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
     });
   });
 
+  // 没有给键位的和弦由 closeVoicing 自动生成参考键位；给了键位的必须恰好一个参考键位
   for (const c of pack.chords) {
-    const refs = pack.voicings.filter((v) => v.chordId === c.id && v.reference);
-    if (refs.length !== 1)
+    const own = pack.voicings.filter((v) => v.chordId === c.id);
+    const refs = own.filter((v) => v.reference);
+    if (own.length > 0 && refs.length !== 1)
       issue(['voicings'], `和弦 ${c.id} 应恰好有一个参考键位，现有 ${refs.length} 个`);
   }
+
+  const progressionIds = new Set(pack.progressions.map((p) => p.id));
+  for (const id of duplicates(pack.topics.map((t) => t.id))) issue(['topics'], `重复的 ID：${id}`);
+  const nodes = pack.topics.map((t) => ({
+    id: t.id,
+    prerequisites: t.prerequisites,
+    encompasses: t.encompasses,
+  }));
+  for (const msg of validateTopicGraph(nodes)) issue(['topics'], msg);
+  pack.topics.forEach((t, i) => {
+    const pr = t.practice;
+    if (pr.kind === 'chords') {
+      pr.chords.forEach((id, j) => {
+        if (!chords.has(id)) issue(['topics', i, 'practice', 'chords', j], `不存在的和弦：${id}`);
+      });
+    }
+    if (pr.kind === 'transitions') {
+      pr.progressions.forEach((id, j) => {
+        if (!progressionIds.has(id)) {
+          issue(['topics', i, 'practice', 'progressions', j], `不存在的进行：${id}`);
+        }
+      });
+    }
+    t.lesson.explain.forEach((step, j) => {
+      const chord = step.demo?.chord;
+      if (chord !== undefined && !chords.has(chord)) {
+        issue(['topics', i, 'lesson', 'explain', j, 'demo', 'chord'], `不存在的和弦：${chord}`);
+      }
+    });
+  });
 
   pack.progressions.forEach((p, i) => {
     p.steps.forEach((s, j) => {
@@ -172,3 +280,6 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
 export const ContentPackSchema = ContentPackBase.superRefine(crossCheck);
 export type ContentPackData = z.infer<typeof ContentPackSchema>;
 export type I18nText = z.infer<typeof I18nTextSchema>;
+export type TopicData = z.infer<typeof TopicSchema>;
+export type LessonData = z.infer<typeof LessonSchema>;
+export type ExplainStep = z.infer<typeof ExplainStepSchema>;

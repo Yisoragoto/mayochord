@@ -22,6 +22,14 @@ export const SettingsSchema = z.object({
   onscreenSound: z.boolean().catch(true),
   /** 练习时答对、答错的提示音 */
   feedbackSound: z.boolean().catch(false),
+  /** 每天的练习时长目标（分钟），每日任务按它编排 */
+  dailyMinutes: z.number().int().min(5).max(180).catch(30),
+  /** 每日 XP 目标 */
+  dailyXpGoal: z.number().int().min(1).max(200).catch(20),
+  /** 每天最多开始几节新课 */
+  newTopicsPerDay: z.number().int().min(0).max(5).catch(2),
+  /** 开发用：模拟时间前进的天数（只在开发服务器里生效） */
+  devClockOffsetDays: z.number().int().min(0).max(3650).catch(0),
   /** 上次手动选择的 MIDI 输入设备名 */
   preferredInputName: z.string().nullable().catch(null),
 });

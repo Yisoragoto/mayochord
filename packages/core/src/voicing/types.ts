@@ -9,7 +9,8 @@ export interface VoicedNote {
   finger?: Finger;
 }
 
-export type VoicingStatus = 'confirmed' | 'tentative';
+/** generated = 内容包没有给键位，按 closeVoicing 自动生成 */
+export type VoicingStatus = 'confirmed' | 'tentative' | 'generated';
 
 export interface Voicing {
   id: string;

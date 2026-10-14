@@ -52,7 +52,64 @@ describe('内置内容包', () => {
   it('通过校验，格式版本正确', () => {
     expect(builtin.schemaVersion).toBe(CONTENT_SCHEMA_VERSION);
     expect(BUILTIN_PACK.id).toBe('mayochord-core');
-    expect(BUILTIN_PACK.chords).toHaveLength(16);
+    expect(BUILTIN_PACK.chords).toHaveLength(47);
+    // 第 11 节的 11 个和弦 + 5 个就近转位推导的键位是写好的，其余自动生成
+    const written = BUILTIN_PACK.chords.filter((c) => c.reference.status !== 'generated');
+    expect(written).toHaveLength(16);
+  });
+
+  it('没有给键位的和弦：自动生成密集排列的参考键位', () => {
+    const eb = BUILTIN_PACK.chordById.get('eb');
+    expect(eb?.reference).toMatchObject({ id: 'eb-ref', status: 'generated' });
+    expect(eb?.reference.notes.map((n) => n.name)).toEqual(['Eb3', 'Eb4', 'G4', 'Bb4']);
+    expect(BUILTIN_PACK.chordById.get('c-on-e')?.reference.notes.map((n) => n.name)).toEqual([
+      'E3',
+      'E4',
+      'G4',
+      'C5',
+    ]);
+  });
+
+  it('知识图谱：18 个主题，先修关系无环，卡片由练习内容生成', () => {
+    const { graph, topicById, cardById, topicsOfCard } = BUILTIN_PACK;
+    expect(BUILTIN_PACK.topics).toHaveLength(18);
+    expect(graph.order[0]).toBe('keyboard-names');
+    expect(graph.order.indexOf('c-major-triads')).toBeGreaterThan(
+      graph.order.indexOf('minor-triad-formula'),
+    );
+    expect(topicById.get('keyboard-names')?.cards).toHaveLength(12);
+    expect(topicById.get('keyboard-names')?.cards[0]).toMatchObject({
+      kind: 'note',
+      id: 'note:c',
+      topicId: 'keyboard-names',
+    });
+    expect(topicById.get('thirds')?.cards[0]?.id).toBe('interval:c:M3');
+    expect(topicById.get('triads-12-keys')?.cards).toHaveLength(24);
+    // 两条进行的切换合在一起去重
+    expect(topicById.get('royal-road')?.cards.map((c) => c.id)).toEqual([
+      'transition:f>g:reference',
+      'transition:g>em:reference',
+      'transition:em>am:reference',
+      'transition:am>f:reference',
+      'transition:c>d:reference',
+      'transition:d>bm:reference',
+      'transition:bm>em:reference',
+      'transition:em>c:reference',
+    ]);
+    expect(topicById.get('maj7-formula')?.interferenceGroup).toBe('seventh-quality');
+    // 同一张卡片可以属于多个主题
+    expect(topicsOfCard.get('chord:c:name:any')).toEqual([
+      'major-triad-formula',
+      'c-major-triads',
+      'triads-12-keys',
+    ]);
+    expect(cardById.get('chord:c:name:any')?.topicId).toBe('major-triad-formula');
+    // 课程默认值
+    expect(topicById.get('maj7-formula')?.lesson).toMatchObject({
+      guided: { count: 6 },
+      independent: { requiredCorrect: 8 },
+      mastery: { questions: 8, minAccuracy: 0.85, timeLimitMs: 6000 },
+    });
   });
 
   it('参考键位与规格第 11 节的表格完全一致', () => {
@@ -126,7 +183,7 @@ describe('内置内容包', () => {
     expect(BUILTIN_PACK.progressionById.get('marusa')?.steps.map((s) => s.beats)).toEqual([
       4, 4, 4, 2, 2,
     ]);
-    expect(BUILTIN_PACK.voicingById.size).toBe(16);
+    expect(BUILTIN_PACK.voicingById.size).toBe(47);
   });
 });
 
@@ -184,6 +241,34 @@ describe('内容包校验', () => {
     });
     expect(missing.join()).toContain('不存在的和弦：zz');
     expect(missing.join()).toContain('不存在的键位：zz');
+  });
+
+  it('知识图谱的引用与环', () => {
+    type Topic = (typeof builtin.topics)[number];
+    const topic = (p: typeof builtin, id: string) => p.topics.find((t) => t.id === id) as Topic;
+    expect(
+      variant((p) => (topic(p, 'thirds').prerequisites as string[]).push('nope')).join(),
+    ).toContain('thirds 的先修主题不存在：nope');
+    expect(
+      variant((p) => (topic(p, 'keyboard-names').prerequisites as string[]).push('marusa')).join(),
+    ).toContain('先修关系有环');
+    expect(
+      variant((p) => {
+        (topic(p, 'c-major-triads').practice as { chords: string[] }).chords.push('zz');
+      }).join(),
+    ).toContain('不存在的和弦：zz');
+    expect(
+      variant((p) => {
+        (topic(p, 'marusa').practice as { progressions: string[] }).progressions.push('zz');
+      }).join(),
+    ).toContain('不存在的进行：zz');
+    expect(
+      variant((p) => {
+        const step = topic(p, 'marusa').lesson.explain[0] as { demo: { chord: string } };
+        step.demo.chord = 'zz';
+      }).join(),
+    ).toContain('不存在的和弦：zz');
+    expect(variant((p) => p.topics.push(topic(p, 'marusa'))).join()).toContain('重复的 ID：marusa');
   });
 
   it('基础字段错误', () => {

@@ -1,5 +1,5 @@
 import { Link, useMatches } from '@tanstack/react-router';
-import { Activity, CalendarCheck2, Dumbbell, Library, Settings } from 'lucide-react';
+import { Activity, CalendarCheck2, Dumbbell, Library, Network, Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TooltipProvider } from '@/design/ui/tooltip';
@@ -7,11 +7,12 @@ import { Wordmark } from '@/design/Wordmark';
 import { ThemeSwitcher } from './ThemeSwitcher';
 
 const NAV = [
-  { to: '/', key: 'today', icon: CalendarCheck2 },
-  { to: '/practice', key: 'practice', icon: Dumbbell },
-  { to: '/chords', key: 'chords', icon: Library },
-  { to: '/monitor', key: 'monitor', icon: Activity },
-  { to: '/settings', key: 'settings', icon: Settings },
+  { to: '/', key: 'today', icon: CalendarCheck2, mobile: true },
+  { to: '/graph', key: 'graph', icon: Network, mobile: true },
+  { to: '/practice', key: 'practice', icon: Dumbbell, mobile: true },
+  { to: '/chords', key: 'chords', icon: Library, mobile: true },
+  { to: '/monitor', key: 'monitor', icon: Activity, mobile: false },
+  { to: '/settings', key: 'settings', icon: Settings, mobile: true },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -44,9 +45,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={to}
                 className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground data-[status=active]:bg-surface-2 data-[status=active]:text-foreground"
                 activeOptions={{ exact: to === '/' }}
+                title={t(`nav.${key}`)}
               >
                 <Icon className="size-4" aria-hidden />
-                {t(`nav.${key}`)}
+                {/* 平板宽度只显示图标，lg 起显示文字 */}
+                <span className="sr-only lg:not-sr-only">{t(`nav.${key}`)}</span>
               </Link>
             ))}
           </nav>
@@ -69,7 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden"
       >
         <ul className="grid grid-cols-5">
-          {NAV.map(({ to, key, icon: Icon }) => (
+          {NAV.filter((n) => n.mobile).map(({ to, key, icon: Icon }) => (
             <li key={to}>
               <Link
                 to={to}

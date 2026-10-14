@@ -16,6 +16,8 @@ export interface SessionParams {
   reinsertMax: number;
   /** 一张新卡在一轮里集中练的最多次数（练不会也先放一放） */
   maxFocusReps: number;
+  /** 答错的卡是否在几题后重做（掌握检查、测验里不重做） */
+  retryWrong: boolean;
 }
 
 export const DEFAULT_SESSION: SessionParams = {
@@ -23,6 +25,7 @@ export const DEFAULT_SESSION: SessionParams = {
   reinsertMin: 3,
   reinsertMax: 5,
   maxFocusReps: 6,
+  retryWrong: true,
 };
 
 export type PlanReason = 'focus' | 'ordered' | 'mixed' | 'retry';
@@ -55,7 +58,35 @@ export function shuffle<T>(xs: readonly T[], rng: Rng): T[] {
   return out;
 }
 
-export class PracticeSession {
+/** 出题器接口：练习会话、课程的引导练习等都实现它 */
+export interface SessionPlanner {
+  readonly length: number;
+  readonly completed: number;
+  next(): PlannedItem | null;
+  record(cardId: string, progress: CardProgress, correct: boolean): void;
+}
+
+/** 按给定顺序每张卡出一次（课程的引导练习） */
+export class SequentialSession implements SessionPlanner {
+  private i = 0;
+  private done = 0;
+  constructor(private readonly cards: readonly AnyCard[]) {}
+  get length() {
+    return this.cards.length;
+  }
+  get completed() {
+    return this.done;
+  }
+  next(): PlannedItem | null {
+    const card = this.cards[this.i++];
+    return card ? { card, reason: 'ordered' } : null;
+  }
+  record() {
+    this.done++;
+  }
+}
+
+export class PracticeSession implements SessionPlanner {
   private readonly cards: readonly AnyCard[];
   private readonly byId: Map<string, AnyCard>;
   private readonly phases = new Map<string, CardPhase>();
@@ -196,7 +227,7 @@ export class PracticeSession {
       return;
     }
 
-    if (!correct && !this.retries.some((r) => r.cardId === cardId)) {
+    if (this.params.retryWrong && !correct && !this.retries.some((r) => r.cardId === cardId)) {
       const { reinsertMin: lo, reinsertMax: hi } = this.params;
       const gap = lo + Math.floor(this.rng() * (hi - lo + 1));
       this.retries.push({ cardId, at: this.served + gap });

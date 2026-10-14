@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/design/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
 import { MidiConnectButton } from '@/features/midi/MidiDevicePanel';
+import { ShortTapNotice } from '@/features/practice/SessionRunner';
 import { sourceKind } from '@/input/hub';
 import { liveInput, useLiveInput } from '@/input/live';
 import { PlayableKeyboard, releaseOnscreenNotes } from '@/input/PlayableKeyboard';
@@ -51,7 +52,12 @@ export function TrialPanel({ chord }: { chord: ChordEntry }) {
   useEffect(
     () =>
       liveInput.onAttempt((attempt) => {
-        const judge = judgeNotes(attempt.notes, target, mode);
+        // 斜杠和弦的宽松判定也要求最低音正确
+        const judge = judgeNotes(
+          attempt.notes,
+          target,
+          mode === 'loose' && chord.bassName !== undefined ? 'bass' : mode,
+        );
         const notes = useLiveInput.getState().notes;
         setResult((prev) => ({
           id: (prev?.id ?? 0) + 1,
@@ -63,7 +69,7 @@ export function TrialPanel({ chord }: { chord: ChordEntry }) {
           ),
         }));
       }),
-    [target, mode],
+    [target, mode, chord.bassName],
   );
 
   const marks = result
@@ -113,6 +119,13 @@ export function TrialPanel({ chord }: { chord: ChordEntry }) {
       <>
         <X className="size-5 shrink-0" aria-hidden />
         <span className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
+          {result.judge.wrongBass && (
+            <span>
+              {t('practice.wrongBass', {
+                note: prettyAccidentals(chord.bassName ?? chord.rootName),
+              })}
+            </span>
+          )}
           {result.judge.missing.length > 0 && (
             <span>{t('chords.missing', { notes: names(result.judge.missing) })}</span>
           )}
@@ -184,6 +197,7 @@ export function TrialPanel({ chord }: { chord: ChordEntry }) {
           </motion.span>
         </AnimatePresence>
       </div>
+      <ShortTapNotice active />
 
       <div className="mx-auto max-w-4xl overflow-x-auto">
         <PlayableKeyboard

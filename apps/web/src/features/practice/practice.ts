@@ -4,6 +4,7 @@ import { useStore } from 'zustand';
 import { playFeedbackSound } from '@/audio/feedback-sound';
 import { liveInput, useLiveInput } from '@/input/live';
 import { releaseOnscreenNotes } from '@/input/PlayableKeyboard';
+import { dayParams, wallNow } from '@/lib/clock';
 import { uuid } from '@/lib/uuid';
 import { tryRepositories } from '@/storage';
 import { useSettings } from '@/stores/settings';
@@ -17,15 +18,16 @@ export const practice = new PracticeController({
   pack: BUILTIN_PACK,
   groups: PRACTICE_GROUPS,
   repos: tryRepositories,
-  strategy: () =>
-    createDefaultStrategy({
-      progress: { day: { dayStartHour: 4, tzOffsetMinutes: new Date().getTimezoneOffset() } },
-    }),
+  strategy: () => createDefaultStrategy({ progress: { day: dayParams() } }),
   onAttempt: (cb) => liveInput.onAttempt(cb),
+  onNoteOn: (cb) =>
+    liveInput.onEvent((e) => {
+      if (e.kind === 'noteOn') cb(e.note, e.t);
+    }),
   heldNow: () => useLiveInput.getState().held,
   onsetWindowMs: () => useSettings.getState().settings.onsetWindowMs,
   now: () => performance.now(),
-  wallNow: () => Date.now(),
+  wallNow,
   uuid,
   nextDelayMs: (firstTryCorrect) => (firstTryCorrect ? 650 : 900),
   onTrialDone: (state) => {

@@ -37,11 +37,25 @@ function CardChords({ cardId }: { cardId: string }) {
 const sec = (ms: number) => (ms / 1000).toFixed(2);
 
 /** 轮次总结（规格 6.7）：正确率、最慢的和弦、最慢的切换、齐整度。 */
-export function SessionSummaryView({ onAgain }: { onAgain: () => void }) {
+export function SessionSummaryView({
+  onAgain,
+  againLabel,
+  backTo = '/practice',
+  backLabel,
+  children,
+}: {
+  onAgain: () => void;
+  againLabel?: string | undefined;
+  backTo?: '/practice' | '/';
+  backLabel?: string;
+  /** 额外内容（例如复习后各主题的结果） */
+  children?: ReactNode;
+}) {
   const { t } = useTranslation();
   const reduce = useReducedMotion();
   const summary = usePractice((v) => v.summary);
   const saveError = usePractice((v) => v.saveError);
+  const xp = usePractice((v) => v.xp);
   if (!summary) return null;
   const pct = Math.round(summary.accuracy * 100);
 
@@ -67,6 +81,7 @@ export function SessionSummaryView({ onAgain }: { onAgain: () => void }) {
       >
         <p className="font-mono text-xs tracking-[0.2em] text-primary uppercase">
           {t('practice.answered', { n: summary.total })}
+          {xp > 0 && ` · ${t('learn.xpEarned', { xp: xp.toFixed(1) })}`}
         </p>
         <h1 className="font-cjk-heading text-2xl font-semibold tracking-tight sm:text-3xl">
           {t('practice.summaryTitle')}
@@ -131,15 +146,17 @@ export function SessionSummaryView({ onAgain }: { onAgain: () => void }) {
         </>
       )}
 
+      {children}
+
       {saveError && <p className="text-sm text-warning">{t('practice.saveError')}</p>}
 
       <div className="flex flex-wrap gap-3">
         <Button size="lg" onClick={onAgain}>
           <RotateCcw />
-          {t('practice.again')}
+          {againLabel ?? t('practice.again')}
         </Button>
         <Button size="lg" variant="outline" asChild>
-          <Link to="/practice">{t('practice.changeSetup')}</Link>
+          <Link to={backTo}>{backLabel ?? t('practice.changeSetup')}</Link>
         </Button>
       </div>
     </div>

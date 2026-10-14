@@ -92,6 +92,11 @@ function ChordDetail({ chord }: { chord: ChordEntry }) {
                 {t('chords.tentative')}
               </Badge>
             )}
+            {ref.status === 'generated' && (
+              <Badge variant="outline" className="mb-3 text-muted-foreground">
+                {t('chords.generated')}
+              </Badge>
+            )}
           </div>
 
           <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-[auto_1fr]">

@@ -1,5 +1,6 @@
 export * from './drill';
 export * from './grading';
+export * from './graph';
 export * from './input';
 export * from './log';
 export * from './recognition';

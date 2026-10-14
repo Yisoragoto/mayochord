@@ -1,7 +1,13 @@
 import { MayoChordDB } from './db';
 import { createDexieRepositories, type Repositories } from './repositories';
 
-export type { CalibrationRecord, SessionRecord } from './db';
+export type {
+  CalibrationRecord,
+  DailyPlanRecord,
+  SessionRecord,
+  StoredTask,
+  TaskStatus,
+} from './db';
 export type * from './repositories';
 
 let instance: { db: MayoChordDB; repos: Repositories } | null = null;

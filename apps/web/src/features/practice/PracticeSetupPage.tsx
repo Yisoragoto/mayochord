@@ -20,6 +20,7 @@ import { tryRepositories } from '@/storage';
 import { phaseCounts } from './controller';
 import { cardsForGroup, type PracticeGroup } from './groups';
 import { PRACTICE_GROUPS } from './practice';
+import type { PracticeSearch } from './search';
 
 const LENGTHS = [10, 20, 30] as const;
 
@@ -74,7 +75,7 @@ export function PracticeSetupPage() {
   const { t, i18n } = useTranslation();
   useDocumentTitle(t('practice.title'));
   const [groupId, setGroupId] = useState(PRACTICE_GROUPS[0]?.id ?? 'all');
-  const [drill, setDrill] = useState<DrillType>('name-to-chord');
+  const [drill, setDrill] = useState<PracticeSearch['drill']>('name-to-chord');
   const [mode, setMode] = useState<VoicingMode>('any');
   const [length, setLength] = useState<number>(20);
   const progress = useGroupProgress(drill, mode);
@@ -161,7 +162,7 @@ export function PracticeSetupPage() {
             <ToggleGroup
               type="single"
               value={drill}
-              onValueChange={(v) => v && setDrill(v as DrillType)}
+              onValueChange={(v) => v && setDrill(v as PracticeSearch['drill'])}
               aria-label={t('practice.drill')}
               className="w-full rounded-md border border-border p-0.5"
             >

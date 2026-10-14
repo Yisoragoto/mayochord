@@ -6,6 +6,7 @@ import { inputHub } from './hub';
 import { useLiveInput } from './live';
 
 const SOURCE = 'onscreen';
+const EMPTY: ReadonlySet<number> = new Set();
 
 export interface PlayableKeyboardProps {
   low: number;
@@ -14,6 +15,11 @@ export interface PlayableKeyboardProps {
   labels?: 'none' | 'c' | 'all';
   /** 在键上显示电脑键盘对应的字母（电脑键盘弹奏开启时） */
   showComputerHints?: boolean;
+  /**
+   * 不显示按下的键（练习里"反馈逐渐减少"：熟练的卡判定前不给实时反馈）。
+   * 点击切换模式下仍然显示，否则看不出哪些键被点下了。
+   */
+  hidePressed?: boolean;
   className?: string;
   'aria-label'?: string;
 }
@@ -37,6 +43,7 @@ export function PlayableKeyboard({
   marks,
   labels = 'c',
   showComputerHints = false,
+  hidePressed = false,
   className,
   'aria-label': ariaLabel,
 }: PlayableKeyboardProps) {
@@ -103,7 +110,7 @@ export function PlayableKeyboard({
   const props = {
     low,
     high,
-    pressed,
+    pressed: hidePressed && mode === 'momentary' ? EMPTY : pressed,
     labels,
     onPress,
     onRelease,

@@ -126,6 +126,32 @@ describe('AttemptTracker', () => {
     });
   });
 
+  it('按得太短：按下的音在稳定前都松开了 → 没有尝试，记一次 shortTap', () => {
+    const tr = new AttemptTracker();
+    tr.push(on(60, 0));
+    tr.push(off(60, 80));
+    expect(tr.poll(300)).toBeNull();
+    expect(tr.takeShortTap()).toEqual({ notes: [60], t: 300 });
+    expect(tr.takeShortTap()).toBeNull();
+    // 按稳了再松开：正常的尝试，不是太短
+    tr.push(on(62, 1000));
+    expect(tr.push(off(62, 1300))?.notes).toEqual([62]);
+    expect(tr.poll(2000)).toBeNull();
+    expect(tr.takeShortTap()).toBeNull();
+    // 按住和弦时短按一个音：也算太短
+    tr.push(on(64, 3000));
+    tr.poll(3200);
+    tr.push(on(67, 3300));
+    tr.push(off(67, 3350));
+    tr.poll(3600);
+    expect(tr.takeShortTap()?.notes).toEqual([67]);
+    tr.push(on(65, 4000));
+    tr.push(off(65, 4010));
+    tr.reset();
+    expect(tr.poll(5000)).toBeNull();
+    expect(tr.takeShortTap()).toBeNull();
+  });
+
   it('快速改正：按错的音在稳定前松开，按最终状态判定', () => {
     const attempts = findAttempts([on(60, 0), on(63, 10), off(63, 60), on(64, 70)], {}, 500);
     expect(attempts).toHaveLength(1);

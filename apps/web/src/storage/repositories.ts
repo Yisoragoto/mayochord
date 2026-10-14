@@ -1,6 +1,6 @@
 import type { CardProgress, ReviewLog } from '@mayochord/core';
 import Dexie from 'dexie';
-import type { CalibrationRecord, MayoChordDB, SessionRecord } from './db';
+import type { CalibrationRecord, DailyPlanRecord, MayoChordDB, SessionRecord } from './db';
 
 /**
  * 仓储接口（扩展点 4.2-6）。业务代码只依赖这些接口；现在的实现是 Dexie，
@@ -16,6 +16,8 @@ export interface ReviewLogRepository {
   since(ts: number): Promise<ReviewLog[]>;
   /** 最近 limit 条日志，按追加顺序（旧 → 新） */
   latest(limit: number): Promise<ReviewLog[]>;
+  /** 卡片 ID 以 prefix 开头的全部日志，按追加顺序（例如主题日志 'topic:'） */
+  byCardPrefix(prefix: string): Promise<ReviewLog[]>;
   count(): Promise<number>;
 }
 
@@ -30,6 +32,13 @@ export interface SessionRepository {
   put(session: SessionRecord): Promise<void>;
   /** 最近的 limit 轮练习，新的在前 */
   recent(limit: number): Promise<SessionRecord[]>;
+  /** startedAt >= since 的练习，旧的在前 */
+  since(since: number): Promise<SessionRecord[]>;
+}
+
+export interface DailyPlanRepository {
+  get(date: string): Promise<DailyPlanRecord | undefined>;
+  put(plan: DailyPlanRecord): Promise<void>;
 }
 
 export interface SettingsRepository {
@@ -48,6 +57,7 @@ export interface Repositories {
   calibrations: CalibrationRepository;
   cardStates: CardStateRepository;
   sessions: SessionRepository;
+  dailyPlans: DailyPlanRepository;
 }
 
 const stripSeq = ({ seq: _seq, ...log }: ReviewLog & { seq?: number }): ReviewLog => log;
@@ -75,6 +85,10 @@ export function createDexieRepositories(db: MayoChordDB): Repositories {
       async latest(limit) {
         const rows = await db.reviewLogs.orderBy('seq').reverse().limit(limit).toArray();
         return rows.reverse().map(stripSeq);
+      },
+      async byCardPrefix(prefix) {
+        const rows = await db.reviewLogs.where('cardId').startsWith(prefix).sortBy('seq');
+        return rows.map(stripSeq);
       },
       count: () => db.reviewLogs.count(),
     },
@@ -115,6 +129,13 @@ export function createDexieRepositories(db: MayoChordDB): Repositories {
         await db.sessions.put(session);
       },
       recent: (limit) => db.sessions.orderBy('startedAt').reverse().limit(limit).toArray(),
+      since: (since) => db.sessions.where('startedAt').aboveOrEqual(since).sortBy('startedAt'),
+    },
+    dailyPlans: {
+      get: (date) => db.dailyPlans.get(date),
+      async put(plan) {
+        await db.dailyPlans.put(plan);
+      },
     },
   };
 }

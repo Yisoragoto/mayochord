@@ -4,6 +4,7 @@ import {
   type ChordAttempt,
   type HeldNote,
   type InputEvent,
+  type ShortTap,
 } from '@mayochord/core';
 import { create } from 'zustand';
 import { type InputHub, inputHub } from './hub';
@@ -16,6 +17,8 @@ export interface LiveInputState {
   sustainDown: boolean;
   /** 最近一次和弦尝试 */
   lastAttempt: ChordAttempt | null;
+  /** 最近一次"按得太短"（按下的音都在稳定前松开，没有算作弹出） */
+  lastShortTap: ShortTap | null;
 }
 
 export const useLiveInput = create<LiveInputState>()(() => ({
@@ -23,6 +26,7 @@ export const useLiveInput = create<LiveInputState>()(() => ({
   notes: new Map(),
   sustainDown: false,
   lastAttempt: null,
+  lastShortTap: null,
 }));
 
 type AttemptListener = (a: ChordAttempt) => void;
@@ -87,8 +91,8 @@ export class LiveInput {
     this.timer = setTimeout(() => {
       this.timer = null;
       const a = this.tracker.poll(performance.now());
-      if (a) this.publish(a);
-      else this.schedule(performance.now());
+      this.publish(a);
+      if (!a) this.schedule(performance.now());
     }, wait + 1);
   }
 
@@ -100,6 +104,8 @@ export class LiveInput {
       sustainDown: st.sustainDown,
     };
     if (attempt) patch.lastAttempt = attempt;
+    const tap = this.tracker.takeShortTap();
+    if (tap) patch.lastShortTap = tap;
     useLiveInput.setState(patch);
     if (attempt) for (const cb of this.attemptListeners) cb(attempt);
   }

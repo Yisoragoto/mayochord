@@ -92,6 +92,8 @@ test('和弦切换：先弹"从"和弦，弹稳后计时', async ({ page }) => {
   await expect(cue(page)).toHaveAttribute('data-trial-status', 'awaiting');
   await release(page, REF.c as number[]);
   await play(page, REF.g as number[]);
-  await expect(cue(page)).toHaveAttribute('data-trial-status', 'done');
-  await expect(page.getByRole('status').filter({ hasText: '对了' })).toContainText('秒');
+  // 弹对后约 0.65 秒进入下一题；负载高时可能来不及看到 done，所以看题号
+  await expect(page.getByText('2/2')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByText('最慢的切换')).toBeVisible();
 });

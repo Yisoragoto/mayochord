@@ -2,7 +2,15 @@ import type { InputEvent } from '../input/events';
 import type { CardKind } from '../log/review-log';
 import type { AttemptOptions } from '../recognition/attempt';
 import type { JudgeMode } from '../recognition/judge';
-import type { AnyCard, ChordCard, TransitionCard, VoicingMode } from './cards';
+import type {
+  AnyCard,
+  ChordCard,
+  IntervalCard,
+  NoteCard,
+  TransitionCard,
+  VoicingMode,
+} from './cards';
+import { intervalCardTarget, noteCardTarget } from './targets';
 import {
   type DrillType,
   evaluateTrial,
@@ -15,6 +23,8 @@ import {
 export interface DrillContext {
   /** 和弦 ID → 参考键位的 MIDI 号 */
   referenceNotes(chordId: string): readonly number[];
+  /** 和弦是不是斜杠和弦（宽松判定时也要求最低音正确） */
+  hasBass?(chordId: string): boolean;
   timeLimitMs: number;
   onsetWindowMs: number;
   hintAtStart: boolean;
@@ -48,8 +58,8 @@ export interface Drill<C extends AnyCard = AnyCard> {
   toEvidence(trial: Trial, outcome: TrialOutcome): Evidence[];
 }
 
-export const judgeModeFor = (mode: VoicingMode): JudgeMode =>
-  mode === 'reference' ? 'strict' : 'loose';
+export const judgeModeFor = (mode: VoicingMode, slash = false): JudgeMode =>
+  mode === 'reference' ? 'strict' : slash ? 'bass' : 'loose';
 
 /** 看名弹和弦：显示和弦名，弹出这个和弦。 */
 export const nameToChordDrill: Drill<ChordCard> = {
@@ -64,7 +74,7 @@ export const nameToChordDrill: Drill<ChordCard> = {
       target: [...ctx.referenceNotes(card.chordId)],
       fromChordId: null,
       from: null,
-      mode: judgeModeFor(card.voicingMode),
+      mode: judgeModeFor(card.voicingMode, ctx.hasBass?.(card.chordId) ?? false),
       timeLimitMs: ctx.timeLimitMs,
       onsetWindowMs: ctx.onsetWindowMs,
       hintAtStart: ctx.hintAtStart,
@@ -92,7 +102,7 @@ export const transitionDrill: Drill<TransitionCard> = {
       target: [...ctx.referenceNotes(card.toChordId)],
       fromChordId: card.fromChordId,
       from: [...ctx.referenceNotes(card.fromChordId)],
-      mode: judgeModeFor(card.voicingMode),
+      mode: judgeModeFor(card.voicingMode, ctx.hasBass?.(card.toChordId) ?? false),
       timeLimitMs: ctx.timeLimitMs,
       onsetWindowMs: ctx.onsetWindowMs,
       hintAtStart: ctx.hintAtStart,
@@ -104,10 +114,67 @@ export const transitionDrill: Drill<TransitionCard> = {
   },
 };
 
+/** 认音名：显示音名，弹出任意八度的这个音。 */
+export const nameToNoteDrill: Drill<NoteCard> = {
+  type: 'name-to-note',
+  accepts: (card): card is NoteCard => card.kind === 'note',
+  createTrial(card, ctx) {
+    return {
+      id: ctx.trialId,
+      drillType: 'name-to-note',
+      card,
+      targetChordId: card.id,
+      target: noteCardTarget(card).map((n) => n.midi),
+      fromChordId: null,
+      from: null,
+      mode: 'loose',
+      timeLimitMs: ctx.timeLimitMs,
+      onsetWindowMs: ctx.onsetWindowMs,
+      hintAtStart: ctx.hintAtStart,
+    };
+  },
+  evaluate: evaluateTrial,
+  toEvidence(trial, outcome) {
+    return [{ ...outcome, cardId: trial.card.id, cardKind: 'note', drillType: 'name-to-note' }];
+  },
+};
+
+/** 音程：从根音向上弹出音程（两个音一起按下，最低音必须是根音）。 */
+export const intervalDrill: Drill<IntervalCard> = {
+  type: 'interval',
+  accepts: (card): card is IntervalCard => card.kind === 'interval',
+  createTrial(card, ctx) {
+    return {
+      id: ctx.trialId,
+      drillType: 'interval',
+      card,
+      targetChordId: card.id,
+      target: intervalCardTarget(card).map((n) => n.midi),
+      fromChordId: null,
+      from: null,
+      mode: 'bass',
+      timeLimitMs: ctx.timeLimitMs,
+      onsetWindowMs: ctx.onsetWindowMs,
+      hintAtStart: ctx.hintAtStart,
+    };
+  },
+  evaluate: evaluateTrial,
+  toEvidence(trial, outcome) {
+    return [{ ...outcome, cardId: trial.card.id, cardKind: 'interval', drillType: 'interval' }];
+  },
+};
+
 const registry = new Map<DrillType, Drill>();
 
 /** 注册练习类型。 */
-export function registerDrill(drill: Drill<AnyCard> | Drill<ChordCard> | Drill<TransitionCard>) {
+export function registerDrill(
+  drill:
+    | Drill<AnyCard>
+    | Drill<ChordCard>
+    | Drill<TransitionCard>
+    | Drill<NoteCard>
+    | Drill<IntervalCard>,
+) {
   registry.set(drill.type, drill as Drill);
 }
 
@@ -125,3 +192,5 @@ export function drillForCard(card: AnyCard): Drill {
 
 registerDrill(nameToChordDrill);
 registerDrill(transitionDrill);
+registerDrill(nameToNoteDrill);
+registerDrill(intervalDrill);

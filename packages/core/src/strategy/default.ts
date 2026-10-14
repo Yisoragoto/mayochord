@@ -1,3 +1,4 @@
+import type { DrillType } from '../drill/trial';
 import type { GradeInput } from '../grading/grade';
 import { DEFAULT_GRADING, type GradingParams, gradeEvidence } from '../grading/grade';
 import type { Rating, ReviewLog } from '../log/review-log';
@@ -18,10 +19,7 @@ export interface SchedulingStrategy {
   readonly grading: GradingParams;
   readonly progress: ProgressParams;
   readonly session: SessionParams;
-  readonly adaptive: Record<
-    'name-to-chord' | 'transition',
-    { params: AdaptiveParams; initialMs: number }
-  >;
+  readonly adaptive: Record<DrillType, { params: AdaptiveParams; initialMs: number }>;
   grade(e: GradeInput, personalMedianMs: number | null): Rating;
   applyLog(p: CardProgress, log: ReviewLog): CardProgress;
   /** 出题时是否一开始就显示键位（第一次见到的卡先示范一次） */

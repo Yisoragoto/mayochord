@@ -37,6 +37,14 @@ export interface ChordAttempt {
   stableAt: number;
 }
 
+/** 按得太短：这次动作里按下的音都在稳定（stableMs）之前松开了，没有产生尝试。用于提示"按住一下再松开"。 */
+export interface ShortTap {
+  /** 这次动作里按下过的音（升序） */
+  notes: number[];
+  /** 判定为"按得太短"的时刻 */
+  t: number;
+}
+
 /**
  * 流式检测"弹出一个和弦"。不使用定时器：调用方每收到一个事件就 push，
  * 并定期（例如每帧）用当前时间 poll。所有时间都是 performance.now() 域。
@@ -44,7 +52,8 @@ export interface ChordAttempt {
  * 规则：
  * - 按住的音集合发生变化后，如果在 stableMs 内不再变化，就产生一次尝试；
  * - 只有这次动作里有新按下的音才算尝试（只松开手指不算）；
- * - 同一个稳定状态只产生一次尝试。
+ * - 同一个稳定状态只产生一次尝试；
+ * - 按下的音都在稳定前松开了：不产生尝试，记一次"按得太短"（takeShortTap 取出）。
  */
 export class AttemptTracker {
   private state: HeldState = EMPTY_HELD_STATE;
@@ -52,6 +61,9 @@ export class AttemptTracker {
   private lastChange: number | null = null;
   private gestureStart: number | null = null;
   private settled = true;
+  /** 这次动作里按下过的音（含已经松开的） */
+  private pressed = new Set<number>();
+  private shortTap: ShortTap | null = null;
   private readonly opts: AttemptOptions;
 
   constructor(opts: Partial<AttemptOptions> = {}) {
@@ -72,11 +84,15 @@ export class AttemptTracker {
     this.state = applyHeldEvent(this.state, e);
     const key = this.heldNotes().join(',');
     if (key !== this.heldKey) {
-      if (this.settled) this.gestureStart = e.t;
+      if (this.settled) {
+        this.gestureStart = e.t;
+        this.pressed.clear();
+      }
       this.settled = false;
       this.heldKey = key;
       this.lastChange = e.t;
     }
+    if (e.kind === 'noteOn' && !this.settled) this.pressed.add(e.note);
     return pending;
   }
 
@@ -95,7 +111,12 @@ export class AttemptTracker {
     }
     const start = this.gestureStart;
     const newNotes = notes.filter((n) => (onsets[n] as number) >= start);
-    if (newNotes.length === 0) return null;
+    if (newNotes.length === 0) {
+      if (this.pressed.size > 0) {
+        this.shortTap = { notes: [...this.pressed].sort((a, b) => a - b), t: now };
+      }
+      return null;
+    }
     const times = newNotes.map((n) => onsets[n] as number);
     const firstOnset = Math.min(...times);
     const lastOnset = Math.max(...times);
@@ -119,7 +140,16 @@ export class AttemptTracker {
     return Math.max(0, this.lastChange + this.opts.stableMs - now);
   }
 
+  /** 取出最近一次"按得太短"（取出后清空） */
+  takeShortTap(): ShortTap | null {
+    const tap = this.shortTap;
+    this.shortTap = null;
+    return tap;
+  }
+
   reset() {
+    this.pressed.clear();
+    this.shortTap = null;
     this.state = EMPTY_HELD_STATE;
     this.heldKey = '';
     this.lastChange = null;

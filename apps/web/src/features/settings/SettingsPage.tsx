@@ -7,7 +7,16 @@ import {
   prettyAccidentals,
 } from '@mayochord/core';
 import { Link } from '@tanstack/react-router';
-import { Keyboard as KeyboardIcon, Music2, Piano, RotateCcw, Ruler } from 'lucide-react';
+import {
+  Activity,
+  FastForward,
+  Keyboard as KeyboardIcon,
+  Music2,
+  Piano,
+  RefreshCw,
+  RotateCcw,
+  Ruler,
+} from 'lucide-react';
 import { type ReactNode, useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { calibration } from '@/app/bootstrap';
@@ -16,6 +25,7 @@ import { Label } from '@/design/ui/label';
 import { Slider } from '@/design/ui/slider';
 import { Switch } from '@/design/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
+import { refreshLearning } from '@/features/learn/service';
 import { MidiDevicePanel } from '@/features/midi/MidiDevicePanel';
 import { ThemeSwitcher } from '@/features/shell/ThemeSwitcher';
 import { useCalibration } from '@/input/calibration';
@@ -37,8 +47,18 @@ export function SettingsPage() {
         <p className="mt-1 text-sm text-muted-foreground">{t('settings.subtitle')}</p>
       </header>
 
+      <Section title={t('settings.planTitle')} hint={t('settings.planHint')}>
+        <PlanPanel />
+      </Section>
       <Section title={t('settings.midiTitle')}>
         <MidiDevicePanel />
+        <Link
+          to="/monitor"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+        >
+          <Activity className="size-4" aria-hidden />
+          {t('nav.monitor')}
+        </Link>
       </Section>
       <Section title={t('settings.calibrationTitle')} hint={t('settings.calibrationHint')}>
         <CalibrationPanel />
@@ -55,6 +75,11 @@ export function SettingsPage() {
       <Section title={t('settings.aboutTitle')}>
         <AboutPanel />
       </Section>
+      {import.meta.env.DEV && (
+        <Section title={t('settings.devTitle')} hint={t('settings.devHint')}>
+          <DevPanel />
+        </Section>
+      )}
     </div>
   );
 }
@@ -385,6 +410,100 @@ function AboutPanel() {
           {t('settings.designLink')}
         </Link>
       </p>
+    </div>
+  );
+}
+
+function Choice<T extends number>({
+  label,
+  value,
+  options,
+  format,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: readonly T[];
+  format: (v: T) => string;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <Row>
+      <span className="text-sm">{label}</span>
+      <ToggleGroup
+        type="single"
+        size="sm"
+        value={String(value)}
+        onValueChange={(v) => v && onChange(Number(v) as T)}
+        aria-label={label}
+        className="rounded-md border border-border p-0.5"
+      >
+        {options.map((o) => (
+          <ToggleGroupItem key={o} value={String(o)} className="px-3 tabular-nums">
+            {format(o)}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </Row>
+  );
+}
+
+function PlanPanel() {
+  const { t } = useTranslation();
+  const settings = useSettings((s) => s.settings);
+  const update = useSettings((s) => s.update);
+  return (
+    <div className="divide-y divide-border rounded-xl border border-border bg-card">
+      <Choice
+        label={t('settings.dailyMinutes')}
+        value={settings.dailyMinutes}
+        options={[15, 30, 45, 60]}
+        format={(n) => t('settings.minutesN', { n })}
+        onChange={(dailyMinutes) => update({ dailyMinutes })}
+      />
+      <Choice
+        label={t('settings.dailyXpGoal')}
+        value={settings.dailyXpGoal}
+        options={[10, 20, 30, 50]}
+        format={(n) => t('settings.xpN', { n })}
+        onChange={(dailyXpGoal) => update({ dailyXpGoal })}
+      />
+      <Choice
+        label={t('settings.newPerDay')}
+        value={settings.newTopicsPerDay}
+        options={[1, 2, 3]}
+        format={(n) => t('settings.newPerDayN', { n })}
+        onChange={(newTopicsPerDay) => update({ newTopicsPerDay })}
+      />
+    </div>
+  );
+}
+
+/** 开发者工具：模拟时间前进，检查复习安排（只在开发服务器里显示） */
+function DevPanel() {
+  const { t } = useTranslation();
+  const days = useSettings((s) => s.settings.devClockOffsetDays);
+  const update = useSettings((s) => s.update);
+  const set = (n: number) => {
+    update({ devClockOffsetDays: n });
+    void refreshLearning();
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-border-strong p-4 text-sm">
+      <span className="font-mono tabular-nums" data-testid="dev-clock">
+        {t('settings.devClock', { n: days })}
+      </span>
+      <Button size="sm" variant="outline" onClick={() => set(days + 1)}>
+        <FastForward />
+        {t('settings.devForward')}
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => set(0)} disabled={days === 0}>
+        {t('settings.devReset')}
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => void refreshLearning(true)}>
+        <RefreshCw />
+        {t('settings.devRegenerate')}
+      </Button>
     </div>
   );
 }

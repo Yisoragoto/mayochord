@@ -3,7 +3,7 @@
  * 卡片的记忆状态、统计数据都可以由日志重放得到。
  */
 export type EvidenceKind = 'explicit' | 'implicit';
-export type CardKind = 'chord' | 'transition' | 'topic';
+export type CardKind = 'chord' | 'transition' | 'note' | 'interval' | 'topic';
 export type InputSourceKind = 'midi' | 'onscreen' | 'keyboard' | 'manual';
 /** FSRS 评分：1 Again、2 Hard、3 Good、4 Easy */
 export type Rating = 1 | 2 | 3 | 4;
@@ -38,4 +38,8 @@ export interface ReviewLog {
   inputSource: InputSourceKind;
   /** 产生日志时内容包的版本，便于以后迁移 */
   contentVersion: string;
+  /** 这一题得到的 XP（约 1 XP = 1 分钟专注练习）；M3 之前的日志没有这个字段 */
+  xp?: number;
+  /** 检测到乱按（这一题不计 XP） */
+  mashing?: boolean;
 }

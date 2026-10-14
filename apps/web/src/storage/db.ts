@@ -1,4 +1,4 @@
-import type { CardProgress, ReviewLog, SessionSummary } from '@mayochord/core';
+import type { CardProgress, PlannedTask, ReviewLog, SessionSummary } from '@mayochord/core';
 import Dexie, { type Table } from 'dexie';
 
 /**
@@ -50,6 +50,27 @@ export interface SessionRecord {
   /** 练习配置，例如 { group, drill, mode, length } */
   config: Record<string, unknown>;
   summary: SessionSummary | null;
+  /** 这一轮得到的 XP（M3 起） */
+  xp?: number;
+}
+
+export type TaskStatus = 'pending' | 'done' | 'skipped';
+
+export interface StoredTask extends PlannedTask {
+  status: TaskStatus;
+  completedAt: number | null;
+  xp: number;
+  /** 掌握检查 / 复习的结果摘要，例如 { passed: true, accuracy: 0.9 } */
+  result: Record<string, unknown> | null;
+}
+
+/** 某一天的任务清单（第一次打开"今天"时生成，当天内保持不变，除非跳过或替换） */
+export interface DailyPlanRecord {
+  date: string;
+  createdAt: number;
+  tasks: StoredTask[];
+  dueTopics: string[];
+  spareLessons: string[];
 }
 
 /** 用户导入的内容包（原始 JSON，导入时已通过 Zod 校验） */
@@ -67,6 +88,7 @@ export class MayoChordDB extends Dexie {
   declare cardStates: Table<CardStateRecord, string>;
   declare sessions: Table<SessionRecord, string>;
   declare userPacks: Table<UserPackRecord, string>;
+  declare dailyPlans: Table<DailyPlanRecord, string>;
 
   constructor(name = DB_NAME) {
     super(name);
@@ -78,5 +100,7 @@ export class MayoChordDB extends Dexie {
       sessions: 'id, startedAt',
       userPacks: 'id',
     });
+    // v2（M3）：每日任务清单
+    this.version(2).stores({ dailyPlans: 'date' });
   }
 }

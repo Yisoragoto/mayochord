@@ -81,6 +81,16 @@ describe('最近的日志、卡片进度、练习记录', () => {
     expect(await repos.cardStates.all()).toHaveLength(2);
   });
 
+  it('按卡片 ID 前缀查日志', async () => {
+    const repos = createDexieRepositories(freshDb());
+    await repos.reviewLogs.appendMany([
+      log('a', 'topic:x', 1),
+      log('b', 'chord:c', 2),
+      log('c', 'topic:y', 3),
+    ]);
+    expect((await repos.reviewLogs.byCardPrefix('topic:')).map((l) => l.id)).toEqual(['a', 'c']);
+  });
+
   it('练习记录：新的在前', async () => {
     const repos = createDexieRepositories(freshDb());
     const rec = (id: string, startedAt: number) => ({
@@ -94,6 +104,7 @@ describe('最近的日志、卡片进度、练习记录', () => {
     await repos.sessions.put(rec('a', 1));
     await repos.sessions.put(rec('b', 2));
     expect((await repos.sessions.recent(5)).map((s) => s.id)).toEqual(['b', 'a']);
+    expect((await repos.sessions.since(2)).map((s) => s.id)).toEqual(['b']);
   });
 });
 
@@ -132,8 +143,17 @@ describe('数据库版本与迁移', () => {
     const db = new MayoChordDB(name);
     opened.push(db);
     await db.open();
-    expect(db.verno).toBe(1);
+    expect(db.verno).toBe(2);
     const repos = createDexieRepositories(db);
     expect((await repos.reviewLogs.byCard('card-c')).map((l) => l.id)).toEqual(['legacy']);
+    // v2 新增的 dailyPlans 表可用
+    await repos.dailyPlans.put({
+      date: '2026-10-14',
+      createdAt: 1,
+      tasks: [],
+      dueTopics: [],
+      spareLessons: [],
+    });
+    expect((await repos.dailyPlans.get('2026-10-14'))?.createdAt).toBe(1);
   });
 });

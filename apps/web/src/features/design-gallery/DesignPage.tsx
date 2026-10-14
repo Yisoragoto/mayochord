@@ -1,6 +1,7 @@
 import type { ChordSymbol } from '@mayochord/core';
 import {
   ArrowRight,
+  BookOpen,
   Check,
   Flame,
   Lightbulb,
@@ -23,6 +24,7 @@ import { Label } from '@/design/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/design/ui/select';
 import { Slider } from '@/design/ui/slider';
 import { Switch } from '@/design/ui/switch';
+import { StatusBadge } from '@/features/graph/GraphPage';
 import { cn } from '@/lib/utils';
 import { type ResolvedTheme, resolveTheme, useAppearance } from '@/stores/appearance';
 
@@ -110,6 +112,30 @@ function Specimen({ theme }: { theme: ResolvedTheme }) {
 
       <Block title="练习反馈">
         <FeedbackStates />
+      </Block>
+
+      <Block title="知识图谱：主题状态">
+        <div className="flex flex-wrap gap-2">
+          {(['locked', 'available', 'learning', 'mastered', 'review'] as const).map((st) => (
+            <StatusBadge key={st} status={st} />
+          ))}
+        </div>
+      </Block>
+
+      <Block title="每日任务">
+        <div className="flex items-center gap-4 rounded-xl border border-primary bg-card p-4 shadow-[inset_0_0_0_1px_var(--primary)]">
+          <div className="grid size-10 place-items-center rounded-full bg-surface-2">
+            <BookOpen className="size-5" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">新课 · 大三和弦公式</p>
+            <p className="text-sm text-muted-foreground">
+              新主题：讲解 → 引导 → 独立练习 → 掌握检查
+            </p>
+            <p className="mt-1 font-mono text-xs text-subtle-foreground">约 8 分钟</p>
+          </div>
+          <Button size="sm">开始</Button>
+        </div>
       </Block>
 
       <Block title="和弦符号">

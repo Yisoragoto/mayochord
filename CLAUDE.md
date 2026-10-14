@@ -7,10 +7,12 @@
 
 | 里程碑 | 状态 |
 |---|---|
-| M0 骨架与真机验证 | 完成（commit a790c25） |
-| M1 核心与数据层 | 完成（commit da0e0ab；用户采纳就近转位的推荐键位） |
-| M2 学习系统核心 | 完成（用户确认） |
-| M3–M6 | 未开始 |
+| M0 骨架与真机验证 | 完成（commit 7abbefd） |
+| M1 核心与数据层 | 完成（commit 53b1aa2；用户采纳就近转位的推荐键位） |
+| M2 学习系统核心 | 完成（commit d24db51） |
+| M3 知识图谱与每日任务 | 完成（用户 2026-10-15 测试通过） |
+| M4 节奏与进行 | 进行中 |
+| M5–M6 | 未开始 |
 
 ## 常用命令（仓库根目录）
 
@@ -28,7 +30,9 @@ pnpm e2e          # Playwright（本地用已安装的 Chrome，CI 用 chromium�
 
 ## 项目约定
 
-- **工作方式**：每个里程碑结束停下，列出需要在琴上/浏览器里测试的内容；用户确认后再 commit。只 commit 不 push，除非用户要求。
+- **工作方式**：每个里程碑结束停下，列出需要在琴上/浏览器里测试的内容；用户确认后再 commit。
+- **GitHub**：https://github.com/Yisoragoto/mayochord（公开）。commit 后可以自行评估并 push，不用等用户。
+- **提交信息不加 `Co-Authored-By: Claude …`**（用户要求：仓库的 Contributors 里不能出现 Claude；2026-10-14 已从历史中清除并强制推送）。
 - **JUNO-D7 相关行为不要猜**：只根据用户在琴上实测、导出的数据实现，并记录到本文件「JUNO-D7 实测行为」。
 - **依赖**：安装前用 `npm view <pkg> version license time` 核对版本、许可证（只接受 MIT/Apache/BSD/ISC 等宽松许可证；字体可接受 OFL-1.1），`package.json` 写精确版本。pnpm 12 默认有 `minimumReleaseAge`（约 1 天），刚发布的版本会被拒绝：选更早的稳定版，**不要**往 `pnpm-workspace.yaml` 加 `minimumReleaseAgeExclude`。
 - **TypeScript**：strict + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`。禁止 `any`（Biome `noExplicitAny: error`）；确需时用 `biome-ignore` 写明原因。
@@ -43,6 +47,8 @@ pnpm e2e          # Playwright（本地用已安装的 Chrome，CI 用 chromium�
 - **拼写**：音名一律保留拼写（'Bb4' 不写成 'A#4'），由字母+度数推出（`spellInterval`）。显示时用 `prettyAccidentals` 换成 ♭ ♯。
 - **和弦 ID**（URL 安全）：`chordSlug(root, quality, bass)`，例如 gm7、fmaj7、c7-9、bb、fsm7b5、c-on-e。内容包校验会检查 ID 与和弦一致。
 - **大文件懒加载**：Tone.js 与钢琴采样在第一次发声时加载（`audio/piano.ts`）；VexFlow 在第一次显示五线谱时加载（`design/staff`）。不要在首屏代码里静态 import 它们。
+- **时间**：写日志、编排每日任务一律用 `lib/clock.ts` 的 `wallNow()` 与 `dayParams()`（练习日凌晨 4 点换日、本地时区），不要直接用 `Date.now()`。开发服务器里设置页有"模拟时间前进"（`devClockOffsetDays`），正式版本不生效。
+- **布局库**：图谱布局是 core 里自己写的分层布局（`graph/layout.ts`），没有引入 dagre（节点只有几十个，纯函数便于测试）。
 - **在 Git Bash 里用 Python 改文件**：写文件时加 `newline='
 '`，否则在 Windows 上会写成 CRLF。长脚本先写到临时文件再执行（直接放在 heredoc 里，bash 可能解析失败）。
 
@@ -52,24 +58,29 @@ pnpm e2e          # Playwright（本地用已安装的 Chrome，CI 用 chromium�
 packages/core/src/
   input/        InputEvent、MIDI 解析、DeviceProfile 类型；merge.ts 跨通道/跨输入源合并、整体移调
   theory/       音名解析与拼写（spellInterval）、和弦性质表、和弦符号解析/格式化/ID、级数（key.ts）
-  voicing/      Voicing 类型、声部进行配对、就近转位搜索、右手转位描述
+  voicing/      Voicing 类型、声部进行配对、就近转位搜索、右手转位描述、自动生成的密集排列键位（close.ts）
   recognition/  按住音、自由识别、判定（judgeNotes、findUniformShift）、和弦尝试检测（AttemptTracker）
   log/          ReviewLog 类型（作答日志）
-  drill/        卡片（cards.ts）、一道题的判定流程（trial.ts，纯函数）、Drill 接口与注册表（drill.ts）
-  grading/      自动评分、个人反应时间中位数
+  drill/        卡片（cards.ts，和弦/切换/音名/音程）、目标位置（targets.ts）、一道题的判定流程（trial.ts，纯函数）、
+                Drill 接口与注册表（drill.ts：看名弹和弦、和弦切换、认音名、音程）
+  grading/      自动评分、个人反应时间中位数、主题评分与掌握检查（topic.ts）、XP 与防乱按（xp.ts）
   scheduler/    FSRS 封装（memory.ts）、卡片进度与新卡三阶段（progress.ts）、练习内出题顺序（session.ts）、
-                85% 自适应（adaptive.ts）、轮次总结（summary.ts）
+                85% 自适应（adaptive.ts）、轮次总结（summary.ts）、隐式重复（implicit.ts）、每日任务编排（daily.ts）
   strategy/     调度策略对象：各项参数集中在这里（createDefaultStrategy）
-  （M3 起：graph/；M4 起：timing/）
+  graph/        主题图谱（校验、拓扑、包含权重）、分层布局、主题进度与状态（topic-progress.ts）
+  （M4 起：timing/）
 packages/content/src/
   schema/       Zod：内容包（含跨字段校验）、设备配置
-  packs/        内置内容包 mayochord-core.json（第 11 节）
+  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦 + 18 个主题）
   devices/      设备配置 JSON（JUNO-D7、通用 88 键）
   load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
 apps/web/src/
   app/          bootstrap.ts：启动时连接输入源、汇流、实时输入、音源、存储、校准
-  routes/       /、/practice、/practice/session（专注模式）、/chords、/chords/$chordId、/monitor、/settings、/design
-  features/     shell、today、practice（练习入口、专注模式、轮次总结、PracticeController）、
+  routes/       /（今天）、/graph、/learn/$topicId（课程，专注模式）、/today/task/$taskId（热身/复习，专注模式）、
+                /review/$topicId（从图谱进入的复习）、/practice、/practice/session（专注模式）、
+                /chords、/chords/$chordId、/monitor、/settings、/design
+  features/     shell、today（每日任务）、graph（知识图谱）、learn（LearningService、课程、每日任务运行）、
+                practice（PracticeController、SessionRunner、自由练习、轮次总结）、
                 chords（和弦库、详情、试弹）、midi（设备面板）、monitor、settings、design-gallery
   input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
                 computer-keyboard.ts、PlayableKeyboard.tsx（屏幕键盘）
@@ -77,6 +88,7 @@ apps/web/src/
   storage/      Dexie 数据库 db.ts、仓储接口与实现 repositories.ts
   design/       tokens.css、ui/（shadcn）、keyboard/、staff/（VexFlow，懒加载）、ChordName、Wordmark
   stores/       Zustand：appearance、settings
+  lib/          clock.ts（墙上时钟、练习日参数、开发用的模拟时间）、uuid.ts
 apps/web/public/samples/salamander/   钢琴采样（CC-BY 3.0，见 NOTICE）
 apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAccess
 ```
@@ -108,10 +120,18 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
 
 ### 内容包（`packages/content`，`schemaVersion: 1`）
 
-`{ id, version(semver), schemaVersion, name, chords: [{ id, root, quality, bass? }], voicings: [{ id, chordId, reference, status, notes: [{ pitch, hand, finger? }], note? }], progressions: [{ id, name, key, steps: [{ chordId, voicingId, beats }], description? }] }`
-校验规则：ID 唯一且符合 chordSlug；键位的音必须是和弦音且拼写正确；除可省略的五音外不能缺和弦音；每个和弦恰好一个参考键位；进行引用的和弦、键位存在且对应。
+`{ id, version(semver), schemaVersion, name, chords: [{ id, root, quality, bass? }], voicings: [{ id, chordId, reference, status, notes: [{ pitch, hand, finger? }], note? }], progressions: [{ id, name, key, steps: [{ chordId, voicingId, beats }], description? }], topics: [...] }`
+校验规则：ID 唯一且符合 chordSlug；键位的音必须是和弦音且拼写正确；除可省略的五音外不能缺和弦音；给了键位的和弦恰好一个参考键位；进行引用的和弦、键位存在且对应。
 
-### 本地数据库（Dexie，`MayoChordDB`，当前 version 1）
+- **没有给键位的和弦**：加载时用 `closeVoicing` 自动生成参考键位（`status: 'generated'`，ID `<chord>-ref`）：左手根音（斜杠和弦为低音）C3–B3，右手从根音（斜杠和弦从低音）开始密集排列，最低音在 C4–B4，九和弦省略五音。和弦库里单独分组并标"自动排列"。
+- **topics**（M3，`topics` 字段可省略，默认空；没有升 schemaVersion，因为是新增的可选字段）：
+  `{ id, title, summary, prerequisites[], encompasses[{ topicId, weight 0–1 }], interferenceGroup?, practice, lesson }`
+  - `practice`：`{ kind: 'notes', notes }` | `{ kind: 'intervals', items: [{ root, interval: m2|M2|m3|M3|P4|P5 }] }` | `{ kind: 'chords', chords, voicingMode }` | `{ kind: 'transitions', progressions, voicingMode }`（进行相邻和弦循环切换，多条进行合并去重）。
+  - `lesson`：`{ explain: [{ text, demo?: { notes? | chord?, labels: semitones|fingers|none, play: together|arpeggio|none } }], guided: { count }, independent: { requiredCorrect }, mastery: { questions, minAccuracy, timeLimitMs }, minutes }`。
+  - 校验：图谱无环、引用存在、示范和弦存在。加载后 `LoadedPack` 有 `topics`、`graph`（拓扑顺序）、`cardById`、`topicsOfCard`。
+- 内置图谱 18 个主题：认识键盘与音名 → 半音与全音 → 大三度/小三度 → 大三/小三和弦公式（干扰组 triad-quality）→ C 调三和弦 → C–G–Am–F → 转位 → 就近转位与声部进行 → 王道进行；12 调三和弦；M7/7/m7/m7♭5 公式（干扰组 seventh-quality）→ C 调七和弦 → II–V–I → 丸サ進行。规格里的"16 分音符切分"属于节奏，M4 再加。
+
+### 本地数据库（Dexie，`MayoChordDB`，当前 version 2）
 
 | 表 | 主键 / 索引 | 说明 |
 |---|---|---|
@@ -121,9 +141,13 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
 | cardStates | `cardId, due` | `{ cardId, due, progress: CardProgress }`。**缓存**，可由 reviewLogs 重放重建（`replayProgress`）。新卡 due = `Number.MAX_SAFE_INTEGER` |
 | sessions | `id, startedAt` | 每轮练习：`{ id, startedAt, endedAt, kind: 'practice', config, summary }` |
 | userPacks | `id` | 用户导入的内容包（M6） |
+| dailyPlans（v2） | `date` | 每日任务：`{ date, createdAt, tasks: [{ id, kind, topicIds, cardIds, minutes, covers, status: pending/done/skipped, completedAt, xp, result }], dueTopics, spareLessons }` |
+
+- 主题进度**不入库**：每次从主题日志（`cardId` 以 `topic:` 开头）重放得到（`replayTopicProgress`），日志不多，保证与日志一致。
+- ReviewLog 新增可选字段 `xp`、`mashing`（M3 起写入；之前的日志没有）。sessions 记录新增 `xp`，`config.kind` 为练习类型（practice/warmup/review/guided/independent/mastery）。
 
 settings 表另有键 `'adaptive'`：`{ 'name-to-chord' | 'transition': { timeLimitMs, sinceAdjust } }`（85% 规则的当前时限）。
-M2 没有改表结构（新字段都不是索引），仍是 version 1。
+M3 新增 version 2（dailyPlans 表），`db.test.ts` 有 v1 数据升级测试。
 
 改表结构：新增 `this.version(n)`，保留旧版本声明，需要时写 `.upgrade()`，并在 `storage/db.test.ts` 加"旧数据升级后不丢失"的测试。
 
@@ -148,6 +172,7 @@ M2 没有改表结构（新字段都不是索引），仍是 version 1。
 
 - 按住的音集合变化后，若 `stableMs`（默认 150）内不再变化，产生一次尝试；同一个稳定状态只产生一次。
 - 只松开手指（没有新按下的音）不算尝试。
+- **按得太短**：这次动作里按下的音都在稳定前松开了 → 不算尝试，记一次 `ShortTap`（`takeShortTap()`）。练习界面和试弹面板显示 2.5 秒提示"按住一下再松开"（用户 2026-10-14 测试时发现点按不识别，要求只加提示、不改判定）。
 - 齐整度 `spreadMs` 只算这次新按下的音（从上一个和弦保持下来的共同音不算）；`together = spreadMs <= onsetWindowMs`（默认 80）。
 - 两个阈值和踏板选项都在设置页可调。屏幕键盘、电脑键盘的齐整度没有意义，界面上不显示。
 
@@ -155,6 +180,7 @@ M2 没有改表结构（新字段都不是索引），仍是 version 1。
 
 - 宽松 loose：比较音级集合，忽略八度和转位；多按 = 按住音中不在目标音级里的；少按 = 参考键位中音级没被按到的（标在参考键位的位置上）。
 - 严格 strict：与参考键位逐音一致。
+- 低音 bass（M3）：宽松 + 最低音的音级必须与参考键位最低音相同；不对时 `wrongBass: true`。用于音程题和斜杠和弦（转位）题；斜杠和弦在宽松模式下自动用低音判定（试弹面板也是）。低音不对立即判错（不当作"没弹完"）。
 - 什么都没按不算对。
 - `findUniformShift`：按的音整体平移 k 个半音后与目标一致时返回 k，用于提示"OCTAVE/TRANSPOSE 可能被改动，请重新校准"。
 
@@ -228,6 +254,62 @@ M2 没有改表结构（新字段都不是索引），仍是 version 1。
 - 点击切换模式的屏幕键盘：看名弹和弦每题结束自动松开（切换题保留，作为下一题的"从"和弦）。
 - IndexedDB 不可用时照常练习，提示无法保存。
 - 规格 6.7"反馈逐渐减少"、隐式重复、XP、防乱按在 M3 做。
+
+## 知识图谱、课程与每日任务（M3）
+
+### 卡片类型（新增）
+
+- 认音名 `note:<音名>`（例如 note:eb、note:fs）：弹出任意八度的这个音，宽松判定。示范位置在 C4–B4。练习类型 `name-to-note`。
+- 音程 `interval:<根音>:<m2|M2|m3|M3|P4|P5>`：同时按下根音和上方的音，低音判定（最低音必须是根音）。练习类型 `interval`。
+- 85% 规则初始时限：认音名 4 秒（1–10 秒）、音程 5 秒（1.5–12 秒）。
+
+### 主题进度与状态（`graph/topic-progress.ts`）
+
+主题日志 = `cardKind: 'topic'`、`cardId: topic:<id>` 的 ReviewLog：
+- `drillType 'lesson'`（rating null）：开始课程 → 学习中。
+- `drillType 'mastery-check'`：掌握检查。通过时 rating = 主题评分（至少 Hard），作为主题 FSRS 的第一次复习，记 `masteredAt`；没通过不影响记忆。
+- `drillType 'topic-review'`：每日复习里这个主题的成绩。掌握后**隔天**再通过一次记 `confirmedAt`（规格 6.6"间隔一天后仍能通过"）。
+- `evidence 'implicit'`（drillType 'implicit'）：隐式重复的信用，`weight` 0–1，`correct` 表示正/负。
+- 状态：locked（有先修没掌握）/ available / learning（开始了课程）/ mastered（通过掌握检查）/ review（已掌握且主题记忆到期）。**解锁只要求先修通过掌握检查**，不要求隔天确认。
+- 主题 FSRS 同样每个练习日只用第一次评分。
+
+### 主题评分（`grading/topic.ts`）
+
+一轮里某主题卡片的成绩 → 正确率 < 75% Again；< 90% Hard；≥ 90% 且平均评分 ≥ 3.5 Easy，否则 Good。Hard 及以上算"通过"（记住了，只是有点吃力），Again 算失败。掌握检查：正确率 ≥ 课程的 `minAccuracy` 且完整做完。
+
+### 隐式重复（`scheduler/implicit.ts` + `applyTopicLog`）
+
+- 主题练习成功 → 沿包含关系向下，被包含的主题得到正信用，权重沿路径相乘（多条路径取最大，< 0.05 忽略）；失败 → 沿包含关系向上，包含它的主题得到负信用。只给已掌握的主题。
+- 正信用 × 提前折扣（距上次复习天数 / 当前间隔，最低 0.1）累积，满 1 记一次 Good 复习；负信用累积满 1 记一次 Hard。显式复习时清零。
+- 掌握检查通过、每日复习之后都会写隐式信用日志。
+
+### 每日任务编排（`scheduler/daily.ts`，参数 `DEFAULT_PLAN`）
+
+1. 热身：上一个练习日（今天之前最近一个有作答的日子）练过的卡片，最多 8 张，按 3 分钟估计。
+2. 到期复习：主题记忆在今天结束前到期的。贪心选择：优先能顺带覆盖更多其他到期主题的（它包含的到期主题权重 ≥ 0.5 就不再单独复习，记在任务的 `covers`，靠隐式信用）。每个任务混合最多 3 个主题、每个主题最多 5 张卡，卡片按"到期最早 → 回忆概率低 → 没练过"挑选并交错排列；每题按 15 秒估计。
+3. 新课：先继续"学习中"的，再按图谱顺序开始可学的；每天最多 `newTopicsPerDay`（默认 2）节；同一干扰组一天只引入一个；放不进预算的进 `spareLessons`（"换一个"用）。至少安排一节课（除非复习已经占满时长）。
+4. 总时长按设置的每天时长（默认 30 分钟）。测验和针对性补救在 M6。
+- 任务在当天第一次打开"今天"时生成并保存；当天可以跳过、恢复、替换新课。新课在别处（例如从图谱进入）通过了掌握检查，读取任务时自动标记完成。
+- 今天的任务做完后，"今天"页列出已解锁的其他主题，可以继续学（不强制）。
+
+### 课程（`features/learn/LessonPage.tsx` + `specs.ts`）
+
+讲解与示范（文字 + 键盘标记 + 播放；可"直接检查"）→ 引导练习（从主题卡片里均匀挑 `guided.count` 张，按顺序、每题显示键位、不限时）→ 独立练习（打乱、首次见到的卡先示范、答错/超时显示提示，首次答对 `requiredCorrect` 题结束）→ 掌握检查（`questions` 题、固定时限、不能看提示、答错展示 1.4 秒后继续、不重做）。中途离开显示"先停在这里"，可以接着做当前阶段。
+
+### 练习会话（`SessionSpec`）
+
+`PracticeController.start(spec)`：`kind`、`cards`、`length`、`order: phased|mixed|sequential`、`hints: auto|always|never`、`fixedTimeLimitMs?`、`targetCorrect?`、`retryWrong`、`requireCorrection`。自由练习、热身、复习、课程各阶段都用它。结束时 `onFinish(result)` 回调（`completed` 表示是否做完），`dispose()`/`start()` 会清掉旧回调，所以**先 start 再订阅 onFinish**。
+- 日志在一题完成时写入（评分在第一次判定时就算好），补上这一题的 XP 和乱按标记。
+
+### XP 与防乱按（`grading/xp.ts`）
+
+- 每题 XP = 出题到完成的时间（单题最多 20 秒）/ 60 秒；约 1 XP = 1 分钟专注练习。乱按的题 0 XP（仍然评分）。
+- 乱按：一道题里按过超过 6 个不同的非目标音，或任意 1 秒内按下超过 10 个音。
+- 今日 XP、最近 7 天来自练习记录（sessions.xp）；连续天数：从今天（今天还没练则从昨天）往前数 XP ≥ 1 的天。每日 XP 目标默认 20。
+
+### 反馈逐渐减少（规格 6.7）
+
+`feedbackLevelFor(cardProgress)`：mixed 阶段之前 full；mixed 阶段 reduced（判定前不显示按下的键，点击切换模式除外）；mixed 且稳定性 ≥ 7 天 minimal（连着 MIDI 时判定前连键盘也先收起）。
 
 ## 设计系统
 

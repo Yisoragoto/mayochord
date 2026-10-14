@@ -25,7 +25,7 @@ import type { AnyCard } from './cards';
  *
  * 全部是纯函数：网页用实时的和弦尝试驱动 stepTrial，测试用 evaluateTrial 重放事件。
  */
-export type DrillType = 'name-to-chord' | 'transition';
+export type DrillType = 'name-to-chord' | 'transition' | 'name-to-note' | 'interval';
 
 export interface Trial {
   id: string;
@@ -238,8 +238,8 @@ function applyAttempt(state: TrialState, attempt: ChordAttempt): TrialState {
   }
   // 整体平移：设备设置问题，不计成绩
   if (shift !== null) return { ...state, feedback };
-  // 只按了一部分：还没弹完
-  if (judge.extra.length === 0) return state;
+  // 只按了一部分：还没弹完（低音不对的不算）
+  if (judge.extra.length === 0 && !judge.wrongBass) return state;
   return {
     ...state,
     status: 'retry',

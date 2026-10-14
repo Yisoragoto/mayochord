@@ -4,8 +4,9 @@ import { pitchClass } from '../theory/notes';
  * 判定模式（规格第 8 节）：
  * - loose 宽松：比较音级集合，忽略八度和转位
  * - strict 严格：必须与参考键位的每个音完全一致
+ * - bass 低音：宽松 + 最低音的音级必须与参考键位的最低音相同（音程题、转位/斜杠和弦题）
  */
-export type JudgeMode = 'loose' | 'strict';
+export type JudgeMode = 'loose' | 'strict' | 'bass';
 
 export interface JudgeResult {
   correct: boolean;
@@ -13,6 +14,8 @@ export interface JudgeResult {
   extra: number[];
   /** 少按的音（参考键位里的 MIDI 号，用于在键盘上标出应该按的位置） */
   missing: number[];
+  /** bass 模式：音都对，但最低音不对（应为参考键位的最低音） */
+  wrongBass?: boolean;
 }
 
 /** 比较按住的音与目标（参考键位）。 */
@@ -37,7 +40,14 @@ export function judgeNotes(
   const targetPcs = new Set(target.map(pitchClass));
   const extra = sortAsc([...new Set(held)].filter((n) => !targetPcs.has(pitchClass(n))));
   const missing = sortAsc([...new Set(target)].filter((n) => !heldPcs.has(pitchClass(n))));
-  return { correct: extra.length === 0 && missing.length === 0 && held.length > 0, extra, missing };
+  const pcsOk = extra.length === 0 && missing.length === 0 && held.length > 0;
+  if (mode === 'bass' && pcsOk) {
+    const lowest = (xs: readonly number[]) => Math.min(...xs);
+    if (pitchClass(lowest(held)) !== pitchClass(lowest(target))) {
+      return { correct: false, extra, missing, wrongBass: true };
+    }
+  }
+  return { correct: pcsOk, extra, missing };
 }
 
 /**
