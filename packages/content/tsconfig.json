@@ -7,6 +7,6 @@
     "tsBuildInfoFile": "../../node_modules/.cache/tsc/content.tsbuildinfo",
     "rootDir": "src"
   },
-  "include": ["src"],
+  "include": ["src", "src/**/*.json"],
   "references": [{ "path": "../core" }]
 }

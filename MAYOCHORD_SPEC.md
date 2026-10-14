@@ -57,7 +57,7 @@
 | 状态管理 | Zustand | 会话状态、设置；轻量 |
 | 本地数据库 | IndexedDB，通过 Dexie | 作答日志会持续增长，localStorage 容量不够；Dexie 支持版本迁移 |
 | 数据校验 | Zod | 校验内容包和导入数据 |
-| 音乐理论 | Tonal（tonal.js） | 音名、音程、和弦解析 |
+| 音乐理论 | 自行实现（`packages/core/src/theory`） | 音名、音程、和弦拼写与级数。原定 Tonal，但 2026-09-28 起 Tonal 各子包的发布入口文件错误，无法可靠安装；需求范围小，改为自己实现并全部单测覆盖（2026-10-14 变更） |
 | 五线谱 | VexFlow | 渲染五线谱 |
 | 音频 | Tone.js | 基于 AudioContext 时钟的精确调度（节拍器、示范播放） |
 | 钢琴音色 | 采样音源（如 Salamander Grand Piano，CC-BY 3.0，需署名） | 比合成音更真实；先确认许可证 |

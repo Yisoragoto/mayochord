@@ -8,8 +8,5 @@
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*/index.ts"
-  },
-  "dependencies": {
-    "tonal": "6.5.0"
   }
 }

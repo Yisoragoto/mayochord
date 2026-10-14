@@ -16,3 +16,6 @@ local-packs/
 
 # 监视页导出的原始实测数据（只把抽出的测试夹具提交到仓库）
 mayochord-midi-capture-*.json
+
+# TanStack Router 插件的临时文件
+.tanstack/

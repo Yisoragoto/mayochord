@@ -1,34 +1,30 @@
 import {
-  applyHeldEvent,
-  EMPTY_HELD_STATE,
-  type HeldState,
-  heldNoteNumbers,
   type InputEvent,
   identifyChord,
   midiBytesToHex,
   midiToName,
   prettyAccidentals,
 } from '@mayochord/core';
-import { Check, Copy, Download, Pause, Play, RotateCcw, Trash2, Usb } from 'lucide-react';
+import { Check, Copy, Download, Pause, Play, RotateCcw, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChordName } from '@/design/ChordName';
-import { Keyboard } from '@/design/keyboard/Keyboard';
 import { Badge } from '@/design/ui/badge';
 import { Button } from '@/design/ui/button';
 import { Label } from '@/design/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/design/ui/select';
 import { Switch } from '@/design/ui/switch';
+import { MidiDevicePanel } from '@/features/midi/MidiDevicePanel';
+import { useLiveInput } from '@/input/live';
+import { PlayableKeyboard } from '@/input/PlayableKeyboard';
 import { type RawMidiMessage, useMidi, webMidi } from '@/input/webmidi';
 import { cn } from '@/lib/utils';
+import { useSettings } from '@/stores/settings';
 import { type LogEntry, parseRaw, SummaryAccumulator } from './recorder';
 
 const MAX_LOG = 200;
 const MAX_CAPTURE = 50_000;
-const NONE = '__none__';
 
 interface Session {
-  held: HeldState;
   log: LogEntry[];
   capture: RawMidiMessage[];
   acc: SummaryAccumulator;
@@ -40,7 +36,6 @@ interface Session {
 
 function newSession(): Session {
   return {
-    held: EMPTY_HELD_STATE,
     log: [],
     capture: [],
     acc: new SummaryAccumulator(),
@@ -68,7 +63,6 @@ function useMonitorSession(paused: boolean) {
     const off = webMidi.onRaw((raw) => {
       const s = session.current;
       const parsed = parseRaw(raw);
-      if (parsed) s.held = applyHeldEvent(s.held, parsed);
       if (s.capture.length < MAX_CAPTURE) s.capture.push(raw);
       s.acc.add(raw, parsed);
       if (!pausedRef.current) {
@@ -104,26 +98,15 @@ export function MonitorPage() {
   const { t } = useTranslation();
   const midi = useMidi();
   const [paused, setPaused] = useState(false);
-  const [sustainCounts, setSustainCounts] = useState(false);
   const [showRealtime, setShowRealtime] = useState(false);
   const { session, reset, clearLog, mark } = useMonitorSession(paused);
-
-  // 已经授权过的话自动连接，否则等用户点击按钮（避免进入页面就弹权限框）
-  useEffect(() => {
-    if (midi.status !== 'idle') return;
-    navigator.permissions
-      ?.query({ name: 'midi' as PermissionName })
-      .then((p) => {
-        if (p.state === 'granted') void webMidi.request();
-      })
-      .catch(() => {});
-  }, [midi.status]);
-
-  // 每帧都会重新渲染；用字符串摘要让按住音不变时保持同一个数组，避免重复识别
-  const heldKey = heldNoteNumbers(session.held, { sustainCountsAsHeld: sustainCounts }).join(',');
-  const held = useMemo(() => (heldKey ? heldKey.split(',').map(Number) : []), [heldKey]);
+  const sustainCounts = useSettings((s) => s.settings.sustainCountsAsHeld);
+  const updateSettings = useSettings((s) => s.update);
+  // 按住的音来自输入汇流：已扣除校准偏移、已合并 DUAL 的重复通道，也包括屏幕键盘和电脑键盘
+  const held = useLiveInput((s) => s.held);
+  const heldInfo = useLiveInput((s) => s.notes);
+  const sustainDown = useLiveInput((s) => s.sustainDown);
   const candidates = useMemo(() => identifyChord(held), [held]);
-  const pressed = useMemo(() => new Set(held), [held]);
   const summary = session.acc.snapshot();
 
   const exportJson = () =>
@@ -158,7 +141,7 @@ export function MonitorPage() {
         </div>
       </header>
 
-      <ConnectionBar />
+      <MidiDevicePanel />
 
       <section
         aria-label={t('monitor.chord')}
@@ -196,33 +179,36 @@ export function MonitorPage() {
                 aria-hidden
                 className={cn(
                   'size-2.5 rounded-full border border-border-strong transition-colors',
-                  session.held.sustainDown && 'border-primary bg-primary',
+                  sustainDown && 'border-primary bg-primary',
                 )}
               />
               {t('monitor.sustain')}：
-              {session.held.sustainDown ? t('monitor.sustainDown') : t('monitor.sustainUp')}
+              {sustainDown ? t('monitor.sustainDown') : t('monitor.sustainUp')}
             </span>
             <span className="inline-flex items-center gap-2">
               <Switch
                 id="sustain-counts"
                 checked={sustainCounts}
-                onCheckedChange={setSustainCounts}
+                onCheckedChange={(v) => updateSettings({ sustainCountsAsHeld: v })}
               />
               <Label htmlFor="sustain-counts" className="font-normal text-muted-foreground">
-                {t('monitor.sustainCounts')}
+                {t('settings.sustainCounts')}
               </Label>
             </span>
           </div>
         </div>
 
         <div>
-          <p className="text-xs tracking-wide text-muted-foreground">{t('monitor.held')}</p>
+          <p className="text-xs tracking-wide text-muted-foreground">
+            {t('monitor.held')}
+            <span className="ml-2 text-subtle-foreground">{t('monitor.heldHint')}</span>
+          </p>
           <ul className="mt-2 flex min-h-12 flex-wrap gap-2">
             {held.length === 0 && (
               <li className="text-sm text-subtle-foreground">{t('monitor.nothingHeld')}</li>
             )}
             {held.map((n) => {
-              const info = session.held.notes.get(n);
+              const info = heldInfo.get(n);
               return (
                 <li
                   key={n}
@@ -242,7 +228,7 @@ export function MonitorPage() {
         </div>
 
         <div className="overflow-x-auto lg:col-span-2">
-          <Keyboard low={21} high={108} pressed={pressed} labels="c" className="min-w-[720px]" />
+          <PlayableKeyboard low={21} high={108} labels="c" className="min-w-[720px]" />
         </div>
       </section>
 
@@ -263,6 +249,9 @@ export function MonitorPage() {
         <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
           <h2 id="log-title" className="font-semibold">
             {t('monitor.log')}
+            <span className="ml-2 text-xs font-normal text-subtle-foreground">
+              {t('monitor.logHint')}
+            </span>
           </h2>
           {paused && <Badge variant="secondary">{t('monitor.paused')}</Badge>}
           <span className="ml-auto inline-flex items-center gap-2 text-sm">
@@ -283,87 +272,6 @@ export function MonitorPage() {
         <LogTable entries={session.log} showRealtime={showRealtime} />
       </section>
     </div>
-  );
-}
-
-function ConnectionBar() {
-  const { t } = useTranslation();
-  const midi = useMidi();
-
-  if (midi.status === 'unsupported') {
-    return <Notice tone="warning">{t('monitor.unsupported')}</Notice>;
-  }
-  if (midi.status === 'idle' || midi.status === 'requesting') {
-    return (
-      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-dashed border-border-strong p-4">
-        <Button onClick={() => void webMidi.request()} disabled={midi.status === 'requesting'}>
-          <Usb />
-          {midi.status === 'requesting' ? t('monitor.connecting') : t('monitor.connect')}
-        </Button>
-        <p className="text-sm text-muted-foreground">{t('monitor.permissionHint')}</p>
-      </div>
-    );
-  }
-  if (midi.status === 'denied') return <Notice tone="danger">{t('monitor.denied')}</Notice>;
-  if (midi.status === 'error')
-    return (
-      <Notice tone="danger">{t('monitor.error', { message: midi.errorMessage ?? '' })}</Notice>
-    );
-
-  const connected = midi.inputs.filter((p) => p.state === 'connected');
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center gap-3">
-          <Label htmlFor="midi-input" className="text-muted-foreground">
-            {t('monitor.input')}
-          </Label>
-          <Select
-            value={midi.selectedInputId ?? NONE}
-            onValueChange={(v) => webMidi.select(v === NONE ? null : v)}
-          >
-            <SelectTrigger id="midi-input" className="min-w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NONE}>{t('monitor.none')}</SelectItem>
-              {midi.inputs.map((p) => (
-                <SelectItem key={p.id} value={p.id} disabled={p.state !== 'connected'}>
-                  {p.name}
-                  {p.state !== 'connected' && ` (${t('monitor.disconnected')})`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {t('monitor.outputs')}：
-          <span className="text-foreground">
-            {midi.outputs.length
-              ? midi.outputs.map((p) => p.name).join('、')
-              : t('monitor.noOutputs')}
-          </span>
-        </p>
-      </div>
-      {connected.length === 0 && <Notice tone="warning">{t('monitor.noInputs')}</Notice>}
-      {midi.openError && (
-        <Notice tone="danger">{t('monitor.portBusy', { message: midi.openError })}</Notice>
-      )}
-    </div>
-  );
-}
-
-function Notice({ tone, children }: { tone: 'warning' | 'danger'; children: React.ReactNode }) {
-  return (
-    <p
-      role={tone === 'danger' ? 'alert' : 'status'}
-      className={cn(
-        'rounded-xl border-l-4 bg-card px-4 py-3 text-sm leading-relaxed',
-        tone === 'warning' ? 'border-warning' : 'border-destructive',
-      )}
-    >
-      {children}
-    </p>
   );
 }
 

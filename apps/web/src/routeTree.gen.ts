@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignRouteImport } from './routes/design'
 import { Route as MonitorRouteImport } from './routes/monitor'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ChordsIndexRouteImport } from './routes/chords/index'
+import { Route as ChordsChordIdRouteImport } from './routes/chords/$chordId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +31,71 @@ const MonitorRoute = MonitorRouteImport.update({
   path: '/monitor',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChordsIndexRoute = ChordsIndexRouteImport.update({
+  id: '/chords/',
+  path: '/chords/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChordsChordIdRoute = ChordsChordIdRouteImport.update({
+  id: '/chords/$chordId',
+  path: '/chords/$chordId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
   '/monitor': typeof MonitorRoute
+  '/settings': typeof SettingsRoute
+  '/chords/$chordId': typeof ChordsChordIdRoute
+  '/chords/': typeof ChordsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
   '/monitor': typeof MonitorRoute
+  '/settings': typeof SettingsRoute
+  '/chords/$chordId': typeof ChordsChordIdRoute
+  '/chords': typeof ChordsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
   '/monitor': typeof MonitorRoute
+  '/settings': typeof SettingsRoute
+  '/chords/$chordId': typeof ChordsChordIdRoute
+  '/chords/': typeof ChordsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design' | '/monitor'
+  fullPaths:
+    '/' | '/design' | '/monitor' | '/settings' | '/chords/$chordId' | '/chords/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design' | '/monitor'
-  id: '__root__' | '/' | '/design' | '/monitor'
+  to:
+    '/' | '/design' | '/monitor' | '/settings' | '/chords/$chordId' | '/chords'
+  id:
+    | '__root__'
+    | '/'
+    | '/design'
+    | '/monitor'
+    | '/settings'
+    | '/chords/$chordId'
+    | '/chords/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignRoute: typeof DesignRoute
   MonitorRoute: typeof MonitorRoute
+  SettingsRoute: typeof SettingsRoute
+  ChordsChordIdRoute: typeof ChordsChordIdRoute
+  ChordsIndexRoute: typeof ChordsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +121,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MonitorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chords/': {
+      id: '/chords/'
+      path: '/chords'
+      fullPath: '/chords/'
+      preLoaderRoute: typeof ChordsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chords/$chordId': {
+      id: '/chords/$chordId'
+      path: '/chords/$chordId'
+      fullPath: '/chords/$chordId'
+      preLoaderRoute: typeof ChordsChordIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +149,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignRoute: DesignRoute,
   MonitorRoute: MonitorRoute,
+  SettingsRoute: SettingsRoute,
+  ChordsChordIdRoute: ChordsChordIdRoute,
+  ChordsIndexRoute: ChordsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

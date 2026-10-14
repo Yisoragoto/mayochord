@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Activity, CalendarCheck2, Palette } from 'lucide-react';
+import { Activity, CalendarCheck2, Library, Settings } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TooltipProvider } from '@/design/ui/tooltip';
@@ -8,8 +8,9 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 
 const NAV = [
   { to: '/', key: 'today', icon: CalendarCheck2 },
+  { to: '/chords', key: 'chords', icon: Library },
   { to: '/monitor', key: 'monitor', icon: Activity },
-  { to: '/design', key: 'design', icon: Palette },
+  { to: '/settings', key: 'settings', icon: Settings },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -58,7 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label={t('nav.primary')}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-md sm:hidden"
       >
-        <ul className="grid grid-cols-3">
+        <ul className="grid grid-cols-4">
           {NAV.map(({ to, key, icon: Icon }) => (
             <li key={to}>
               <Link

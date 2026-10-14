@@ -9,6 +9,8 @@ export interface HeldNote {
   t: number;
   /** 手指已松开，但因为延音踏板仍在发声 */
   sustained: boolean;
+  /** 产生这个音的输入源（例如 'webmidi:input-0'、'onscreen'、'keyboard'） */
+  source: string;
 }
 
 export interface HeldState {
@@ -38,6 +40,7 @@ export function applyHeldEvent(state: HeldState, e: InputEvent): HeldState {
         channel: e.channel,
         t: e.t,
         sustained: false,
+        source: e.source,
       });
       return { ...state, notes };
     }

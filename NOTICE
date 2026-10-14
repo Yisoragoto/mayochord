@@ -1,0 +1,27 @@
+MayoChord
+Copyright (c) 2026 MayoChord contributors
+Licensed under the MIT License (see LICENSE).
+
+This project includes third-party assets distributed under their own licenses.
+
+------------------------------------------------------------------------------
+Salamander Grand Piano (piano samples)
+  Files:   apps/web/public/samples/salamander/*.mp3
+  Author:  Alexander Holm
+  License: Creative Commons Attribution 3.0 (CC-BY 3.0)
+           http://creativecommons.org/licenses/by/3.0/
+  Source:  Salamander Grand Piano V3, mp3 versions sampled every minor third
+           as hosted by the Tone.js project (https://github.com/Tonejs/audio).
+  Changes: none (files are redistributed unmodified).
+
+------------------------------------------------------------------------------
+Fonts (bundled via @fontsource packages)
+  Noto Sans SC, Noto Music        SIL Open Font License 1.1 (Google)
+  Instrument Sans                 SIL Open Font License 1.1
+  Bricolage Grotesque             SIL Open Font License 1.1
+  JetBrains Mono                  SIL Open Font License 1.1 (JetBrains)
+  Bravura (via VexFlow)           SIL Open Font License 1.1 (Steinberg)
+
+------------------------------------------------------------------------------
+Software dependencies are listed in the package.json files of each workspace
+package; all of them use permissive licenses (MIT, Apache-2.0, ISC, BSD, 0BSD).

@@ -79,3 +79,29 @@
     transform: none;
   }
 }
+
+/* 可弹奏的键盘 */
+.mc-keyboard[data-interactive] {
+  touch-action: none;
+}
+.mc-keyboard[data-interactive] .mc-key {
+  cursor: pointer;
+  outline: none;
+}
+.mc-keyboard .mc-key:focus-visible .mc-key-white,
+.mc-keyboard .mc-key:focus-visible .mc-key-black {
+  stroke: var(--ring);
+  stroke-width: 2.5;
+}
+
+.mc-keyboard .mc-key-hint {
+  fill: var(--key-label);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.mc-keyboard .mc-key-hint-black {
+  fill: var(--key-white);
+  opacity: 0.55;
+}

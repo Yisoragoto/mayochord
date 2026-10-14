@@ -10,7 +10,8 @@
 :root {
   --font-music: "Noto Music";
   --font-cjk: "Noto Sans SC Variable", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Mono", monospace;
+  --font-mono:
+    var(--font-music), "JetBrains Mono Variable", ui-monospace, "Cascadia Mono", monospace;
 
   --dur-instant: 80ms;
   --dur-fast: 140ms;

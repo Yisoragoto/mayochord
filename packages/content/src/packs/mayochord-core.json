@@ -1,0 +1,723 @@
+{
+  "id": "mayochord-core",
+  "version": "0.1.0",
+  "schemaVersion": 1,
+  "name": {
+    "zh-CN": "MayoChord 内置内容",
+    "en": "MayoChord built-in content"
+  },
+  "chords": [
+    {
+      "id": "c",
+      "root": "C",
+      "quality": "maj"
+    },
+    {
+      "id": "g",
+      "root": "G",
+      "quality": "maj"
+    },
+    {
+      "id": "am",
+      "root": "A",
+      "quality": "m"
+    },
+    {
+      "id": "f",
+      "root": "F",
+      "quality": "maj"
+    },
+    {
+      "id": "dm",
+      "root": "D",
+      "quality": "m"
+    },
+    {
+      "id": "em",
+      "root": "E",
+      "quality": "m"
+    },
+    {
+      "id": "fmaj7",
+      "root": "F",
+      "quality": "M7"
+    },
+    {
+      "id": "e7",
+      "root": "E",
+      "quality": "7"
+    },
+    {
+      "id": "am7",
+      "root": "A",
+      "quality": "m7"
+    },
+    {
+      "id": "gm7",
+      "root": "G",
+      "quality": "m7"
+    },
+    {
+      "id": "c7-9",
+      "root": "C",
+      "quality": "7(9)"
+    },
+    {
+      "id": "dm7",
+      "root": "D",
+      "quality": "m7"
+    },
+    {
+      "id": "g7",
+      "root": "G",
+      "quality": "7"
+    },
+    {
+      "id": "cmaj7",
+      "root": "C",
+      "quality": "M7"
+    },
+    {
+      "id": "d",
+      "root": "D",
+      "quality": "maj"
+    },
+    {
+      "id": "bm",
+      "root": "B",
+      "quality": "m"
+    }
+  ],
+  "voicings": [
+    {
+      "id": "c-ref",
+      "chordId": "c",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "C3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "C4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "E4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "G4",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "g-ref",
+      "chordId": "g",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "G3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "B3",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "D4",
+          "hand": "right",
+          "finger": 2
+        },
+        {
+          "pitch": "G4",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "am-ref",
+      "chordId": "am",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "A3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "C4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "E4",
+          "hand": "right",
+          "finger": 2
+        },
+        {
+          "pitch": "A4",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "f-ref",
+      "chordId": "f",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "F3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "C4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "F4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "A4",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "dm-ref",
+      "chordId": "dm",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "D3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "D4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "F4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "A4",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "em-ref",
+      "chordId": "em",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "E3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "E4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "G4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "B4",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "fmaj7-ref",
+      "chordId": "fmaj7",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "F3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "A4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "C5",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "E5",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "e7-ref",
+      "chordId": "e7",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "E3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "G#4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "B4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "D5",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "am7-ref",
+      "chordId": "am7",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "A3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "G4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "C5",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "E5",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "gm7-ref",
+      "chordId": "gm7",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "G3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "F4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "Bb4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "D5",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "c7-9-ref",
+      "chordId": "c7-9",
+      "reference": true,
+      "status": "confirmed",
+      "notes": [
+        {
+          "pitch": "C3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "E4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "Bb4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "D5",
+          "hand": "right",
+          "finger": 5
+        }
+      ]
+    },
+    {
+      "id": "dm7-ref",
+      "chordId": "dm7",
+      "reference": true,
+      "status": "tentative",
+      "notes": [
+        {
+          "pitch": "D3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "F4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "A4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "C5",
+          "hand": "right",
+          "finger": 5
+        }
+      ],
+      "note": {
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+      }
+    },
+    {
+      "id": "g7-ref",
+      "chordId": "g7",
+      "reference": true,
+      "status": "tentative",
+      "notes": [
+        {
+          "pitch": "G3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "F4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "G4",
+          "hand": "right",
+          "finger": 2
+        },
+        {
+          "pitch": "B4",
+          "hand": "right",
+          "finger": 4
+        }
+      ],
+      "note": {
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+      }
+    },
+    {
+      "id": "cmaj7-ref",
+      "chordId": "cmaj7",
+      "reference": true,
+      "status": "tentative",
+      "notes": [
+        {
+          "pitch": "C3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "E4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "G4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "B4",
+          "hand": "right",
+          "finger": 5
+        }
+      ],
+      "note": {
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+      }
+    },
+    {
+      "id": "d-ref",
+      "chordId": "d",
+      "reference": true,
+      "status": "tentative",
+      "notes": [
+        {
+          "pitch": "D3",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "D4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "F#4",
+          "hand": "right",
+          "finger": 3
+        },
+        {
+          "pitch": "A4",
+          "hand": "right",
+          "finger": 5
+        }
+      ],
+      "note": {
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+      }
+    },
+    {
+      "id": "bm-ref",
+      "chordId": "bm",
+      "reference": true,
+      "status": "tentative",
+      "notes": [
+        {
+          "pitch": "B2",
+          "hand": "left",
+          "finger": 5
+        },
+        {
+          "pitch": "D4",
+          "hand": "right",
+          "finger": 1
+        },
+        {
+          "pitch": "F#4",
+          "hand": "right",
+          "finger": 2
+        },
+        {
+          "pitch": "B4",
+          "hand": "right",
+          "finger": 5
+        }
+      ],
+      "note": {
+        "zh-CN": "按“右手就近转位、每次只移动半音或全音”的原则设计（规格第 11 节），键位和指法待确认。"
+      }
+    }
+  ],
+  "progressions": [
+    {
+      "id": "c-g-am-f",
+      "name": {
+        "zh-CN": "C – G – Am – F",
+        "en": "C – G – Am – F"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "c",
+          "voicingId": "c-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "g",
+          "voicingId": "g-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "am",
+          "voicingId": "am-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "f",
+          "voicingId": "f-ref",
+          "beats": 4
+        }
+      ]
+    },
+    {
+      "id": "royal-road-c",
+      "name": {
+        "zh-CN": "王道进行（C 调）",
+        "en": "Royal Road progression (C)",
+        "ja": "王道進行（C）"
+      },
+      "key": "C",
+      "description": {
+        "zh-CN": "IV – V – iii – vi"
+      },
+      "steps": [
+        {
+          "chordId": "f",
+          "voicingId": "f-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "g",
+          "voicingId": "g-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "em",
+          "voicingId": "em-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "am",
+          "voicingId": "am-ref",
+          "beats": 4
+        }
+      ]
+    },
+    {
+      "id": "royal-road-g",
+      "name": {
+        "zh-CN": "王道进行（G 调）",
+        "en": "Royal Road progression (G)",
+        "ja": "王道進行（G）"
+      },
+      "key": "G",
+      "description": {
+        "zh-CN": "IV – V – iii – vi。D、Bm 的键位按就近转位设计，待确认。"
+      },
+      "steps": [
+        {
+          "chordId": "c",
+          "voicingId": "c-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "d",
+          "voicingId": "d-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "bm",
+          "voicingId": "bm-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "em",
+          "voicingId": "em-ref",
+          "beats": 4
+        }
+      ]
+    },
+    {
+      "id": "marusa",
+      "name": {
+        "zh-CN": "丸サ進行",
+        "en": "Marunouchi Sadistic progression",
+        "ja": "丸サ進行"
+      },
+      "key": "C",
+      "description": {
+        "zh-CN": "IVM7 – III7 – VIm7 – Vm7 I7"
+      },
+      "steps": [
+        {
+          "chordId": "fmaj7",
+          "voicingId": "fmaj7-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "e7",
+          "voicingId": "e7-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "am7",
+          "voicingId": "am7-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "gm7",
+          "voicingId": "gm7-ref",
+          "beats": 2
+        },
+        {
+          "chordId": "c7-9",
+          "voicingId": "c7-9-ref",
+          "beats": 2
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-c",
+      "name": {
+        "zh-CN": "II – V – I（C 调）",
+        "en": "ii – V – I (C)"
+      },
+      "key": "C",
+      "description": {
+        "zh-CN": "键位按就近转位设计，待确认。"
+      },
+      "steps": [
+        {
+          "chordId": "dm7",
+          "voicingId": "dm7-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "g7",
+          "voicingId": "g7-ref",
+          "beats": 4
+        },
+        {
+          "chordId": "cmaj7",
+          "voicingId": "cmaj7-ref",
+          "beats": 8
+        }
+      ]
+    }
+  ]
+}

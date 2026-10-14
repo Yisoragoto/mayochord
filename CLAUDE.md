@@ -7,8 +7,9 @@
 
 | 里程碑 | 状态 |
 |---|---|
-| M0 骨架与真机验证 | 完成：视觉方向选定（真夜中），JUNO-D7 已实测两次。OCTAVE/TRANSPOSE 偏移规律、踏板（暂无）留待 M1 |
-| M1–M6 | 未开始 |
+| M0 骨架与真机验证 | 完成（commit a790c25） |
+| M1 核心与数据层 | 完成（用户确认，待确认键位采用默认推荐） |
+| M2–M6 | 未开始 |
 
 ## 常用命令（仓库根目录）
 
@@ -36,26 +37,40 @@ pnpm e2e          # Playwright（本地用已安装的 Chrome，CI 用 chromium�
 - **shadcn/ui 组件**在 `apps/web/src/design/ui/`。用 CLI 添加后要做两件事：把 `from "cn"` 改成 `from "@/lib/utils"`（CLI 在 monorepo 里解析别名有误）；删除 `dark:` 变体并把 `accent` 悬停色改为 `surface-2`（见下方设计系统）。
 - **路由**：TanStack Router 文件路由（`apps/web/src/routes/`），`routeTree.gen.ts` 由插件生成并提交到仓库。
 - **GitHub Pages**：browser history + 构建时把 `index.html` 复制为 `404.html`（`vite.config.ts` 的 `spaFallback` 插件）。`base` 默认 `/mayochord/`，可用环境变量 `MAYOCHORD_BASE` 覆盖。
-- **localStorage** 只存外观设置（`mayochord.appearance`，首屏脚本在 `index.html` 读取以避免闪烁）。业务数据一律走 Dexie（M1 起）。
+- **localStorage** 只存外观设置（`mayochord.appearance`，首屏脚本在 `index.html` 读取以避免闪烁）。业务数据一律走 Dexie。
+- **音乐理论自行实现**（规格第 3 节已改）：Tonal 自 2026-09-28 起各子包发布入口错误，已移除。不要再引入 Tonal。
+- **拼写**：音名一律保留拼写（'Bb4' 不写成 'A#4'），由字母+度数推出（`spellInterval`）。显示时用 `prettyAccidentals` 换成 ♭ ♯。
+- **和弦 ID**（URL 安全）：`chordSlug(root, quality, bass)`，例如 gm7、fmaj7、c7-9、bb、fsm7b5、c-on-e。内容包校验会检查 ID 与和弦一致。
+- **大文件懒加载**：Tone.js 与钢琴采样在第一次发声时加载（`audio/piano.ts`）；VexFlow 在第一次显示五线谱时加载（`design/staff`）。不要在首屏代码里静态 import 它们。
+- **在 Git Bash 里用 Python 改文件**：写文件时加 `newline='
+'`，否则在 Windows 上会写成 CRLF。长脚本先写到临时文件再执行（直接放在 heredoc 里，bash 可能解析失败）。
 
 ## 目录结构
 
 ```
 packages/core/src/
-  input/        InputEvent 类型、MIDI 字节解析 parseMidiMessage、DeviceProfile 类型
-  theory/       音名↔MIDI、和弦性质表 CHORD_QUALITIES、和弦符号格式化
-  recognition/  按住音状态机 applyHeldEvent、自由识别 identifyChord
-  （M1 起：voicing/ timing/ graph/ scheduler/ grading/ drill/ strategy/）
+  input/        InputEvent、MIDI 解析、DeviceProfile 类型；merge.ts 跨通道/跨输入源合并、整体移调
+  theory/       音名解析与拼写（spellInterval）、和弦性质表、和弦符号解析/格式化/ID、级数（key.ts）
+  voicing/      Voicing 类型、声部进行配对、就近转位搜索、右手转位描述
+  recognition/  按住音、自由识别、判定（judgeNotes、findUniformShift）、和弦尝试检测（AttemptTracker）
+  log/          ReviewLog 类型（作答日志）
+  （M2 起：timing/ graph/ scheduler/ grading/ drill/ strategy/）
 packages/content/src/
-  devices.ts    内置 DeviceProfile（JUNO-D7、通用 88 键）
-  （M1 起：Zod schema、内置内容包）
+  schema/       Zod：内容包（含跨字段校验）、设备配置
+  packs/        内置内容包 mayochord-core.json（第 11 节）
+  devices/      设备配置 JSON（JUNO-D7、通用 88 键）
+  load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
 apps/web/src/
-  routes/       页面路由（/、/monitor、/design）
-  features/     页面级模块：shell、today、monitor、design-gallery
-  input/        输入源适配器：webmidi.ts（WebMidiService 单例 + useMidi store）
-  design/       tokens.css、ui/（shadcn）、keyboard/Keyboard、ChordName、Wordmark
-  stores/       Zustand：appearance
-  i18n/         i18next 初始化与语言资源
+  app/          bootstrap.ts：启动时连接输入源、汇流、实时输入、音源、存储、校准
+  routes/       /、/chords、/chords/$chordId、/monitor、/settings、/design
+  features/     shell、today、chords（和弦库、详情、试弹）、midi（设备面板）、monitor、settings、design-gallery
+  input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
+                computer-keyboard.ts、PlayableKeyboard.tsx（屏幕键盘）
+  audio/        piano.ts（Tone.js + Salamander 采样，懒加载）、live-sound.ts
+  storage/      Dexie 数据库 db.ts、仓储接口与实现 repositories.ts
+  design/       tokens.css、ui/（shadcn）、keyboard/、staff/（VexFlow，懒加载）、ChordName、Wordmark
+  stores/       Zustand：appearance、settings
+apps/web/public/samples/salamander/   钢琴采样（CC-BY 3.0，见 NOTICE）
 apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAccess
 ```
 
@@ -70,10 +85,35 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
 - 系统实时消息：保留 `clock/start/continue/stop`；**忽略** active sensing（0xFE）、reset（0xFF）、sysex。
 - 其他通道消息（音色切换、弯音、触后）解析出来只给监视页显示。
 
+### 输入流水线（apps/web）
+
+`Web MIDI → (八度校准：减去偏移) → 输入汇流 InputHub ← 屏幕键盘 / 电脑键盘`
+`InputHub → createNoteMerger（同一个音跨通道、跨输入源只算一次） → LiveInput（按住音 + AttemptTracker） → 页面`
+- 输入源 ID：`webmidi:<portId>`、`onscreen`、`keyboard`。`sourceKind()` 映射成日志用的 midi / onscreen / keyboard。
+- 输入源断开、校准偏移改变、窗口失焦时补发 noteOff，避免"卡音"。
+- 校准（`calibration.ts`）直接监听未校准的 Web MIDI 事件；偏移按设备（端口名）存在 Dexie 的 calibrations 表。
+- 屏幕键盘有两种模式（设置里切换）：按住发声（触摸屏多指按和弦）/ 点击切换（鼠标按和弦）。
+
 ### 按住音（`recognition/held-notes.ts`）
 
-- 状态记录每个按住音的按下时间、力度、通道和 `sustained` 标记（手指已松开、因踏板仍在发声）。
+- 状态记录每个按住音的按下时间、力度、通道、输入源和 `sustained` 标记（手指已松开、因踏板仍在发声）。
 - 是否把 `sustained` 的音算作"按住"由查询参数 `sustainCountsAsHeld` 决定（设置项，默认 false）。
+
+### 内容包（`packages/content`，`schemaVersion: 1`）
+
+`{ id, version(semver), schemaVersion, name, chords: [{ id, root, quality, bass? }], voicings: [{ id, chordId, reference, status, notes: [{ pitch, hand, finger? }], note? }], progressions: [{ id, name, key, steps: [{ chordId, voicingId, beats }], description? }] }`
+校验规则：ID 唯一且符合 chordSlug；键位的音必须是和弦音且拼写正确；除可省略的五音外不能缺和弦音；每个和弦恰好一个参考键位；进行引用的和弦、键位存在且对应。
+
+### 本地数据库（Dexie，`MayoChordDB`，当前 version 1）
+
+| 表 | 主键 / 索引 | 说明 |
+|---|---|---|
+| reviewLogs | `++seq, &id, ts, cardId, sessionId, [cardId+ts]` | 作答日志，只追加（仓储接口不提供修改、删除） |
+| settings | `key` | 'app' → AppSettings（Zod 校验，每个字段损坏时单独回退默认值） |
+| calibrations | `deviceKey` | 每个 MIDI 设备的音高偏移、实测音域 |
+| cardStates / sessions / userPacks | `cardId, due` / `id, startedAt` / `id` | M2 起使用 |
+
+改表结构：新增 `this.version(n)`，保留旧版本声明，需要时写 `.upgrade()`，并在 `storage/db.test.ts` 加"旧数据升级后不丢失"的测试。
 
 ### 监视页导出 JSON（`kind: "midi-monitor-capture"`, `formatVersion: 2`）
 
@@ -92,10 +132,25 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
   例：C E G A 低音为 C → `C6` 优先于 `Am7/C`；低音为 A → `Am7`。减七、增三等对称和弦以低音为根。
 - 支持：maj、m、dim、aug、sus2、sus4、6、m6、M7、7、m7、m7♭5、dim7、mM7、add9、madd9、7(9)、M7(9)、m7(9)。
 
-### 练习判定（M1 实现，规格第 8 节）
+### 和弦尝试（`AttemptTracker` / `findAttempts`）
 
-- 所有目标音在约 80 ms 窗口内按下、并保持稳定约 150 ms，判定为"弹出一个和弦"。阈值可调。
-- 宽松模式比较音级集合；严格模式与参考键位逐音一致。给出多按、少按的音。
+- 按住的音集合变化后，若 `stableMs`（默认 150）内不再变化，产生一次尝试；同一个稳定状态只产生一次。
+- 只松开手指（没有新按下的音）不算尝试。
+- 齐整度 `spreadMs` 只算这次新按下的音（从上一个和弦保持下来的共同音不算）；`together = spreadMs <= onsetWindowMs`（默认 80）。
+- 两个阈值和踏板选项都在设置页可调。屏幕键盘、电脑键盘的齐整度没有意义，界面上不显示。
+
+### 判定（`judgeNotes`）
+
+- 宽松 loose：比较音级集合，忽略八度和转位；多按 = 按住音中不在目标音级里的；少按 = 参考键位中音级没被按到的（标在参考键位的位置上）。
+- 严格 strict：与参考键位逐音一致。
+- 什么都没按不算对。
+- `findUniformShift`：按的音整体平移 k 个半音后与目标一致时返回 k，用于提示"OCTAVE/TRANSPOSE 可能被改动，请重新校准"。
+
+### 就近转位（`rankRightHandVoicings` / `nearestBass`）
+
+- 右手：在 G3–G5 内枚举 3 个音的组合（跨度 ≤ 12，不重复音级）；七和弦必须含三音、七音（有九音时含九音），三和弦三个音都要有；按声部进行移动总量 → 最大单步 → 跨度排序。
+- 左手：E2–B3 内离前一个左手音最近的根音。
+- 内置包里"待确认"的键位（Dm7、G7、CM7、D、Bm）就是这样推出来的，`content.test.ts` 会验证。
 
 ## 调度规则
 

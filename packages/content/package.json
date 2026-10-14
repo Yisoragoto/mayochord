@@ -9,6 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@mayochord/core": "workspace:*"
+    "@mayochord/core": "workspace:*",
+    "zod": "4.6.7"
   }
 }

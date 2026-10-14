@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 import { ChordName } from '@/design/ChordName';
 import { Keyboard, type KeyMark } from '@/design/keyboard/Keyboard';
+import { Staff } from '@/design/staff/Staff';
 import { Badge } from '@/design/ui/badge';
 import { Button } from '@/design/ui/button';
 import { Label } from '@/design/ui/label';
@@ -109,6 +110,15 @@ function Specimen({ theme }: { theme: ResolvedTheme }) {
           <Keyboard low={53} high={79} marks={AM7_RESULT} pressed={new Set([57, 67, 73, 76])} />
           <Legend />
         </div>
+      </Block>
+
+      <Block title="五线谱">
+        <Staff
+          lh={['A3']}
+          rh={['G4', 'C5', 'E5']}
+          label="五线谱：左手 A3，右手 G4 C5 E5"
+          className="max-w-48"
+        />
       </Block>
 
       <Block title="中文排版">

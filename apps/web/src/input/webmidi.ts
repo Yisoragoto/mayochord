@@ -65,6 +65,8 @@ function portInfo(p: MIDIPort): MidiPortInfo {
 
 type RawListener = (msg: RawMidiMessage) => void;
 type EventListener = (e: InputEvent) => void;
+type DetachListener = (source: string) => void;
+type SelectListener = (portName: string | null) => void;
 
 /**
  * Web MIDI 访问的单例服务：申请权限、维护端口列表、自动选择设备、把所选输入的消息分发给订阅者。
@@ -82,10 +84,18 @@ class WebMidiService {
   private manualSelection = false;
   private rawListeners = new Set<RawListener>();
   private eventListeners = new Set<EventListener>();
+  private detachListeners = new Set<DetachListener>();
+  private selectListeners = new Set<SelectListener>();
   private preferred: DeviceProfile[] = [];
+  private preferredName: string | null = null;
 
   setPreferredProfiles(profiles: DeviceProfile[]) {
     this.preferred = profiles;
+  }
+
+  /** 用户上次手动选择的设备名：自动选择时优先于设备配置的名称匹配 */
+  setPreferredName(name: string | null) {
+    this.preferredName = name;
   }
 
   request(): Promise<void> {
@@ -118,7 +128,27 @@ class WebMidiService {
   /** 用户手动选择输入端口（null = 不监听）。 */
   select(id: string | null) {
     this.manualSelection = true;
+    const name = id ? (this.access?.inputs.get(id)?.name ?? null) : null;
+    for (const cb of this.selectListeners) cb(name);
     void this.attach(id);
+  }
+
+  /** 当前所选输入端口的名称（用作校准数据的设备键） */
+  selectedPortName(): string | null {
+    const id = useMidi.getState().selectedInputId;
+    return id ? (this.access?.inputs.get(id)?.name ?? null) : null;
+  }
+
+  /** 输入端口被断开或切换时通知（参数是事件里的 source），用于释放还按着的音 */
+  onDetach(cb: DetachListener): () => void {
+    this.detachListeners.add(cb);
+    return () => this.detachListeners.delete(cb);
+  }
+
+  /** 用户手动选择设备时通知（参数是端口名），用于记住选择 */
+  onSelect(cb: SelectListener): () => void {
+    this.selectListeners.add(cb);
+    return () => this.selectListeners.delete(cb);
   }
 
   /** 直接从 MIDIAccess 读取当前端口状态（用于导出，避免 store 快照过时）。 */
@@ -160,6 +190,7 @@ class WebMidiService {
     }
     const connected = inputs.filter((p) => p.state === 'connected');
     const preferred =
+      connected.find((p) => p.name === this.preferredName) ??
       connected.find((p) => this.preferred.some((prof) => matchesDevice(prof, p.name))) ??
       connected[0];
     void this.attach(preferred?.id ?? null);
@@ -168,7 +199,9 @@ class WebMidiService {
   private detach() {
     if (this.attached) {
       this.attached.onmidimessage = null;
+      const source = `webmidi:${this.attached.id}`;
       this.attached = null;
+      for (const cb of this.detachListeners) cb(source);
     }
     this.attachingId = null;
   }

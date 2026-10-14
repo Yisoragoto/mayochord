@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Activity, ArrowRight, Palette } from 'lucide-react';
+import { Activity, ArrowRight, Library } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Keyboard, type KeyMark } from '@/design/keyboard/Keyboard';
 import { Button } from '@/design/ui/button';
@@ -38,16 +38,16 @@ export function TodayPage() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button asChild size="lg">
-            <Link to="/monitor">
-              <Activity />
-              {t('today.openMonitor')}
+            <Link to="/chords">
+              <Library />
+              {t('today.openChords')}
               <ArrowRight />
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link to="/design">
-              <Palette />
-              {t('today.openDesign')}
+            <Link to="/monitor">
+              <Activity />
+              {t('today.openMonitor')}
             </Link>
           </Button>
         </div>

@@ -1,0 +1,12 @@
+{
+  "id": "generic-88",
+  "name": "通用 88 键",
+  "match": {
+    "nameIncludes": []
+  },
+  "keys": 88,
+  "lowestNote": 21,
+  "highestNote": 108,
+  "verified": true,
+  "knownBehaviors": {}
+}

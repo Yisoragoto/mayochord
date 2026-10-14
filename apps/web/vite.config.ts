@@ -35,6 +35,10 @@ export default defineConfig({
   resolve: {
     alias: { '@': resolve(import.meta.dirname, 'src') },
   },
+  build: {
+    // VexFlow（内嵌 Bravura 字体，约 720 kB）和 Tone.js 都是按需懒加载的独立 chunk，不影响首屏
+    chunkSizeWarningLimit: 800,
+  },
   server: { port: 5173, host: true },
   preview: { port: 4173 },
 });
