@@ -16,6 +16,7 @@ import { LoadingScreen, useEscapeToFinish } from '../practice/PracticeSessionPag
 import { practice, usePractice } from '../practice/practice';
 import { CenteredMessage, SessionRunner } from '../practice/SessionRunner';
 import type { TopicOutcome } from './learning';
+import { RhythmLesson } from './RhythmLesson';
 import { learning, refreshLearning } from './service';
 import { guidedSpec, independentSpec, masterySpec } from './specs';
 
@@ -32,7 +33,16 @@ const pick = (text: { 'zh-CN': string }) => text['zh-CN'];
  * 主题课程（规格 6.2）：讲解与示范 → 引导练习 → 独立练习 → 掌握检查。
  * 从每日任务进入时带 taskId，通过掌握检查后把任务标记为完成。
  */
-export function LessonPage({ topicId, taskId }: { topicId: string; taskId?: string | undefined }) {
+export function LessonPage(props: { topicId: string; taskId?: string | undefined }) {
+  const topic = BUILTIN_PACK.topicById.get(props.topicId);
+  // 跟拍主题（M4）：引导、独立、掌握检查都是跟着节拍器弹进行
+  if (topic?.practice.kind === 'progression') {
+    return <RhythmLesson key={topic.id} topic={topic} taskId={props.taskId} />;
+  }
+  return <DrillLesson key={props.topicId} {...props} />;
+}
+
+function DrillLesson({ topicId, taskId }: { topicId: string; taskId?: string | undefined }) {
   const { t } = useTranslation();
   const topic = BUILTIN_PACK.topicById.get(topicId);
   useDocumentTitle(topic ? pick(topic.title) : t('learn.lesson'));
@@ -158,7 +168,7 @@ export function LessonPage({ topicId, taskId }: { topicId: string; taskId?: stri
   }
 }
 
-function LessonFrame({
+export function LessonFrame({
   topic,
   onExit,
   step,
@@ -204,7 +214,7 @@ function LessonFrame({
 }
 
 /** 讲解与示范：文字 + 键盘标记 + 播放 */
-function Explain({
+export function Explain({
   topic,
   onDone,
   onSkipToCheck,
@@ -326,21 +336,25 @@ function DemoPlay({ notes, arpeggio }: { notes: number[]; arpeggio: boolean }) {
   );
 }
 
-function StageIntro({
+export function StageIntro({
   topic,
   next,
   onStart,
   onExit,
+  body: bodyOverride,
 }: {
   topic: TopicEntry;
   next: 'guided' | 'independent' | 'mastery';
   onStart: () => void;
   onExit: () => void;
+  /** 替换默认的说明文字（跟拍主题） */
+  body?: string;
 }) {
   const { t } = useTranslation();
   const m = topic.lesson.mastery;
   const body =
-    next === 'guided'
+    bodyOverride ??
+    (next === 'guided'
       ? t('learn.guidedIntro', { n: Math.min(topic.lesson.guided.count, topic.cards.length) })
       : next === 'independent'
         ? t('learn.independentIntro', { n: topic.lesson.independent.requiredCorrect })
@@ -348,7 +362,7 @@ function StageIntro({
             n: m.questions,
             pct: Math.round(m.minAccuracy * 100),
             s: (m.timeLimitMs / 1000).toFixed(1).replace(/\.0$/, ''),
-          });
+          }));
   return (
     <LessonFrame topic={topic} onExit={onExit}>
       <div className="space-y-4">
@@ -365,18 +379,21 @@ function StageIntro({
   );
 }
 
-function LessonResult({
+export function LessonResult({
   topic,
   outcome,
   xp,
   onRetryCheck,
   onPracticeMore,
+  measure = 'accuracy',
 }: {
   topic: TopicEntry;
   outcome: TopicOutcome;
   xp: number;
   onRetryCheck: () => void;
   onPracticeMore: () => void;
+  /** 跟拍主题看"干净率"（对、在拍上、同时落下） */
+  measure?: 'accuracy' | 'clean';
 }) {
   const { t } = useTranslation();
   const pct = Math.round(outcome.accuracy * 100);
@@ -401,7 +418,13 @@ function LessonResult({
           : t('learn.failedTitle')}
       </h1>
       <p className="text-muted-foreground">
-        {outcome.passed ? t('learn.passedBody', { pct }) : t('learn.failedBody', { pct, need })}
+        {measure === 'clean'
+          ? outcome.passed
+            ? t('learn.passedBodyClean', { pct })
+            : t('learn.failedBodyClean', { pct, need })
+          : outcome.passed
+            ? t('learn.passedBody', { pct })
+            : t('learn.failedBody', { pct, need })}
       </p>
       <p className="font-mono text-sm text-primary tabular-nums">
         {t('learn.xpEarned', { xp: xp.toFixed(1) })}

@@ -55,13 +55,23 @@ const BED = 5;
 /** 黑键相对标准位置的偏移，模仿真实钢琴黑键的不对称分布 */
 const BLACK_OFFSET: Partial<Record<number, number>> = { 1: -2.5, 3: 2.5, 6: -3, 8: 0, 10: 3 };
 
-interface KeyGeom {
+export interface KeyGeom {
   note: number;
   black: boolean;
   x: number;
 }
 
-function layout(low: number, high: number): { keys: KeyGeom[]; width: number } {
+/** 键盘几何（其他图层与键盘对齐时用，例如声部进行连线）：白键宽 W，黑键宽 BW */
+export const KEYBOARD_GEOMETRY = { whiteWidth: W, blackWidth: BW } as const;
+
+/** 某个音的键在键盘 SVG 里的水平中心（与同样 low/high 的 Keyboard 对齐） */
+export function keyCenterX(low: number, high: number, note: number): number | null {
+  const k = keyboardLayout(low, high).keys.find((x) => x.note === note);
+  if (!k) return null;
+  return k.x + (k.black ? BW / 2 : W / 2);
+}
+
+export function keyboardLayout(low: number, high: number): { keys: KeyGeom[]; width: number } {
   const lo = isBlackKey(low) ? low - 1 : low;
   const hi = isBlackKey(high) ? high + 1 : high;
   const keys: KeyGeom[] = [];
@@ -97,7 +107,7 @@ export function Keyboard({
   'aria-label': ariaLabel,
 }: KeyboardProps) {
   const uid = useId().replace(/:/g, '');
-  const { keys, width } = useMemo(() => layout(low, high), [low, high]);
+  const { keys, width } = useMemo(() => keyboardLayout(low, high), [low, high]);
   const whites = keys.filter((k) => !k.black);
   const blacks = keys.filter((k) => k.black);
   const interactive = onPress !== undefined;

@@ -20,6 +20,8 @@ import { Route as LearnTopicIdRouteImport } from './routes/learn/$topicId'
 import { Route as PracticeIndexRouteImport } from './routes/practice/index'
 import { Route as PracticeSessionRouteImport } from './routes/practice/session'
 import { Route as ReviewTopicIdRouteImport } from './routes/review/$topicId'
+import { Route as PracticeProgressionIndexRouteImport } from './routes/practice/progression/index'
+import { Route as PracticeProgressionRunRouteImport } from './routes/practice/progression/run'
 import { Route as TodayTaskTaskIdRouteImport } from './routes/today/task/$taskId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -77,6 +79,17 @@ const ReviewTopicIdRoute = ReviewTopicIdRouteImport.update({
   path: '/review/$topicId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PracticeProgressionIndexRoute =
+  PracticeProgressionIndexRouteImport.update({
+    id: '/practice/progression/',
+    path: '/practice/progression/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PracticeProgressionRunRoute = PracticeProgressionRunRouteImport.update({
+  id: '/practice/progression/run',
+  path: '/practice/progression/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TodayTaskTaskIdRoute = TodayTaskTaskIdRouteImport.update({
   id: '/today/task/$taskId',
   path: '/today/task/$taskId',
@@ -95,7 +108,9 @@ export interface FileRoutesByFullPath {
   '/review/$topicId': typeof ReviewTopicIdRoute
   '/chords/': typeof ChordsIndexRoute
   '/practice/': typeof PracticeIndexRoute
+  '/practice/progression/run': typeof PracticeProgressionRunRoute
   '/today/task/$taskId': typeof TodayTaskTaskIdRoute
+  '/practice/progression/': typeof PracticeProgressionIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,7 +124,9 @@ export interface FileRoutesByTo {
   '/review/$topicId': typeof ReviewTopicIdRoute
   '/chords': typeof ChordsIndexRoute
   '/practice': typeof PracticeIndexRoute
+  '/practice/progression/run': typeof PracticeProgressionRunRoute
   '/today/task/$taskId': typeof TodayTaskTaskIdRoute
+  '/practice/progression': typeof PracticeProgressionIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,7 +141,9 @@ export interface FileRoutesById {
   '/review/$topicId': typeof ReviewTopicIdRoute
   '/chords/': typeof ChordsIndexRoute
   '/practice/': typeof PracticeIndexRoute
+  '/practice/progression/run': typeof PracticeProgressionRunRoute
   '/today/task/$taskId': typeof TodayTaskTaskIdRoute
+  '/practice/progression/': typeof PracticeProgressionIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,7 +159,9 @@ export interface FileRouteTypes {
     | '/review/$topicId'
     | '/chords/'
     | '/practice/'
+    | '/practice/progression/run'
     | '/today/task/$taskId'
+    | '/practice/progression/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -154,7 +175,9 @@ export interface FileRouteTypes {
     | '/review/$topicId'
     | '/chords'
     | '/practice'
+    | '/practice/progression/run'
     | '/today/task/$taskId'
+    | '/practice/progression'
   id:
     | '__root__'
     | '/'
@@ -168,7 +191,9 @@ export interface FileRouteTypes {
     | '/review/$topicId'
     | '/chords/'
     | '/practice/'
+    | '/practice/progression/run'
     | '/today/task/$taskId'
+    | '/practice/progression/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,7 +208,9 @@ export interface RootRouteChildren {
   ReviewTopicIdRoute: typeof ReviewTopicIdRoute
   ChordsIndexRoute: typeof ChordsIndexRoute
   PracticeIndexRoute: typeof PracticeIndexRoute
+  PracticeProgressionRunRoute: typeof PracticeProgressionRunRoute
   TodayTaskTaskIdRoute: typeof TodayTaskTaskIdRoute
+  PracticeProgressionIndexRoute: typeof PracticeProgressionIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -265,6 +292,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewTopicIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/practice/progression/': {
+      id: '/practice/progression/'
+      path: '/practice/progression'
+      fullPath: '/practice/progression/'
+      preLoaderRoute: typeof PracticeProgressionIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice/progression/run': {
+      id: '/practice/progression/run'
+      path: '/practice/progression/run'
+      fullPath: '/practice/progression/run'
+      preLoaderRoute: typeof PracticeProgressionRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/today/task/$taskId': {
       id: '/today/task/$taskId'
       path: '/today/task/$taskId'
@@ -287,7 +328,9 @@ const rootRouteChildren: RootRouteChildren = {
   ReviewTopicIdRoute: ReviewTopicIdRoute,
   ChordsIndexRoute: ChordsIndexRoute,
   PracticeIndexRoute: PracticeIndexRoute,
+  PracticeProgressionRunRoute: PracticeProgressionRunRoute,
   TodayTaskTaskIdRoute: TodayTaskTaskIdRoute,
+  PracticeProgressionIndexRoute: PracticeProgressionIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

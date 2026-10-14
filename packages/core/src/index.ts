@@ -7,4 +7,5 @@ export * from './recognition';
 export * from './scheduler';
 export * from './strategy';
 export * from './theory';
+export * from './timing';
 export * from './voicing';

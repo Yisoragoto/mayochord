@@ -24,6 +24,7 @@ import {
   ContentPackSchema,
   type I18nText,
   type LessonData,
+  type TopicPractice,
 } from './schema/pack';
 
 export interface ChordEntry {
@@ -43,7 +44,7 @@ export interface ProgressionEntry {
   name: I18nText;
   key: string;
   description?: I18nText;
-  steps: { chord: ChordEntry; voicing: Voicing; beats: number }[];
+  steps: { chord: ChordEntry; voicing: Voicing; beats: number; anticipation: number }[];
 }
 
 /** 知识图谱里的一个主题（已解析出卡片） */
@@ -54,6 +55,8 @@ export interface TopicEntry extends TopicNode {
   cards: AnyCard[];
   /** 卡片的判定方式：练习内容里的 voicingMode（认音名、音程题为 any） */
   lesson: LessonData;
+  /** 练习内容（跟拍主题的课程要用到进行与速度） */
+  practice: TopicPractice;
 }
 
 export interface LoadedPack {
@@ -142,6 +145,7 @@ export function loadContentPack(input: unknown): LoadResult {
         chord: chordById.get(s.chordId) as ChordEntry,
         voicing: voicingById.get(s.voicingId) as Voicing,
         beats: s.beats,
+        anticipation: s.anticipation,
       })),
     };
     if (p.description) entry.description = p.description;
@@ -180,6 +184,12 @@ export function loadContentPack(input: unknown): LoadResult {
           });
         break;
       }
+      case 'progression':
+        cards = transitionCardsFor(
+          (progressionById.get(pr.progression) as ProgressionEntry).steps.map((s) => s.chord.id),
+          { cyclic: true, voicingMode: pr.voicingMode, topicId: t.id },
+        );
+        break;
     }
     const entry: TopicEntry = {
       id: t.id,
@@ -189,6 +199,7 @@ export function loadContentPack(input: unknown): LoadResult {
       encompasses: t.encompasses,
       cards,
       lesson: t.lesson,
+      practice: t.practice,
     };
     if (t.interferenceGroup !== undefined) entry.interferenceGroup = t.interferenceGroup;
     return entry;

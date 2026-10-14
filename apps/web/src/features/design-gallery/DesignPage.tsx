@@ -1,4 +1,4 @@
-import type { ChordSymbol } from '@mayochord/core';
+import { type ChordSymbol, histogram, type VoicedNote } from '@mayochord/core';
 import {
   ArrowRight,
   BookOpen,
@@ -24,7 +24,10 @@ import { Label } from '@/design/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/design/ui/select';
 import { Slider } from '@/design/ui/slider';
 import { Switch } from '@/design/ui/switch';
+import { referenceMarks } from '@/features/chords/voicing-view';
 import { StatusBadge } from '@/features/graph/GraphPage';
+import { OffsetHistogram } from '@/features/progression/RunSummaryView';
+import { VoiceLeading } from '@/features/progression/VoiceLeading';
 import { cn } from '@/lib/utils';
 import { type ResolvedTheme, resolveTheme, useAppearance } from '@/stores/appearance';
 
@@ -54,6 +57,24 @@ const AM7_RESULT = new Map<number, KeyMark>([
   [73, { kind: 'extra' }],
   [76, { kind: 'correct', hand: 'right' }],
 ]);
+
+const vn = (name: string, midi: number, hand: 'left' | 'right'): VoicedNote => ({
+  name,
+  midi,
+  hand,
+});
+const GM7 = [
+  vn('G3', 55, 'left'),
+  vn('F4', 65, 'right'),
+  vn('Bb4', 70, 'right'),
+  vn('D5', 74, 'right'),
+];
+const C79 = [
+  vn('C3', 48, 'left'),
+  vn('E4', 64, 'right'),
+  vn('Bb4', 70, 'right'),
+  vn('D5', 74, 'right'),
+];
 
 export function DesignPage() {
   const themePref = useAppearance((s) => s.theme);
@@ -136,6 +157,28 @@ function Specimen({ theme }: { theme: ResolvedTheme }) {
           </div>
           <Button size="sm">开始</Button>
         </div>
+      </Block>
+
+      <Block title="声部进行：Gm7 → C7(9)（共同音虚线，移动的声部标半音数）">
+        <div className="grid gap-1">
+          <VoiceLeading from={GM7} to={C79} low={45} high={77} />
+          <Keyboard
+            low={45}
+            high={77}
+            labels="c"
+            marks={referenceMarks({ id: '', chordId: 'c7-9', notes: C79, status: 'confirmed' })}
+          />
+        </div>
+      </Block>
+
+      <Block title="节拍偏差分布（进行练习总结）">
+        <OffsetHistogram
+          bins={histogram([-35, -20, -12, -8, -4, 0, 3, 6, 9, 15, 22, 41, 75, -90], {
+            min: -200,
+            max: 200,
+            width: 20,
+          })}
+        />
       </Block>
 
       <Block title="和弦符号">

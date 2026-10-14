@@ -1,11 +1,12 @@
 import 'fake-indexeddb/auto';
 import { BUILTIN_PACK } from '@mayochord/content';
-import type { ReviewLog, SessionSummary } from '@mayochord/core';
+import { type ReviewLog, type SessionSummary, summarizeRun } from '@mayochord/core';
 import Dexie from 'dexie';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { MayoChordDB } from '@/storage/db';
 import { createDexieRepositories, type Repositories } from '@/storage/repositories';
 import type { SessionResult, SessionSpec } from '../practice/controller';
+import type { RunResult } from '../progression/run-controller';
 import { LearningService } from './learning';
 import { guidedSpec, independentSpec, masterySpec, spread, taskSpec } from './specs';
 
@@ -219,6 +220,36 @@ describe('LearningService', () => {
     ]);
     expect(replaced?.spareLessons).toContain('major-triad-formula');
     expect(await s.replaceLesson(plan.date, 'nope')).toBeNull();
+  });
+
+  it('跟拍主题的掌握检查：没有漏弹、干净率达标才通过；≥95% 记 Good', async () => {
+    const s = service();
+    const run = (cleanRate: number, missed: number, completed = true) =>
+      ({
+        config: {} as never,
+        sessionId: 's',
+        results: [],
+        logs: [],
+        xp: 1,
+        completed,
+        summary: { ...summarizeRun([]), total: 16, cleanRate, missed },
+      }) as RunResult;
+    expect(await s.recordRunMastery('steady-c-g-am-f', run(0.9, 1))).toMatchObject({
+      passed: false,
+      rating: null,
+    });
+    expect(await s.recordRunMastery('steady-c-g-am-f', run(0.9, 0, false))).toMatchObject({
+      passed: false,
+    });
+    expect(await s.recordRunMastery('steady-c-g-am-f', run(0.875, 0))).toMatchObject({
+      passed: true,
+      rating: 2,
+      total: 16,
+      correct: 14,
+    });
+    expect(await s.recordRunMastery('marusa-tempo', run(1, 0))).toMatchObject({ rating: 3 });
+    const snap = await s.snapshot();
+    expect(snap.statuses.get('steady-c-g-am-f')).toBe('mastered');
   });
 
   it('存储不可用时返回空进度', async () => {

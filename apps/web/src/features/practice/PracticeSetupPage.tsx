@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { tryRepositories } from '@/storage';
 import { phaseCounts } from './controller';
 import { cardsForGroup, type PracticeGroup } from './groups';
+import { PracticeTabs } from './PracticeTabs';
 import { PRACTICE_GROUPS } from './practice';
 import type { PracticeSearch } from './search';
 
@@ -88,14 +89,17 @@ export function PracticeSetupPage() {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-cjk-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-            {t('practice.title')}
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t('practice.subtitle')}</p>
+      <header className="space-y-4">
+        <PracticeTabs current="chords" />
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="font-cjk-heading text-2xl font-semibold tracking-tight sm:text-3xl">
+              {t('practice.title')}
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t('practice.subtitle')}</p>
+          </div>
+          <MidiConnectButton />
         </div>
-        <MidiConnectButton />
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">

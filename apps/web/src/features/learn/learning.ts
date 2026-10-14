@@ -14,6 +14,7 @@ import {
   type Rating,
   type ReviewLog,
   replayTopicProgress,
+  runPassed,
   TOPIC_CARD_PREFIX,
   type TopicLogType,
   type TopicPlanInfo,
@@ -25,6 +26,7 @@ import {
 } from '@mayochord/core';
 import type { DailyPlanRecord, Repositories, StoredTask } from '@/storage';
 import type { SessionResult } from '../practice/controller';
+import type { RunResult } from '../progression/run-controller';
 
 export interface LearningDeps {
   pack: LoadedPack;
@@ -320,6 +322,32 @@ export class LearningService {
     });
     await this.appendWithImplicit(topicId, log, passed);
     return { ...outcome, passed, rating };
+  }
+
+  /**
+   * 跟拍主题的掌握检查（规格第 11 节过关标准）：弹完、没有漏弹、干净（对、在拍上、同时落下）的比例达标。
+   * 干净率 ≥ 95% 记 Good，否则 Hard（复习来得更早）。
+   */
+  async recordRunMastery(topicId: string, result: RunResult): Promise<TopicOutcome> {
+    const topic = this.topic(topicId);
+    const minClean = topic?.lesson.mastery.minAccuracy ?? 0.85;
+    const { summary } = result;
+    const passed = result.completed && runPassed(summary, minClean);
+    const rating: Rating | null = passed ? (summary.cleanRate >= 0.95 ? 3 : 2) : null;
+    const log = this.topicLog(topicId, 'mastery-check', {
+      sessionId: result.sessionId,
+      correct: passed,
+      rating,
+    });
+    await this.appendWithImplicit(topicId, log, passed);
+    return {
+      topicId,
+      total: summary.total,
+      correct: Math.round(summary.cleanRate * summary.total),
+      accuracy: summary.cleanRate,
+      rating,
+      passed,
+    };
   }
 
   /** 每日复习任务：每个主题按正确率评分，并传递隐式信用（成功向下、失败向上） */

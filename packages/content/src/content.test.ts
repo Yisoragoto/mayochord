@@ -70,9 +70,9 @@ describe('内置内容包', () => {
     ]);
   });
 
-  it('知识图谱：18 个主题，先修关系无环，卡片由练习内容生成', () => {
+  it('知识图谱：21 个主题，先修关系无环，卡片由练习内容生成', () => {
     const { graph, topicById, cardById, topicsOfCard } = BUILTIN_PACK;
-    expect(BUILTIN_PACK.topics).toHaveLength(18);
+    expect(BUILTIN_PACK.topics).toHaveLength(21);
     expect(graph.order[0]).toBe('keyboard-names');
     expect(graph.order.indexOf('c-major-triads')).toBeGreaterThan(
       graph.order.indexOf('minor-triad-formula'),
@@ -104,6 +104,20 @@ describe('内置内容包', () => {
       'triads-12-keys',
     ]);
     expect(cardById.get('chord:c:name:any')?.topicId).toBe('major-triad-formula');
+    // 跟拍主题：卡片是这条进行的切换卡（循环），课程用到进行与速度
+    const push = topicById.get('sixteenth-anticipation');
+    expect(push?.cards.map((c) => c.id)).toEqual([
+      'transition:c>g:any',
+      'transition:g>am:any',
+      'transition:am>f:any',
+      'transition:f>c:any',
+    ]);
+    expect(push?.practice).toMatchObject({
+      kind: 'progression',
+      progression: 'c-g-am-f-push',
+      bpm: 76,
+    });
+    expect(topicById.get('marusa-tempo')?.cards[0]?.id).toBe('transition:fmaj7>e7:reference');
     // 课程默认值
     expect(topicById.get('maj7-formula')?.lesson).toMatchObject({
       guided: { count: 6 },
@@ -179,7 +193,12 @@ describe('内置内容包', () => {
       ['royal-road-g', 'C D Bm Em'],
       ['marusa', 'FM7 E7 Am7 Gm7 C7(9)'],
       ['ii-v-i-c', 'Dm7 G7 CM7'],
+      ['c-g-am-f-push', 'C G Am F'],
     ]);
+    expect(
+      BUILTIN_PACK.progressionById.get('c-g-am-f-push')?.steps.map((s) => s.anticipation),
+    ).toEqual([1, 1, 1, 1]);
+    expect(BUILTIN_PACK.progressionById.get('c-g-am-f')?.steps[0]?.anticipation).toBe(0);
     expect(BUILTIN_PACK.progressionById.get('marusa')?.steps.map((s) => s.beats)).toEqual([
       4, 4, 4, 2, 2,
     ]);
@@ -262,6 +281,11 @@ describe('内容包校验', () => {
         (topic(p, 'marusa').practice as { progressions: string[] }).progressions.push('zz');
       }).join(),
     ).toContain('不存在的进行：zz');
+    expect(
+      variant((p) => {
+        (topic(p, 'marusa-tempo').practice as { progression: string }).progression = 'yy';
+      }).join(),
+    ).toContain('不存在的进行：yy');
     expect(
       variant((p) => {
         const step = topic(p, 'marusa').lesson.explain[0] as { demo: { chord: string } };

@@ -7,6 +7,27 @@ import type { SettingsRepository } from '@/storage';
  * 应用设置（保存在 IndexedDB 的 settings 表，键 'app'）。
  * 每个字段都有 .catch(默认值)：存储的数据缺字段或损坏时，只回退那一项。
  */
+/** 进行练习器的选项（上次用的设置，下次打开时沿用） */
+export const ProgressionPrefsSchema = z.object({
+  /** 内置进行的 ID，或 'custom' */
+  progressionId: z.string().catch('c-g-am-f'),
+  /** 自定义序列（和弦名，空格或短横线分隔） */
+  custom: z.string().max(200).catch('C Am F G'),
+  /** 每个进行上次的 BPM（85% 规则调整后的值也存在这里） */
+  bpm: z.record(z.string(), z.number().int().min(40).max(200)).catch({}),
+  /** 每个和弦几拍；0 = 按进行自带的拍数 */
+  beatsPerChord: z.number().int().min(0).max(8).catch(0),
+  clickMode: z.enum(['all', 'backbeat', 'off']).catch('all'),
+  accent: z.boolean().catch(true),
+  hideVoicings: z.boolean().catch(false),
+  voicingMode: z.enum(['any', 'reference']).catch('any'),
+  /** 循环几遍；0 = 一直弹到手动结束 */
+  loops: z.number().int().min(0).max(32).catch(4),
+  adaptiveBpm: z.boolean().catch(true),
+});
+
+export type ProgressionPrefs = z.infer<typeof ProgressionPrefsSchema>;
+
 export const SettingsSchema = z.object({
   /** 踩踏板时松开的音是否仍算“按住” */
   sustainCountsAsHeld: z.boolean().catch(DEFAULT_ATTEMPT_OPTIONS.sustainCountsAsHeld),
@@ -30,6 +51,14 @@ export const SettingsSchema = z.object({
   newTopicsPerDay: z.number().int().min(0).max(5).catch(2),
   /** 开发用：模拟时间前进的天数（只在开发服务器里生效） */
   devClockOffsetDays: z.number().int().min(0).max(3650).catch(0),
+  /** 延迟校准得到的偏移（毫秒）：节拍偏差都扣除它（规格 9） */
+  latencyOffsetMs: z.number().int().min(-500).max(500).catch(0),
+  /** 是否做过延迟校准 */
+  latencyCalibrated: z.boolean().catch(false),
+  /** 节拍器音量 0–1 */
+  metronomeVolume: z.number().min(0).max(1).catch(0.6),
+  /** 进行练习器上次的设置 */
+  progression: ProgressionPrefsSchema.catch(ProgressionPrefsSchema.parse({})),
   /** 上次手动选择的 MIDI 输入设备名 */
   preferredInputName: z.string().nullable().catch(null),
 });

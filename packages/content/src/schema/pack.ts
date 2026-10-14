@@ -56,6 +56,8 @@ export const ProgressionStepSchema = z.object({
   chordId: ID,
   voicingId: ID,
   beats: z.number().positive(),
+  /** 先行切分：提前几个 16 分音符换到这个和弦（0–3，跟拍练习用） */
+  anticipation: z.number().int().min(0).max(3).default(0),
 });
 
 export const ProgressionSchema = z.object({
@@ -102,6 +104,20 @@ export const TopicPracticeSchema = z.discriminatedUnion('kind', [
     kind: z.literal('transitions'),
     /** 用这些进行里相邻和弦的切换（循环） */
     progressions: z.array(ID).min(1),
+    voicingMode: z.enum(['any', 'reference']).default('any'),
+  }),
+  /**
+   * 跟拍弹一条进行（M4）。课程各阶段都是跟拍练习：引导（放慢、显示键位）→ 独立（隐藏键位，
+   * 干净地弹对 independent.requiredCorrect 个和弦）→ 掌握检查（mastery.questions 个和弦，
+   * 没有漏弹且干净的比例 ≥ mastery.minAccuracy，规格第 11 节）。每日复习用这条进行的切换卡。
+   */
+  z.object({
+    kind: z.literal('progression'),
+    progression: ID,
+    /** 目标速度 */
+    bpm: z.number().int().min(40).max(200),
+    /** 每个和弦几拍；省略 = 按进行自带的拍数 */
+    beatsPerChord: z.number().int().min(1).max(8).optional(),
     voicingMode: z.enum(['any', 'reference']).default('any'),
   }),
 ]);
@@ -245,6 +261,9 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
         if (!chords.has(id)) issue(['topics', i, 'practice', 'chords', j], `不存在的和弦：${id}`);
       });
     }
+    if (pr.kind === 'progression' && !progressionIds.has(pr.progression)) {
+      issue(['topics', i, 'practice', 'progression'], `不存在的进行：${pr.progression}`);
+    }
     if (pr.kind === 'transitions') {
       pr.progressions.forEach((id, j) => {
         if (!progressionIds.has(id)) {
@@ -283,3 +302,4 @@ export type I18nText = z.infer<typeof I18nTextSchema>;
 export type TopicData = z.infer<typeof TopicSchema>;
 export type LessonData = z.infer<typeof LessonSchema>;
 export type ExplainStep = z.infer<typeof ExplainStepSchema>;
+export type TopicPractice = z.infer<typeof TopicPracticeSchema>;

@@ -1,6 +1,6 @@
 {
   "id": "mayochord-core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "schemaVersion": 1,
   "name": {
     "zh-CN": "MayoChord 内置内容",
@@ -881,6 +881,43 @@
           "beats": 8
         }
       ]
+    },
+    {
+      "id": "c-g-am-f-push",
+      "name": {
+        "zh-CN": "C – G – Am – F（16 分音符先行）",
+        "en": "C – G – Am – F (16th-note push)"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "c",
+          "voicingId": "c-ref",
+          "beats": 4,
+          "anticipation": 1
+        },
+        {
+          "chordId": "g",
+          "voicingId": "g-ref",
+          "beats": 4,
+          "anticipation": 1
+        },
+        {
+          "chordId": "am",
+          "voicingId": "am-ref",
+          "beats": 4,
+          "anticipation": 1
+        },
+        {
+          "chordId": "f",
+          "voicingId": "f-ref",
+          "beats": 4,
+          "anticipation": 1
+        }
+      ],
+      "description": {
+        "zh-CN": "每个和弦提前一个 16 分音符换（第一遍的第一个和弦仍在第 1 拍）。"
+      }
     }
   ],
   "topics": [
@@ -2128,6 +2165,193 @@
           "questions": 10,
           "minAccuracy": 0.85,
           "timeLimitMs": 4500
+        },
+        "minutes": 10
+      }
+    },
+    {
+      "id": "steady-c-g-am-f",
+      "title": {
+        "zh-CN": "跟着节拍器弹 C–G–Am–F"
+      },
+      "summary": {
+        "zh-CN": "每个和弦 4 拍，在拍点上换和弦，不停下来。"
+      },
+      "prerequisites": ["prog-c-g-am-f"],
+      "encompasses": [
+        {
+          "topicId": "prog-c-g-am-f",
+          "weight": 0.8
+        }
+      ],
+      "practice": {
+        "kind": "progression",
+        "progression": "c-g-am-f",
+        "bpm": 72
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "到现在为止，你都是想好了再弹。接下来要跟着节拍器弹：和弦在拍点上落下，节拍器不会等人。"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "节拍器先数一小节预备拍（4 下），然后在第 1 拍弹 C。每个和弦 4 拍，数到下一小节的第 1 拍就换下一个和弦。"
+            },
+            "demo": {
+              "chord": "c",
+              "labels": "fingers",
+              "play": "together"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "提前准备：在当前和弦的第 4 拍就把手移到下一个和弦上方，第 1 拍正好落下。两个和弦的共同音（例如 C 到 Am 的 C、E）可以一直按着不放。"
+            },
+            "demo": {
+              "chord": "am",
+              "labels": "fingers",
+              "play": "together"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "过关标准：不停顿、没有错音、和弦的音同时落下、跟住节拍器。界面会显示每个和弦是早了还是晚了多少毫秒。练之前建议先到设置里做一次延迟校准。"
+            }
+          }
+        ],
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 16,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 8
+      }
+    },
+    {
+      "id": "sixteenth-anticipation",
+      "title": {
+        "zh-CN": "16 分音符先行切分"
+      },
+      "summary": {
+        "zh-CN": "和弦提前一个 16 分音符换过去：J-pop 里最常见的“往前推”的节奏。"
+      },
+      "prerequisites": ["steady-c-g-am-f"],
+      "encompasses": [
+        {
+          "topicId": "steady-c-g-am-f",
+          "weight": 0.7
+        }
+      ],
+      "practice": {
+        "kind": "progression",
+        "progression": "c-g-am-f-push",
+        "bpm": 76
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "J-pop 里很常见的一种节奏：和弦不在小节的第 1 拍换，而是提前一个 16 分音符，在上一小节第 4 拍的最后一个 16 分音符就换过去（日语叫“食い”）。"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "一拍可以分成 4 个 16 分音符，数作“1 e & a”。先行切分就是在第 4 拍的“a”换和弦，听起来像整首歌往前推了一下。"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "练习时节拍器照常数拍，判定位置提前一个 16 分音符：比拍点早一个 16 分音符落下才算在拍上。第一遍的第一个和弦仍在第 1 拍。"
+            },
+            "demo": {
+              "chord": "g",
+              "labels": "fingers",
+              "play": "together"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "先在慢速下一边弹一边小声数“1 e & a 2 e & a…”，熟练之后再加快。"
+            }
+          }
+        ],
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 16,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 6000
+        },
+        "minutes": 9
+      }
+    },
+    {
+      "id": "marusa-tempo",
+      "title": {
+        "zh-CN": "跟拍弹丸サ進行"
+      },
+      "summary": {
+        "zh-CN": "FM7 – E7 – Am7 – Gm7 C7(9)，跟着节拍器不停下来地弹。"
+      },
+      "prerequisites": ["marusa", "steady-c-g-am-f"],
+      "encompasses": [
+        {
+          "topicId": "marusa",
+          "weight": 0.8
+        },
+        {
+          "topicId": "steady-c-g-am-f",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "progression",
+        "progression": "marusa",
+        "bpm": 70,
+        "voicingMode": "reference"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "丸サ進行：FM7 – E7 – Am7 – Gm7 C7(9)。前三个和弦各 4 拍，最后的 Gm7 和 C7(9) 各 2 拍，换得更快。"
+            },
+            "demo": {
+              "chord": "fmaj7",
+              "labels": "fingers",
+              "play": "together"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "Gm7 到 C7(9) 只隔 2 拍。右手的 B♭4、D5 不动，只有 F4 下移半音到 E4；左手从 G3 换到 C3。"
+            },
+            "demo": {
+              "chord": "c7-9",
+              "labels": "fingers",
+              "play": "together"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "这一课按参考键位判定（严格模式），练的是固定的手型和声部进行。过关标准和前面一样：不停顿、没有错音、同时落下、跟住节拍器。"
+            }
+          }
+        ],
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 15,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 6000
         },
         "minutes": 10
       }

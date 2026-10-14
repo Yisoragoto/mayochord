@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { loadTone } from './tone';
 
 /**
  * 网页钢琴音源（扩展点 4.2-2 的 Web Audio 实现）：Salamander Grand Piano 采样，Tone.js Sampler。
@@ -87,8 +88,7 @@ export function getPiano(): Promise<AudioOutput> {
   piano ??= (async () => {
     usePianoStatus.setState({ status: 'loading' });
     try {
-      const tone = await import('tone');
-      await tone.start();
+      const tone = await loadTone();
       const sampler = new tone.Sampler({
         urls: sampleUrls(),
         baseUrl: `${import.meta.env.BASE_URL}samples/salamander/`,

@@ -32,6 +32,7 @@ import { useCalibration } from '@/input/calibration';
 import { useComputerKeyboard } from '@/input/computer-keyboard';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { type AppSettings, useSettings } from '@/stores/settings';
+import { LatencyPanel } from './LatencyPanel';
 
 const noteName = (n: number) => prettyAccidentals(midiToName(n));
 
@@ -63,6 +64,9 @@ export function SettingsPage() {
       <Section title={t('settings.calibrationTitle')} hint={t('settings.calibrationHint')}>
         <CalibrationPanel />
       </Section>
+      <Section id="latency" title={t('settings.latencyTitle')} hint={t('settings.latencyHint')}>
+        <LatencyPanel />
+      </Section>
       <Section title={t('settings.inputTitle')}>
         <InputPanel />
       </Section>
@@ -84,10 +88,20 @@ export function SettingsPage() {
   );
 }
 
-function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+function Section({
+  id: anchor,
+  title,
+  hint,
+  children,
+}: {
+  id?: string;
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
   const id = useId();
   return (
-    <section aria-labelledby={id} className="space-y-3">
+    <section id={anchor} aria-labelledby={id} className="scroll-mt-20 space-y-3">
       <div>
         <h2 id={id} className="text-lg font-semibold">
           {title}

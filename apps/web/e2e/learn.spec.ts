@@ -94,7 +94,7 @@ test('今天 → 第一节课：讲解、引导、独立练习、掌握检查，
 test('图谱：点击节点看详情；未解锁的主题提示先修', async ({ page }) => {
   await page.goto('graph');
   await expect(page.getByRole('heading', { name: '知识图谱', level: 1 })).toBeVisible();
-  const node = page.getByRole('button', { name: '丸サ進行，未解锁' });
+  const node = page.getByRole('button', { name: '丸サ進行，未解锁', exact: true });
   await node.focus();
   await page.keyboard.press('Enter');
   const panel = page.getByRole('complementary', { name: '丸サ進行' });

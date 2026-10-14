@@ -11,8 +11,9 @@
 | M1 核心与数据层 | 完成（commit 53b1aa2；用户采纳就近转位的推荐键位） |
 | M2 学习系统核心 | 完成（commit d24db51） |
 | M3 知识图谱与每日任务 | 完成（用户 2026-10-15 测试通过） |
-| M4 节奏与进行 | 进行中 |
-| M5–M6 | 未开始 |
+| M4 节奏与进行 | 完成（用户 2026-10-15 测试通过） |
+| M5 听觉与读谱 | 进行中 |
+| M6 | 未开始 |
 
 ## 常用命令（仓库根目录）
 
@@ -68,23 +69,28 @@ packages/core/src/
                 85% 自适应（adaptive.ts）、轮次总结（summary.ts）、隐式重复（implicit.ts）、每日任务编排（daily.ts）
   strategy/     调度策略对象：各项参数集中在这里（createDefaultStrategy）
   graph/        主题图谱（校验、拓扑、包含权重）、分层布局、主题进度与状态（topic-progress.ts）
-  （M4 起：timing/）
+  timing/       音频时钟↔performance.now() 换算（clock.ts）、节拍网格与"在拍上"容差（beat-grid.ts）、
+                延迟校准（latency.ts）、统计（平均、标准差、直方图）
+  drill/progression-run.ts  跟拍弹进行的判定（纯函数状态机）、证据、评分、总结、BPM 的 85% 规则
 packages/content/src/
   schema/       Zod：内容包（含跨字段校验）、设备配置
-  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦 + 18 个主题）
+  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦 + 21 个主题）
   devices/      设备配置 JSON（JUNO-D7、通用 88 键）
   load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
 apps/web/src/
   app/          bootstrap.ts：启动时连接输入源、汇流、实时输入、音源、存储、校准
-  routes/       /（今天）、/graph、/learn/$topicId（课程，专注模式）、/today/task/$taskId（热身/复习，专注模式）、
+  routes/       /（今天）、/graph、/learn/$topicId（课程，专注模式）、/practice/progression、
+                /practice/progression/run（专注模式）、/today/task/$taskId（热身/复习，专注模式）、
                 /review/$topicId（从图谱进入的复习）、/practice、/practice/session（专注模式）、
                 /chords、/chords/$chordId、/monitor、/settings、/design
   features/     shell、today（每日任务）、graph（知识图谱）、learn（LearningService、课程、每日任务运行）、
                 practice（PracticeController、SessionRunner、自由练习、轮次总结）、
+                progression（进行练习器：ProgressionRunController、ProgressionRunner、总结、声部进行图 VoiceLeading）、
                 chords（和弦库、详情、试弹）、midi（设备面板）、monitor、settings、design-gallery
   input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
                 computer-keyboard.ts、PlayableKeyboard.tsx（屏幕键盘）
-  audio/        piano.ts（Tone.js + Salamander 采样，懒加载）、live-sound.ts、feedback-sound.ts（答对/答错提示音）
+  audio/        tone.ts（懒加载 Tone.js，钢琴与节拍器共用一个原生 AudioContext；outputStamp 时钟换算）、
+                piano.ts（Salamander 采样）、metronome.ts（Tone.Clock 节拍器）、live-sound.ts、feedback-sound.ts
   storage/      Dexie 数据库 db.ts、仓储接口与实现 repositories.ts
   design/       tokens.css、ui/（shadcn）、keyboard/、staff/（VexFlow，懒加载）、ChordName、Wordmark
   stores/       Zustand：appearance、settings
@@ -126,10 +132,11 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
 - **没有给键位的和弦**：加载时用 `closeVoicing` 自动生成参考键位（`status: 'generated'`，ID `<chord>-ref`）：左手根音（斜杠和弦为低音）C3–B3，右手从根音（斜杠和弦从低音）开始密集排列，最低音在 C4–B4，九和弦省略五音。和弦库里单独分组并标"自动排列"。
 - **topics**（M3，`topics` 字段可省略，默认空；没有升 schemaVersion，因为是新增的可选字段）：
   `{ id, title, summary, prerequisites[], encompasses[{ topicId, weight 0–1 }], interferenceGroup?, practice, lesson }`
-  - `practice`：`{ kind: 'notes', notes }` | `{ kind: 'intervals', items: [{ root, interval: m2|M2|m3|M3|P4|P5 }] }` | `{ kind: 'chords', chords, voicingMode }` | `{ kind: 'transitions', progressions, voicingMode }`（进行相邻和弦循环切换，多条进行合并去重）。
+  - `practice`：`{ kind: 'notes', notes }` | `{ kind: 'intervals', items: [{ root, interval: m2|M2|m3|M3|P4|P5 }] }` | `{ kind: 'chords', chords, voicingMode }` | `{ kind: 'transitions', progressions, voicingMode }`（进行相邻和弦循环切换，多条进行合并去重）| `{ kind: 'progression', progression, bpm, beatsPerChord?, voicingMode }`（M4 跟拍主题；卡片 = 这条进行的切换卡，每日复习用普通的切换题）。
   - `lesson`：`{ explain: [{ text, demo?: { notes? | chord?, labels: semitones|fingers|none, play: together|arpeggio|none } }], guided: { count }, independent: { requiredCorrect }, mastery: { questions, minAccuracy, timeLimitMs }, minutes }`。
   - 校验：图谱无环、引用存在、示范和弦存在。加载后 `LoadedPack` 有 `topics`、`graph`（拓扑顺序）、`cardById`、`topicsOfCard`。
-- 内置图谱 18 个主题：认识键盘与音名 → 半音与全音 → 大三度/小三度 → 大三/小三和弦公式（干扰组 triad-quality）→ C 调三和弦 → C–G–Am–F → 转位 → 就近转位与声部进行 → 王道进行；12 调三和弦；M7/7/m7/m7♭5 公式（干扰组 seventh-quality）→ C 调七和弦 → II–V–I → 丸サ進行。规格里的"16 分音符切分"属于节奏，M4 再加。
+- 进行的每一步可以有 `anticipation`（0–3，提前几个 16 分音符换和弦，默认 0；M4）。内置 `c-g-am-f-push` 每步提前 1 个 16 分音符。
+- 内置图谱 21 个主题（M4 新增跟拍主题：跟着节拍器弹 C–G–Am–F → 16 分音符先行切分；跟拍弹丸サ進行）。M3 的 18 个：认识键盘与音名 → 半音与全音 → 大三度/小三度 → 大三/小三和弦公式（干扰组 triad-quality）→ C 调三和弦 → C–G–Am–F → 转位 → 就近转位与声部进行 → 王道进行；12 调三和弦；M7/7/m7/m7♭5 公式（干扰组 seventh-quality）→ C 调七和弦 → II–V–I → 丸サ進行。规格里的"16 分音符切分"在 M4 加入（sixteenth-anticipation）。
 
 ### 本地数据库（Dexie，`MayoChordDB`，当前 version 2）
 
@@ -146,6 +153,7 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
 - 主题进度**不入库**：每次从主题日志（`cardId` 以 `topic:` 开头）重放得到（`replayTopicProgress`），日志不多，保证与日志一致。
 - ReviewLog 新增可选字段 `xp`、`mashing`（M3 起写入；之前的日志没有）。sessions 记录新增 `xp`，`config.kind` 为练习类型（practice/warmup/review/guided/independent/mastery）。
 
+AppSettings 新增（M4）：`latencyOffsetMs`、`latencyCalibrated`、`metronomeVolume`、`progression`（进行练习器上次的选项与每条进行的 BPM，`ProgressionPrefsSchema`）。
 settings 表另有键 `'adaptive'`：`{ 'name-to-chord' | 'transition': { timeLimitMs, sinceAdjust } }`（85% 规则的当前时限）。
 M3 新增 version 2（dailyPlans 表），`db.test.ts` 有 v1 数据升级测试。
 
@@ -310,6 +318,49 @@ M3 新增 version 2（dailyPlans 表），`db.test.ts` 有 v1 数据升级测试
 ### 反馈逐渐减少（规格 6.7）
 
 `feedbackLevelFor(cardProgress)`：mixed 阶段之前 full；mixed 阶段 reduced（判定前不显示按下的键，点击切换模式除外）；mixed 且稳定性 ≥ 7 天 minimal（连着 MIDI 时判定前连键盘也先收起）。
+
+## 节奏与进行（M4）
+
+### 时间基准（规格 4.3）
+
+- 输入事件：`performance.now()` 域（MIDI 的 timeStamp）。节拍器：AudioContext 时钟。
+- 换算：`AudioContext.getOutputTimestamp()` 给出 `{contextTime, performanceTime}`（这个采样实际从扬声器发出的时刻），`audioToPerf()` 把节拍器的音频时刻换到 performance.now() 域。浏览器不支持或返回 0 时用 `currentTime + outputLatency + baseLatency` 估计（`fallbackStamp`）。
+- `audio/tone.ts`：第一次发声时懒加载 Tone.js，并用 `new Tone.Context(原生 AudioContext)` 让钢琴音源和节拍器共用一个原生 context（要拿到原生的 getOutputTimestamp）。
+- 节拍器（`audio/metronome.ts`）：`Tone.Clock` 按音频时钟调度，合成短促的三角波（强拍 1760 Hz、其他 1175 Hz）。预备拍总是每拍响；正式部分按设置（每拍 / 只响 2、4 拍 / 关），强拍重音可关。返回节拍网格 `{startT（第 0 拍，performance.now() 域）, beatMs, beatsPerBar}`。
+
+### 延迟校准（设置页"延迟校准"）
+
+- 90 BPM，4 拍预备后跟着每一拍按任意键共 16 拍。`estimateLatency`：每次按下相对最近拍点的偏差，去掉前 4 下（热身），以中位数为中心去掉离群值（> max(3×MAD, 40 ms)），取中位数为偏移；有效 ≥ 8 下且标准差 ≤ 35 ms 才可以采用。
+- 偏移存在 settings（`latencyOffsetMs`，全局一个值）。所有节拍偏差 = 按下时刻 − 拍点 − 偏移。没校准时进行练习器页面提示去校准。
+- 包括音频输出延迟、MIDI 输入延迟和个人习惯；用户在琴上听的是琴本身的声音，校准的是"听到节拍器 → 按下"的整体偏差。**JUNO-D7 上的实际偏移待用户实测。**
+
+### 跟拍判定（`drill/progression-run.ts`）
+
+- 第 k 步（跨循环连续编号）的拍点 t_k = 第 0 拍 + 之前所有步的拍数 × beatMs − 先行切分（第一遍的第一个和弦不提前）。
+- 窗口：从 t_k 前 min(半拍, 与前一步间隔的一半) 开始，到下一步的窗口开始为止（最后一步到弹满它的拍数）。一次和弦尝试属于哪一步，看**这次新按下的音的平均按下时间**落在哪个窗口（共同音一直按着也可以）。
+- 每步第一次判定决定成绩：弹对 correct；只按了一部分（没多按、低音没错）等补全，窗口结束仍没补全记 wrong；其他 wrong；窗口里什么都没弹 missed（窗口关闭由每 40 ms 的 runTick 定下）。判错之后在同一步里改对记 `corrected`（成绩不变）。预备拍里按的不算。
+- 判定方式：宽松（音级）/ 严格（参考键位）；斜杠和弦宽松时也要求最低音。
+- **在拍上**：|偏差| ≤ 16 分音符时值的 45%，限制在 40–100 ms（72 BPM ≈ 94 ms，100 BPM ≈ 68 ms），能区分 16 分音符的先行切分。
+- **干净** = 弹对 + 在拍上 + 同时落下（齐整度 ≤ 判定窗口，只对 MIDI 输入）。规格第 11 节过关标准：`runPassed` = 没有漏弹且干净的比例 ≥ 阈值。
+- 证据（规格 6.3）：每步写和弦卡 `chord:<id>:name:<mode>` 和切换卡 `transition:<from>><to>:<mode>`（第一遍第一个和弦、同一和弦重复时没有切换卡）。drillType `'progression'`，`reactionMs` 为 null，记 `beatOffsetMs`、`spreadMs`；XP 只记在和弦卡那条上（每步时长 / 60 秒，单步最多 20 秒）。
+- 评分 `gradeRunEvidence`：错或漏弹 Again；干净 Good；不在拍上、没同时落下或显示键位 Hard；不给 Easy（节奏里没有可靠的"反应快"信号）。同样每个练习日只用第一次评分更新 FSRS。
+- BPM 的 85% 规则（`adaptBpm`）：结束时看最近 20 步（至少 10 步）的干净率，> 90% 建议 ×1.05，< 75% 建议 ×0.9（40–200）；用户点"下次用 X"才保存到这条进行的 BPM。
+
+### 进行练习器（`/practice/progression`，自由练习页的第二个标签）
+
+- 内置进行或自定义序列（和弦名用空格、逗号、短横线、竖线分隔；内容包里有的和弦用参考键位，没有的用 `closeVoicing` 自动排列）。
+- 选项：BPM（每条进行各记一个，默认 72）、每个和弦几拍（按进行 / 1 / 2 / 4）、节拍器（每拍 / 2、4 拍 / 关）、强拍重音、判定、循环（2/4/8/一直弹）、隐藏键位、自动调整速度。
+- 弹奏界面：拍点指示、预备拍倒数、大字当前和弦 + 下一个、每步的结果（在拍上 ±ms / 早了 / 晚了 / 弹错 / 漏了）、这一遍的进度条、声部进行图 + 键位（隐藏键位时都不显示，弹错时仍显示多按/少按）。Esc 结束。
+- 总结：干净率、弹对、在拍上、平均齐整度、平均偏差、稳定性（标准差）、偏差分布直方图（−200…+200 ms，每格 20 ms）、各切换的干净次数、85% 规则的速度建议。
+
+### 声部进行可视化（`VoiceLeading`）
+
+- 左右手分别用 `voiceLeading()`（移动总量最小的配对）配对；上排当前和弦、下排下一个和弦，与同音域的键盘对齐（`keyCenterX`）。
+- 共同音：灰色竖直虚线；移动 1–2 个半音：实线（手的颜色）并标 ±半音数；更远的移动：长虚线；新增/消失的声部：虚线圆圈。
+
+### 跟拍主题的课程（`RhythmLesson`）
+
+讲解示范 → 引导（目标速度 × 0.8，显示键位和声部进行，弹 2 遍）→ 独立（目标速度、隐藏键位，干净地弹对 `independent.requiredCorrect` 个和弦就结束）→ 掌握检查（目标速度、隐藏键位，弹满 `mastery.questions` 个和弦所需的遍数；没有漏弹且干净率 ≥ `mastery.minAccuracy` 通过；干净率 ≥ 95% 记 Good，否则 Hard）。`mastery.timeLimitMs`、`guided.count` 对跟拍主题不用。
 
 ## 设计系统
 
