@@ -38,6 +38,11 @@ const BASE = {
 /** 各练习类型的默认参数与初始时限 */
 export const DEFAULT_ADAPTIVE: Record<DrillType, { params: AdaptiveParams; initialMs: number }> = {
   'name-to-chord': { params: { ...BASE, minMs: 1500, maxMs: 15000 }, initialMs: 6000 },
+  'build-chord': { params: { ...BASE, minMs: 2000, maxMs: 20000 }, initialMs: 8000 },
+  // 听辨从目标和弦响起时开始计时
+  'ear-to-chord': { params: { ...BASE, minMs: 2000, maxMs: 20000 }, initialMs: 8000 },
+  'staff-to-chord': { params: { ...BASE, minMs: 2000, maxMs: 20000 }, initialMs: 8000 },
+  'roman-to-chord': { params: { ...BASE, minMs: 1500, maxMs: 15000 }, initialMs: 6000 },
   transition: { params: { ...BASE, minMs: 1000, maxMs: 12000 }, initialMs: 5000 },
   'name-to-note': { params: { ...BASE, minMs: 1000, maxMs: 10000 }, initialMs: 4000 },
   interval: { params: { ...BASE, minMs: 1500, maxMs: 12000 }, initialMs: 5000 },

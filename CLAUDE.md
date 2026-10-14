@@ -12,8 +12,9 @@
 | M2 学习系统核心 | 完成（commit d24db51） |
 | M3 知识图谱与每日任务 | 完成（用户 2026-10-15 测试通过） |
 | M4 节奏与进行 | 完成（用户 2026-10-15 测试通过） |
-| M5 听觉与读谱 | 进行中 |
-| M6 | 未开始 |
+| M5 听觉与读谱 | 完成（用户 2026-10-15 确认） |
+| M6 统计与发布 | 进行中 |
+| M7 导入乐谱跟弹 | 未开始 |
 
 ## 常用命令（仓库根目录）
 
@@ -74,7 +75,7 @@ packages/core/src/
   drill/progression-run.ts  跟拍弹进行的判定（纯函数状态机）、证据、评分、总结、BPM 的 85% 规则
 packages/content/src/
   schema/       Zod：内容包（含跨字段校验）、设备配置
-  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦 + 21 个主题）
+  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦（共 72 个）+ 30 个主题）
   devices/      设备配置 JSON（JUNO-D7、通用 88 键）
   load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
 apps/web/src/
@@ -90,7 +91,8 @@ apps/web/src/
   input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
                 computer-keyboard.ts、PlayableKeyboard.tsx（屏幕键盘）
   audio/        tone.ts（懒加载 Tone.js，钢琴与节拍器共用一个原生 AudioContext；outputStamp 时钟换算）、
-                piano.ts（Salamander 采样）、metronome.ts（Tone.Clock 节拍器）、live-sound.ts、feedback-sound.ts
+                piano.ts（Salamander 采样）、metronome.ts（Tone.Clock 节拍器）、cues.ts（听辨题：终止式 + 目标和弦）、
+                live-sound.ts、feedback-sound.ts
   storage/      Dexie 数据库 db.ts、仓储接口与实现 repositories.ts
   design/       tokens.css、ui/（shadcn）、keyboard/、staff/（VexFlow，懒加载）、ChordName、Wordmark
   stores/       Zustand：appearance、settings
@@ -134,7 +136,9 @@ apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAcce
   `{ id, title, summary, prerequisites[], encompasses[{ topicId, weight 0–1 }], interferenceGroup?, practice, lesson }`
   - `practice`：`{ kind: 'notes', notes }` | `{ kind: 'intervals', items: [{ root, interval: m2|M2|m3|M3|P4|P5 }] }` | `{ kind: 'chords', chords, voicingMode }` | `{ kind: 'transitions', progressions, voicingMode }`（进行相邻和弦循环切换，多条进行合并去重）| `{ kind: 'progression', progression, bpm, beatsPerChord?, voicingMode }`（M4 跟拍主题；卡片 = 这条进行的切换卡，每日复习用普通的切换题）。
   - `lesson`：`{ explain: [{ text, demo?: { notes? | chord?, labels: semitones|fingers|none, play: together|arpeggio|none } }], guided: { count }, independent: { requiredCorrect }, mastery: { questions, minAccuracy, timeLimitMs }, minutes }`。
-  - 校验：图谱无环、引用存在、示范和弦存在。加载后 `LoadedPack` 有 `topics`、`graph`（拓扑顺序）、`cardById`、`topicsOfCard`。
+  - M5：`chords` 可以带 `cue`（name / spelled / audio / staff / roman，默认 name）和 `key`（级数题必须有；听辨给了调就先播放终止式、选项用级数）。新增 `{ kind: 'contrast', pairs: [[a, b], …] }`（对比配对：听声音的卡片，选项是这一对）。讲解示范可以 `show: keyboard|staff|both`、`play: cadence`（配合 `key`）。
+  - `LoadedPack.choicesByCard`：听声音的卡片 → 作答选项（和弦 ID，多个主题用到时合并）。
+  - 校验：图谱无环、引用存在、示范和弦存在、级数题有调、对比配对的两个和弦存在且不同。加载后 `LoadedPack` 有 `topics`、`graph`（拓扑顺序）、`cardById`、`topicsOfCard`。
 - 进行的每一步可以有 `anticipation`（0–3，提前几个 16 分音符换和弦，默认 0；M4）。内置 `c-g-am-f-push` 每步提前 1 个 16 分音符。
 - 内置图谱 21 个主题（M4 新增跟拍主题：跟着节拍器弹 C–G–Am–F → 16 分音符先行切分；跟拍弹丸サ進行）。M3 的 18 个：认识键盘与音名 → 半音与全音 → 大三度/小三度 → 大三/小三和弦公式（干扰组 triad-quality）→ C 调三和弦 → C–G–Am–F → 转位 → 就近转位与声部进行 → 王道进行；12 调三和弦；M7/7/m7/m7♭5 公式（干扰组 seventh-quality）→ C 调七和弦 → II–V–I → 丸サ進行。规格里的"16 分音符切分"在 M4 加入（sixteenth-anticipation）。
 
@@ -318,6 +322,26 @@ M3 新增 version 2（dailyPlans 表），`db.test.ts` 有 v1 数据升级测试
 ### 反馈逐渐减少（规格 6.7）
 
 `feedbackLevelFor(cardProgress)`：mixed 阶段之前 full；mixed 阶段 reduced（判定前不显示按下的键，点击切换模式除外）；mixed 且稳定性 ≥ 7 天 minimal（连着 MIDI 时判定前连键盘也先收起）。
+
+## 听觉与读谱（M5）
+
+### 题面（规格 6.3 的 cue）与练习类型
+
+| cue | 题面 | 练习类型 drillType | 判定 |
+|---|---|---|---|
+| name | 和弦名 | name-to-chord | 宽松 / 严格 / 斜杠看低音 |
+| spelled | 文字名称"E♭ 小三和弦"（12 调构建，规格已加这个 cue） | build-chord | 同上（任意转位） |
+| roman | 级数（日本流行乐写法 VIm、V7）+ "C 调" | roman-to-chord | 同上 |
+| staff | 大谱表（参考键位的左右手） | staff-to-chord | 卡片为 reference → 严格（八度也要对） |
+| audio | 听声音 | ear-to-chord | 宽松；也可以点选答案 |
+
+- 每个 cue 一个练习类型：个人反应时间中位数、85% 时限分开（初始：build/ear/staff 8 秒，roman 6 秒）。卡片 ID 含 cue（与 key），同一和弦的不同题面是不同卡片。
+- **听辨**（`audio/cues.ts`）：卡片有 key 时先播放这个调的 I–IV–V–I（密集排列，每个 0.7 秒，停 0.45 秒），再播放目标和弦的参考键位。播放期间 `view.listening = true`：不判定、不计时；**目标和弦响起时重新开始这一题（从这一刻计时）**。声音放不出来时直接开始。可以"重听"（只放目标和弦）或"连调性一起重听"，不算提示。
+- **点选答案** `controller.answer(chordId)`：当作用手动输入（source 'manual'）弹出了所选和弦的参考键位，走同一套判定和评分（inputSource 记 manual，齐整度 null）。点错后显示正确答案（题面上出现和弦名与级数），点对或弹对再继续；对比配对时说明两者差在哪个音。
+- **听音挑战**（自由练习"听和弦"，用户提议）：只播放和弦（不给调），选项 = 这条进行的和弦。"全部和弦"不能选（选项太多）。
+- **五线谱提示**：VexFlow 大谱表（懒加载），宽度约 30rem。
+- **对比配对**：大三/小三、7/M7、m7/m7♭5 三个主题；7/M7 与 m7/m7♭5 在干扰组 seventh-quality（不和七和弦公式同一天引入）。
+- 新主题（9 个）：12 调构建（三和弦、七和弦）、C 调的级数、听辨 C 调里的和弦、三个对比配对、看五线谱（C 调三和弦、七和弦）。
 
 ## 节奏与进行（M4）
 

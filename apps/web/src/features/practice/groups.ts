@@ -41,5 +41,9 @@ export function cardsForGroup(
   if (drill === 'transition') {
     return group.sequence ? transitionCardsFor(group.chordIds, { cyclic: true, voicingMode }) : [];
   }
+  // 听音挑战：只播放和弦（不给调性），从这组和弦里选出它；"全部和弦"选项太多，不能练
+  if (drill === 'ear-to-chord') {
+    return group.sequence ? chordCardsFor(group.chordIds, { cue: 'audio' }) : [];
+  }
   return chordCardsFor(group.chordIds, { voicingMode });
 }

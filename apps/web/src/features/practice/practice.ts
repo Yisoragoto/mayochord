@@ -1,6 +1,7 @@
 import { BUILTIN_PACK } from '@mayochord/content';
 import { createDefaultStrategy } from '@mayochord/core';
 import { useStore } from 'zustand';
+import { playChordCue } from '@/audio/cues';
 import { playFeedbackSound } from '@/audio/feedback-sound';
 import { liveInput, useLiveInput } from '@/input/live';
 import { releaseOnscreenNotes } from '@/input/PlayableKeyboard';
@@ -31,11 +32,16 @@ export const practice = new PracticeController({
   uuid,
   nextDelayMs: (firstTryCorrect) => (firstTryCorrect ? 650 : 900),
   onTrialDone: (state) => {
-    // 点击切换模式下，看名弹和弦每题结束自动松开屏幕键盘上的音（切换题要沿用当前和弦，不松开）
+    // 点击切换模式下，每题结束自动松开屏幕键盘上的音（切换题要沿用当前和弦作为下一题的"从"和弦，不松开）
     const { onscreenMode } = useSettings.getState().settings;
-    if (onscreenMode === 'latch' && state.trial.drillType === 'name-to-chord') {
+    if (onscreenMode === 'latch' && state.trial.drillType !== 'transition') {
       releaseOnscreenNotes();
     }
+  },
+  playCue: (card, withContext) => {
+    const chord = BUILTIN_PACK.chordById.get(card.chordId);
+    if (!chord) return Promise.reject(new Error(card.chordId));
+    return playChordCue(chord, withContext ? card.key : null, withContext);
   },
   onResult: (r) => {
     if (useSettings.getState().settings.feedbackSound) {

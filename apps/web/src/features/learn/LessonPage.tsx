@@ -1,16 +1,23 @@
-import { BUILTIN_PACK, type ExplainStep, type TopicEntry } from '@mayochord/content';
-import { nameToMidi, voicingMidi } from '@mayochord/core';
+import {
+  BUILTIN_PACK,
+  type ChordEntry,
+  type ExplainStep,
+  type TopicEntry,
+} from '@mayochord/content';
+import { nameToMidi, prettyAccidentals, voicingMidi } from '@mayochord/core';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeft, ArrowRight, AudioLines, Check, RotateCcw, Volume2, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { playChordCue } from '@/audio/cues';
 import { getPiano } from '@/audio/piano';
 import { Keyboard, type KeyMark } from '@/design/keyboard/Keyboard';
 import { Button } from '@/design/ui/button';
 import { keyboardRange, referenceMarks } from '@/features/chords/voicing-view';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
+import { ChordStaff } from '../practice/ChordCues';
 import type { SessionResult, SessionSpec } from '../practice/controller';
 import { LoadingScreen, useEscapeToFinish } from '../practice/PracticeSessionPage';
 import { practice, usePractice } from '../practice/practice';
@@ -298,16 +305,47 @@ function Demo({ demo }: { demo: NonNullable<ExplainStep['demo']> }) {
   }, [demo]);
   if (notes.length === 0) return null;
   const range = keyboardRange(notes, 4);
+  const chord = demo.chord ? BUILTIN_PACK.chordById.get(demo.chord) : undefined;
+  const showStaff = chord && (demo.show === 'staff' || demo.show === 'both');
+  const showKeyboard = demo.show !== 'staff' || !chord;
   return (
     <div className="space-y-4">
-      <Keyboard
-        low={range.low}
-        high={range.high}
-        marks={marks}
-        labels="all"
-        className="max-w-3xl"
-      />
-      {demo.play !== 'none' && <DemoPlay notes={notes} arpeggio={demo.play === 'arpeggio'} />}
+      {showStaff && <ChordStaff chord={chord} className="max-w-sm" />}
+      {showKeyboard && (
+        <Keyboard
+          low={range.low}
+          high={range.high}
+          marks={marks}
+          labels="all"
+          className="max-w-3xl"
+        />
+      )}
+      {demo.play === 'cadence' && chord ? (
+        <CadencePlay chord={chord} musicKey={demo.key ?? 'C'} />
+      ) : (
+        demo.play !== 'none' && <DemoPlay notes={notes} arpeggio={demo.play === 'arpeggio'} />
+      )}
+    </div>
+  );
+}
+
+/** 听辨课程的示范：先播放这个调的终止式，再播放和弦 */
+function CadencePlay({ chord, musicKey }: { chord: ChordEntry; musicKey: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button size="sm" onClick={() => void playChordCue(chord, musicKey).catch(() => undefined)}>
+        <Volume2 />
+        {t('learn.playCadence', { key: prettyAccidentals(musicKey) })}
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => void playChordCue(chord, null).catch(() => undefined)}
+      >
+        <AudioLines />
+        {t('learn.playChordOnly')}
+      </Button>
     </div>
   );
 }

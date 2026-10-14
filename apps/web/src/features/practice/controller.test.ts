@@ -482,3 +482,99 @@ describe('SessionSpec：课程与每日任务', () => {
     expect(c.view.trial?.feedback?.judge.wrongBass).toBe(true);
   });
 });
+
+describe('听辨（cue = audio）', () => {
+  const topic = (id: string) => {
+    const t = BUILTIN_PACK.topicById.get(id);
+    if (!t) throw new Error(id);
+    return t;
+  };
+
+  it('先播放终止式，目标和弦响起后才计时；点选答案；重听', async () => {
+    const plays: [string, boolean][] = [];
+    const c = controller({
+      playCue: async (card, withContext) => {
+        plays.push([card.id, withContext]);
+        return 3000;
+      },
+    });
+    const card = topic('ear-c-triads').cards.find((x) => x.id === 'chord:am:audio@C:any');
+    await c.start({
+      kind: 'review',
+      cards: card ? [card] : [],
+      length: 1,
+      order: 'sequential',
+      hints: 'never',
+      retryWrong: false,
+      requireCorrection: true,
+    });
+    expect(c.view.listening).toBe(true);
+    expect(c.view.choices).toEqual(['c', 'dm', 'em', 'f', 'g', 'am']);
+    // 播放中：不判定
+    c.answer('am');
+    expect(c.view.trial?.status).toBe('awaiting');
+    await Promise.resolve();
+    advance(3000);
+    expect(c.view.listening).toBe(false);
+    const cueT = c.view.trial?.cueT;
+    expect(cueT).toBe(now);
+    c.replay(false);
+    c.replay(true);
+    expect(plays).toEqual([
+      ['chord:am:audio@C:any', true],
+      ['chord:am:audio@C:any', false],
+      ['chord:am:audio@C:any', true],
+    ]);
+    // 点错：不对；再点对的继续（成绩按第一次）
+    advance(1200);
+    c.answer('f');
+    expect(c.view.trial?.status).toBe('retry');
+    expect(c.view.result).toMatchObject({ correct: false, reactionMs: 1200 });
+    c.answer('nope');
+    c.answer('am');
+    expect(c.view.trial?.status).toBe('done');
+    await c.flush();
+    const [log] = await repos.reviewLogs.latest(5);
+    expect(log).toMatchObject({
+      cardId: 'chord:am:audio@C:any',
+      drillType: 'ear-to-chord',
+      inputSource: 'manual',
+      spreadMs: null,
+      correct: false,
+    });
+  });
+
+  it('声音放不出来：直接开始；自由练习的听和弦用这组和弦当选项', async () => {
+    const c = controller({ playCue: () => Promise.reject(new Error('no audio')) });
+    await c.startPractice({ groupId: 'c-g-am-f', drill: 'ear-to-chord', mode: 'any', length: 4 });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(c.view.listening).toBe(false);
+    expect(c.view.choices).toEqual(['c', 'g', 'am', 'f']);
+    const id = c.view.trial?.trial.targetChordId as string;
+    c.answer(id);
+    expect(c.view.result?.correct).toBe(true);
+    // "全部和弦"不能练听和弦
+    await c.startPractice({ groupId: 'all', drill: 'ear-to-chord', mode: 'any', length: 4 });
+    expect(c.view.status).toBe('empty');
+  });
+
+  it('不是听声音的题：没有选项，重听无效', async () => {
+    const c = controller();
+    await c.start({
+      kind: 'review',
+      cards: topic('staff-c-triads').cards.slice(0, 1),
+      length: 1,
+      order: 'sequential',
+      hints: 'never',
+      retryWrong: false,
+      requireCorrection: true,
+    });
+    expect(c.view.choices).toBeNull();
+    expect(c.view.listening).toBe(false);
+    expect(c.view.trial?.trial.mode).toBe('strict');
+    c.replay(true);
+    c.answer('c'); // 没有选项时也可以当手动作答（参考键位 = 谱上的音）
+    expect(c.view.result?.correct).toBe(true);
+  });
+});

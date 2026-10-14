@@ -80,8 +80,12 @@ export const ExplainStepSchema = z.object({
       chord: ID.optional(),
       /** 键上的数字：semitones = 从第一个音数半音（0、1、2…）；fingers = 指法 */
       labels: z.enum(['semitones', 'fingers', 'none']).default('fingers'),
-      /** 播放方式 */
-      play: z.enum(['together', 'arpeggio', 'none']).default('together'),
+      /** 播放方式；cadence = 先弹 key 调的 I–IV–V–I 再弹这个和弦（听辨课程） */
+      play: z.enum(['together', 'arpeggio', 'cadence', 'none']).default('together'),
+      /** play = cadence 时的调 */
+      key: PitchName.optional(),
+      /** 示范显示在键盘上、五线谱上，或两者都有（五线谱提示课程） */
+      show: z.enum(['keyboard', 'staff', 'both']).default('keyboard'),
     })
     .optional(),
 });
@@ -99,6 +103,18 @@ export const TopicPracticeSchema = z.discriminatedUnion('kind', [
     kind: z.literal('chords'),
     chords: z.array(ID).min(1),
     voicingMode: z.enum(['any', 'reference']).default('any'),
+    /** 题面：和弦名 / 文字名称（12 调构建）/ 听声音 / 五线谱 / 级数（M5） */
+    cue: z.enum(['name', 'spelled', 'audio', 'staff', 'roman']).default('name'),
+    /** 调：级数题必须有；听辨给了调就先播放这个调的终止式（调性语境），选项用级数 */
+    key: PitchName.optional(),
+  }),
+  /**
+   * 对比配对（M5）：每一对和弦只差一个音（C/Cm、C7/CM7、Cm7/Cm7♭5）。
+   * 听声音，从这一对里选出它或用琴弹出来。两者各自学会之后再练（规格 6.5）。
+   */
+  z.object({
+    kind: z.literal('contrast'),
+    pairs: z.array(z.tuple([ID, ID])).min(1),
   }),
   z.object({
     kind: z.literal('transitions'),
@@ -259,6 +275,19 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
     if (pr.kind === 'chords') {
       pr.chords.forEach((id, j) => {
         if (!chords.has(id)) issue(['topics', i, 'practice', 'chords', j], `不存在的和弦：${id}`);
+      });
+      if (pr.cue === 'roman' && pr.key === undefined) {
+        issue(['topics', i, 'practice', 'key'], '级数题需要指定调（key）');
+      }
+    }
+    if (pr.kind === 'contrast') {
+      pr.pairs.forEach((pair, j) => {
+        pair.forEach((id, m) => {
+          if (!chords.has(id))
+            issue(['topics', i, 'practice', 'pairs', j, m], `不存在的和弦：${id}`);
+        });
+        if (pair[0] === pair[1])
+          issue(['topics', i, 'practice', 'pairs', j], `一对里的两个和弦相同：${pair[0]}`);
       });
     }
     if (pr.kind === 'progression' && !progressionIds.has(pr.progression)) {

@@ -6,6 +6,7 @@ import {
   adaptTimeLimit,
   type CardProgress,
   type ChordAttempt,
+  type ChordCard,
   type DrillType,
   detectMashing,
   drillForCard,
@@ -68,6 +69,8 @@ export interface SessionSpec {
   requireCorrection: boolean;
   /** 写进练习记录的附加信息 */
   config?: Record<string, unknown>;
+  /** 听声音的卡片的作答选项（和弦 ID）；没给的卡片用内容包里的（choicesByCard） */
+  choices?: ReadonlyMap<string, readonly string[]>;
 }
 
 export interface TrialResultView {
@@ -105,6 +108,10 @@ export interface PracticeView {
   xp: number;
   /** 有日志没能保存（例如 IndexedDB 不可用） */
   saveError: boolean;
+  /** 听辨题正在播放（目标和弦响起之前不计时、不判定） */
+  listening: boolean;
+  /** 当前题可以点选的答案（听声音的题），没有时为 null */
+  choices: readonly string[] | null;
 }
 
 const IDLE: PracticeView = {
@@ -125,6 +132,8 @@ const IDLE: PracticeView = {
   summary: null,
   xp: 0,
   saveError: false,
+  listening: false,
+  choices: null,
 };
 
 /** 一轮结束后交给调用方的结果（课程、每日任务据此写主题日志） */
@@ -164,6 +173,11 @@ export interface PracticeDeps {
   onResult?: (r: TrialResultView) => void;
   /** 计时器（测试里替换成手动推进的版本） */
   timers?: Timers;
+  /**
+   * 播放听辨题（cue = 'audio'）：返回从现在到目标和弦响起的毫秒数。
+   * withContext = false 时只重播目标和弦（不播放终止式）。
+   */
+  playCue?: (card: ChordCard, withContext: boolean) => Promise<number>;
 }
 
 export interface Timers {
@@ -195,9 +209,14 @@ export function practiceSpec(
   groups: readonly PracticeGroup[],
 ): SessionSpec {
   const group = groups.find((g) => g.id === config.groupId);
+  const cards = group ? cardsForGroup(group, config.drill, config.mode) : [];
+  const options = group ? [...new Set(group.chordIds)] : [];
   return {
     kind: 'practice',
-    cards: group ? cardsForGroup(group, config.drill, config.mode) : [],
+    cards,
+    ...(config.drill === 'ear-to-chord'
+      ? { choices: new Map(cards.map((c) => [c.id, options] as const)) }
+      : {}),
     length: config.length,
     order: 'phased',
     hints: 'auto',
@@ -453,8 +472,15 @@ export class PracticeController {
     });
     const state = startTrial(trial, this.deps.now(), this.deps.heldNow());
     this.noteOns = [];
+    const card = item.card;
+    const listen = card.kind === 'chord' && card.cue === 'audio' && this.deps.playCue !== undefined;
     this.set({
       trial: state,
+      listening: listen,
+      choices:
+        card.kind === 'chord' && card.cue === 'audio'
+          ? (spec.choices?.get(card.id) ?? this.deps.pack.choicesByCard.get(card.id) ?? null)
+          : null,
       reason: item.reason,
       feedback: spec.hints === 'always' ? 'full' : feedbackLevelFor(progress),
       index: this.view.index + 1,
@@ -463,7 +489,79 @@ export class PracticeController {
       adaptiveChange: null,
       nextTimeLimitMs: null,
     });
+    if (listen) {
+      this.playThenStart(card as ChordCard, state);
+      return;
+    }
     this.scheduleTick(state);
+  }
+
+  /** 听辨题：播放终止式和目标和弦，目标和弦响起时重新开始这一题（从这一刻计时） */
+  private playThenStart(card: ChordCard, state: TrialState) {
+    const gen = this.generation;
+    const trialId = state.trial.id;
+    const begin = () => {
+      if (gen !== this.generation || this.view.trial?.trial.id !== trialId) return;
+      const fresh = startTrial(state.trial, this.deps.now(), this.deps.heldNow());
+      this.noteOns = [];
+      this.set({ trial: fresh, listening: false });
+      this.scheduleTick(fresh);
+    };
+    (this.deps.playCue as NonNullable<PracticeDeps['playCue']>)(card, true)
+      .then((ms) => {
+        this.nextTimer = this.timers.set(() => {
+          this.nextTimer = null;
+          begin();
+        }, ms);
+      })
+      // 声音放不出来（例如采样加载失败）：直接开始，题面仍显示"听"，可以重听
+      .catch(begin);
+  }
+
+  /** 重听（听辨题）：withContext = 连终止式一起；不影响计时 */
+  replay(withContext: boolean) {
+    const card = this.view.trial?.trial.card;
+    if (card?.kind !== 'chord' || card.cue !== 'audio') return;
+    void this.deps.playCue?.(card, withContext).catch(() => undefined);
+  }
+
+  /**
+   * 点选答案（听辨、对比配对）：当作用"手动"输入弹出了这个和弦的参考键位来判定，
+   * 这样和用琴弹出来走同一套判定、评分。
+   */
+  answer(chordId: string) {
+    const trial = this.view.trial;
+    if (
+      this.view.listening ||
+      !trial ||
+      (trial.status !== 'awaiting' && trial.status !== 'retry')
+    ) {
+      return;
+    }
+    const chord = this.deps.pack.chordById.get(chordId);
+    if (!chord) return;
+    const notes = voicingMidi(chord.reference);
+    const t = this.deps.now();
+    const onsets: Record<number, number> = {};
+    const sources: Record<number, string> = {};
+    for (const n of notes) {
+      onsets[n] = t;
+      sources[n] = 'manual';
+    }
+    this.dispatch({
+      type: 'attempt',
+      attempt: {
+        notes: [...notes].sort((a, b) => a - b),
+        newNotes: notes,
+        onsets,
+        sources,
+        firstOnset: t,
+        lastOnset: t,
+        spreadMs: 0,
+        together: true,
+        stableAt: t,
+      },
+    });
   }
 
   private referenceNotes(chordId: string): number[] {
@@ -486,6 +584,7 @@ export class PracticeController {
   private dispatch(event: TrialEvent) {
     const prev = this.view.trial;
     if (this.view.status !== 'running' || !prev || prev.status === 'done') return;
+    if (this.view.listening) return; // 目标和弦还没响起
     const next = stepTrial(prev, event);
     if (next === prev) return;
     this.set({ trial: next });

@@ -97,3 +97,29 @@ test('和弦切换：先弹"从"和弦，弹稳后计时', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(page.getByText('最慢的切换')).toBeVisible();
 });
+
+test('听和弦（听音挑战）：只播放和弦，点选答案或用琴弹出来', async ({ page }) => {
+  await page.goto('practice');
+  await page.getByRole('radio', { name: '听和弦' }).click();
+  await expect(page.getByText('听音挑战：只播放一个和弦')).toBeVisible();
+  await page.getByRole('radio', { name: 'C – G – Am – F', exact: true }).check();
+  await page.getByRole('radio', { name: '10 题' }).click();
+  await page.getByRole('link', { name: '开始' }).click();
+  await connect(page);
+
+  for (let i = 0; i < 10; i++) {
+    await expect(cue(page)).toHaveAttribute('data-trial-status', 'awaiting');
+    await expect(page.getByRole('status').filter({ hasText: '正在播放' })).toHaveCount(0);
+    const chord = (await cue(page).getAttribute('data-chord-id')) as string;
+    if (i % 2 === 0) {
+      // 点选
+      await page.locator(`[data-choice="${chord}"]`).click();
+    } else {
+      // 用琴弹
+      await play(page, REF[chord] as number[]);
+    }
+    await expect(cue(page)).toHaveAttribute('data-trial-status', 'done');
+    if (i % 2 === 1) await release(page, REF[chord] as number[]);
+  }
+  await expect(page.getByTestId('summary-accuracy')).toHaveText('100%');
+});

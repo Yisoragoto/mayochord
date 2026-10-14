@@ -1,6 +1,6 @@
 {
   "id": "mayochord-core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "schemaVersion": 1,
   "name": {
     "zh-CN": "MayoChord 内置内容",
@@ -249,6 +249,131 @@
       "root": "A",
       "quality": "m",
       "bass": "E"
+    },
+    {
+      "id": "dbmaj7",
+      "root": "Db",
+      "quality": "M7"
+    },
+    {
+      "id": "dmaj7",
+      "root": "D",
+      "quality": "M7"
+    },
+    {
+      "id": "ebmaj7",
+      "root": "Eb",
+      "quality": "M7"
+    },
+    {
+      "id": "emaj7",
+      "root": "E",
+      "quality": "M7"
+    },
+    {
+      "id": "fsmaj7",
+      "root": "F#",
+      "quality": "M7"
+    },
+    {
+      "id": "abmaj7",
+      "root": "Ab",
+      "quality": "M7"
+    },
+    {
+      "id": "amaj7",
+      "root": "A",
+      "quality": "M7"
+    },
+    {
+      "id": "bbmaj7",
+      "root": "Bb",
+      "quality": "M7"
+    },
+    {
+      "id": "bmaj7",
+      "root": "B",
+      "quality": "M7"
+    },
+    {
+      "id": "db7",
+      "root": "Db",
+      "quality": "7"
+    },
+    {
+      "id": "eb7",
+      "root": "Eb",
+      "quality": "7"
+    },
+    {
+      "id": "f7",
+      "root": "F",
+      "quality": "7"
+    },
+    {
+      "id": "fs7",
+      "root": "F#",
+      "quality": "7"
+    },
+    {
+      "id": "ab7",
+      "root": "Ab",
+      "quality": "7"
+    },
+    {
+      "id": "a7",
+      "root": "A",
+      "quality": "7"
+    },
+    {
+      "id": "bb7",
+      "root": "Bb",
+      "quality": "7"
+    },
+    {
+      "id": "b7",
+      "root": "B",
+      "quality": "7"
+    },
+    {
+      "id": "cm7",
+      "root": "C",
+      "quality": "m7"
+    },
+    {
+      "id": "dbm7",
+      "root": "Db",
+      "quality": "m7"
+    },
+    {
+      "id": "ebm7",
+      "root": "Eb",
+      "quality": "m7"
+    },
+    {
+      "id": "fm7",
+      "root": "F",
+      "quality": "m7"
+    },
+    {
+      "id": "fsm7",
+      "root": "F#",
+      "quality": "m7"
+    },
+    {
+      "id": "abm7",
+      "root": "Ab",
+      "quality": "m7"
+    },
+    {
+      "id": "bbm7",
+      "root": "Bb",
+      "quality": "m7"
+    },
+    {
+      "id": "bm7",
+      "root": "B",
+      "quality": "m7"
     }
   ],
   "voicings": [
@@ -2352,6 +2477,606 @@
           "questions": 15,
           "minAccuracy": 0.8,
           "timeLimitMs": 6000
+        },
+        "minutes": 10
+      }
+    },
+    {
+      "id": "build-triads",
+      "title": {
+        "zh-CN": "12 调构建：三和弦"
+      },
+      "summary": {
+        "zh-CN": "看文字名称（例如“E♭ 小三和弦”）弹出和弦，任意转位都算对。"
+      },
+      "prerequisites": ["triads-12-keys"],
+      "encompasses": [
+        {
+          "topicId": "triads-12-keys",
+          "weight": 0.5
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": [
+          "c",
+          "db",
+          "d",
+          "eb",
+          "e",
+          "f",
+          "fs",
+          "g",
+          "ab",
+          "a",
+          "bb",
+          "b",
+          "cm",
+          "csm",
+          "dm",
+          "ebm",
+          "em",
+          "fm",
+          "fsm",
+          "gm",
+          "gsm",
+          "am",
+          "bbm",
+          "bm"
+        ],
+        "cue": "spelled"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "这一课不给和弦符号，只给文字名称，例如“E♭ 小三和弦”“F♯ 大三和弦”。你要自己从根音出发，用公式搭出和弦。"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "大三和弦 = 根音 +4 +3 个半音；小三和弦 = 根音 +3 +4 个半音。先找到根音，再数半音。"
+            },
+            "demo": {
+              "chord": "ebm",
+              "labels": "none",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "任意转位、任意八度都算对，重点是快速想出组成音。"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 12,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 8000
+        },
+        "minutes": 10
+      }
+    },
+    {
+      "id": "build-sevenths",
+      "title": {
+        "zh-CN": "12 调构建：七和弦"
+      },
+      "summary": {
+        "zh-CN": "看文字名称（例如“D♭ 属七和弦”）弹出 12 个调的大七、属七、小七和弦。"
+      },
+      "prerequisites": ["build-triads", "c-major-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "build-triads",
+          "weight": 0.4
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": [
+          "cmaj7",
+          "dbmaj7",
+          "dmaj7",
+          "ebmaj7",
+          "emaj7",
+          "fmaj7",
+          "fsmaj7",
+          "gmaj7",
+          "abmaj7",
+          "amaj7",
+          "bbmaj7",
+          "bmaj7",
+          "c7",
+          "db7",
+          "d7",
+          "eb7",
+          "e7",
+          "f7",
+          "fs7",
+          "g7",
+          "ab7",
+          "a7",
+          "bb7",
+          "b7",
+          "cm7",
+          "dbm7",
+          "dm7",
+          "ebm7",
+          "em7",
+          "fm7",
+          "fsm7",
+          "gm7",
+          "abm7",
+          "am7",
+          "bbm7",
+          "bm7"
+        ],
+        "cue": "spelled"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "大七和弦（M7）= 大三和弦 + 根音下方半音的音（大七度）；属七和弦（7）= 大三和弦 + 根音下方全音的音（小七度）；小七和弦（m7）= 小三和弦 + 小七度。"
+            },
+            "demo": {
+              "chord": "dbmaj7",
+              "labels": "none",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "先搭三和弦，再加第四个音：大七度离根音只差一个半音，小七度差一个全音。"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "任意转位都算对。"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 12,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 9000
+        },
+        "minutes": 12
+      }
+    },
+    {
+      "id": "roman-c",
+      "title": {
+        "zh-CN": "C 调的级数"
+      },
+      "summary": {
+        "zh-CN": "用级数（I、IIm、IIIm、IV、V、VIm）说出 C 调里的和弦，看级数弹出来。"
+      },
+      "prerequisites": ["c-major-triads"],
+      "encompasses": [
+        {
+          "topicId": "c-major-triads",
+          "weight": 0.6
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["c", "dm", "em", "f", "g", "am", "g7"],
+        "cue": "roman",
+        "key": "C"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "级数用罗马数字表示和弦的根音是调里的第几个音：C 调里 C 是 I，D 是 II，E 是 III，F 是 IV，G 是 V，A 是 VI。"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "后面跟和弦性质：小三和弦写 m（IIm = Dm，VIm = Am），七和弦写 7（V7 = G7）。这是 J-pop 常用的写法。"
+            },
+            "demo": {
+              "chord": "am",
+              "labels": "fingers",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "记住级数，换调的时候只要把同样的级数搬到新的调里，例如王道进行就是 IV–V–IIIm–VIm。"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      }
+    },
+    {
+      "id": "ear-c-triads",
+      "title": {
+        "zh-CN": "听辨：C 调里的和弦"
+      },
+      "summary": {
+        "zh-CN": "先听 C 调的终止式（I–IV–V–I）确定调性，再听一个和弦，答出它的级数或在琴上弹出来。"
+      },
+      "prerequisites": ["roman-c"],
+      "encompasses": [
+        {
+          "topicId": "roman-c",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["c", "dm", "em", "f", "g", "am"],
+        "cue": "audio",
+        "key": "C"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "每一题先播放 C 调的终止式 C–F–G–C，耳朵记住“家”在哪里，然后播放目标和弦。"
+            },
+            "demo": {
+              "chord": "c",
+              "labels": "fingers",
+              "play": "cadence",
+              "show": "keyboard",
+              "key": "C"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "可以点级数按钮回答，也可以直接在琴上弹出这个和弦。从目标和弦响起时开始计时。"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "听的时候注意：大三和弦（I、IV、V）明亮，小三和弦（IIm、IIIm、VIm）偏暗。VIm 听起来像“伤感的 I”。"
+            },
+            "demo": {
+              "chord": "am",
+              "labels": "fingers",
+              "play": "cadence",
+              "show": "keyboard",
+              "key": "C"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "听不清可以点“重听”。"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 10000
+        },
+        "minutes": 9
+      }
+    },
+    {
+      "id": "contrast-major-minor",
+      "title": {
+        "zh-CN": "对比：大三和弦与小三和弦"
+      },
+      "summary": {
+        "zh-CN": "每次只差一个音（三音高半音或低半音）。听声音，从一对里选出它。"
+      },
+      "prerequisites": ["major-triad-formula", "minor-triad-formula", "c-major-triads"],
+      "encompasses": [],
+      "practice": {
+        "kind": "contrast",
+        "pairs": [["c", "cm"], ["f", "fm"], ["g", "gm"], ["d", "dm"], ["e", "em"], ["a", "am"]]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "C 和 Cm 只差一个音：E 和 E♭。大三和弦明亮，小三和弦偏暗。"
+            },
+            "demo": {
+              "chord": "c",
+              "labels": "fingers",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "对比着听 Cm。"
+            },
+            "demo": {
+              "chord": "cm",
+              "labels": "fingers",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "每题播放一对里的一个，选出是哪一个，或者在琴上弹出来。答完会告诉你这一对差在哪个音。"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 10000
+        },
+        "minutes": 7
+      }
+    },
+    {
+      "id": "contrast-7-maj7",
+      "title": {
+        "zh-CN": "对比：属七和弦与大七和弦"
+      },
+      "summary": {
+        "zh-CN": "7 和 M7 只差一个音（七音差半音）。听声音，从一对里选出它。"
+      },
+      "prerequisites": ["maj7-formula", "dom7-formula"],
+      "encompasses": [],
+      "practice": {
+        "kind": "contrast",
+        "pairs": [["c7", "cmaj7"], ["f7", "fmaj7"], ["g7", "gmaj7"], ["d7", "dmaj7"]]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "C7 和 CM7 只差一个音：B♭ 和 B。属七和弦有“想往下走”的紧张感，大七和弦柔和、带一点漂浮感。"
+            },
+            "demo": {
+              "chord": "c7",
+              "labels": "fingers",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "对比着听 CM7。"
+            },
+            "demo": {
+              "chord": "cmaj7",
+              "labels": "fingers",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "这两个和弦最容易混，之前分开学过，现在专门练区分。"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 10000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "seventh-quality"
+    },
+    {
+      "id": "contrast-m7-m7b5",
+      "title": {
+        "zh-CN": "对比：小七和弦与半减七和弦"
+      },
+      "summary": {
+        "zh-CN": "m7 和 m7♭5 只差一个音（五音差半音）。听声音，从一对里选出它。"
+      },
+      "prerequisites": ["m7-formula", "m7b5-formula"],
+      "encompasses": [],
+      "practice": {
+        "kind": "contrast",
+        "pairs": [["am7", "am7b5"], ["em7", "em7b5"], ["bm7", "bm7b5"]]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "Am7 和 Am7♭5 只差一个音：E 和 E♭。半减七和弦更暗、更不稳定，常出现在小调的 II–V 里。"
+            },
+            "demo": {
+              "chord": "am7",
+              "labels": "fingers",
+              "play": "together",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "对比着听 Am7♭5。"
+            },
+            "demo": {
+              "chord": "am7b5",
+              "labels": "fingers",
+              "play": "together",
+              "show": "keyboard"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 10000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "seventh-quality"
+    },
+    {
+      "id": "staff-c-triads",
+      "title": {
+        "zh-CN": "看五线谱：C 调三和弦"
+      },
+      "summary": {
+        "zh-CN": "看大谱表上的和弦，按谱上的音（包括八度）弹出来。"
+      },
+      "prerequisites": ["c-major-triads"],
+      "encompasses": [],
+      "practice": {
+        "kind": "chords",
+        "chords": ["c", "dm", "em", "f", "g", "am"],
+        "cue": "staff",
+        "voicingMode": "reference"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "大谱表上面是高音谱表（右手），下面是低音谱表（左手）。中央 C 在两个谱表之间的下加一线 / 上加一线。"
+            },
+            "demo": {
+              "chord": "c",
+              "labels": "fingers",
+              "play": "together",
+              "show": "both"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "高音谱表的线从下往上是 E G B D F，间是 F A C E；低音谱表的线是 G B D F A，间是 A C E G。"
+            },
+            "demo": {
+              "chord": "am",
+              "labels": "fingers",
+              "play": "together",
+              "show": "both"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "这一课按谱上的音判定（严格模式），八度也要对：左手的根音在低音谱表，右手的三个音在高音谱表。"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 10000
+        },
+        "minutes": 9
+      }
+    },
+    {
+      "id": "staff-sevenths",
+      "title": {
+        "zh-CN": "看五线谱：七和弦"
+      },
+      "summary": {
+        "zh-CN": "看大谱表弹出丸サ進行和 II–V–I 里的七和弦。"
+      },
+      "prerequisites": ["staff-c-triads", "c-major-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "staff-c-triads",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["fmaj7", "e7", "am7", "gm7", "c7-9", "dm7", "g7", "cmaj7"],
+        "cue": "staff",
+        "voicingMode": "reference"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "七和弦在谱上是四个音（这里右手常常只弹三个，省略五音或根音）。先读左手的根音，再读右手。"
+            },
+            "demo": {
+              "chord": "fmaj7",
+              "labels": "fingers",
+              "play": "together",
+              "show": "both"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "升降号写在音符左边，例如 E7 的 G♯、Gm7 的 B♭。"
+            },
+            "demo": {
+              "chord": "e7",
+              "labels": "fingers",
+              "play": "together",
+              "show": "both"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 12000
         },
         "minutes": 10
       }

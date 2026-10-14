@@ -5,7 +5,8 @@
  * ID 只包含"测量的是什么"（和弦、提示方式、调、键位要求），不包含 topicId：
  * 不同主题里出现的同一个"看 Am 弹 Am"共享同一份记忆状态。topicId 只表示卡片归属哪个主题。
  */
-export type Cue = 'name' | 'audio' | 'staff' | 'roman';
+/** 题面：和弦名 / 文字名称（12 调构建，如"E♭ 小三和弦"）/ 听声音 / 五线谱 / 级数 */
+export type Cue = 'name' | 'spelled' | 'audio' | 'staff' | 'roman';
 /** any = 任意转位都算对（宽松判定）；reference = 必须弹参考键位（严格判定） */
 export type VoicingMode = 'any' | 'reference';
 
@@ -15,7 +16,7 @@ export interface ChordCard {
   topicId: string | null;
   chordId: string;
   cue: Cue;
-  /** 级数提示（cue = 'roman'）需要的调，其他提示为 null */
+  /** 调：级数提示（cue = 'roman'）与调性语境里的听辨（cue = 'audio'）需要；其他为 null */
   key: string | null;
   voicingMode: VoicingMode;
 }

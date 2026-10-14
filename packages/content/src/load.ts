@@ -77,6 +77,8 @@ export interface LoadedPack {
   cardById: ReadonlyMap<string, AnyCard>;
   /** 卡片 → 包含它的主题 */
   topicsOfCard: ReadonlyMap<string, readonly string[]>;
+  /** 听声音的卡片 → 作答选项（和弦 ID） */
+  choicesByCard: ReadonlyMap<string, readonly string[]>;
 }
 
 export type LoadResult = { ok: true; pack: LoadedPack } | { ok: false; issues: z.core.$ZodIssue[] };
@@ -153,6 +155,13 @@ export function loadContentPack(input: unknown): LoadResult {
   });
 
   const progressionById = new Map(progressions.map((p) => [p.id, p]));
+  // 听声音的卡片：作答时可以从这些和弦里选（多个主题用到同一张卡时合并）
+  const choicesByCard = new Map<string, string[]>();
+  const addChoices = (cardId: string, chordIds: readonly string[]) => {
+    const list = choicesByCard.get(cardId) ?? [];
+    for (const id of chordIds) if (!list.includes(id)) list.push(id);
+    choicesByCard.set(cardId, list);
+  };
   const topics: TopicEntry[] = data.topics.map((t) => {
     const pr = t.practice;
     let cards: AnyCard[];
@@ -163,11 +172,27 @@ export function loadContentPack(input: unknown): LoadResult {
       case 'intervals':
         cards = pr.items.map((i) => intervalCard(i.root, i.interval, t.id));
         break;
-      case 'chords':
+      case 'chords': {
+        const key = pr.cue === 'roman' || pr.cue === 'audio' ? (pr.key ?? null) : null;
         cards = [...new Set(pr.chords)].map((id) =>
-          chordCard(id, { voicingMode: pr.voicingMode, topicId: t.id }),
+          chordCard(id, { voicingMode: pr.voicingMode, topicId: t.id, cue: pr.cue, key }),
         );
+        // 听辨：从这个主题的和弦里选
+        if (pr.cue === 'audio') for (const c of cards) addChoices(c.id, pr.chords);
         break;
+      }
+      case 'contrast': {
+        const seen = new Map<string, AnyCard>();
+        for (const pair of pr.pairs) {
+          for (const id of pair) {
+            const card = chordCard(id, { cue: 'audio', topicId: t.id });
+            if (!seen.has(card.id)) seen.set(card.id, card);
+            addChoices(card.id, pair);
+          }
+        }
+        cards = [...seen.values()];
+        break;
+      }
       case 'transitions': {
         const seen = new Set<string>();
         cards = pr.progressions
@@ -230,6 +255,7 @@ export function loadContentPack(input: unknown): LoadResult {
       graph: buildTopicGraph(topics),
       cardById,
       topicsOfCard,
+      choicesByCard,
     },
   };
 }

@@ -22,6 +22,7 @@ import { PlayableKeyboard, releaseOnscreenNotes } from '@/input/PlayableKeyboard
 import { useMidi } from '@/input/webmidi';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/stores/settings';
+import { ChordCueFace, ListeningControls } from './ChordCues';
 import { cardsRange, chordLabel, chordOf, fromVoicing, targetVoicing } from './cards-view';
 import type { PracticeView } from './controller';
 import { practice, usePractice } from './practice';
@@ -129,7 +130,8 @@ export function SessionRunner({ title }: SessionRunnerProps) {
       <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
         <ReasonLabel view={view} />
         <Cue view={view} />
-        <TimeBar trial={trial} hidden={spec.hints === 'always'} />
+        <ListeningControls view={view} />
+        <TimeBar trial={trial} hidden={spec.hints === 'always' || view.listening} />
         <Feedback view={view} />
         <ShortTapNotice active={trial.status !== 'done'} />
       </div>
@@ -247,13 +249,24 @@ function ReasonLabel({ view }: { view: PracticeView }) {
   );
 }
 
-/** 题面：和弦名 / "从 → 到" / 音名 / 音程（谱架 1 米外可读） */
-function CardFace({ card, size }: { card: AnyCard; size: 'stage' | 'lg' }) {
+/** 题面：和弦（名称、文字、级数、五线谱、声音）/ "从 → 到" / 音名 / 音程（谱架 1 米外可读） */
+function CardFace({
+  card,
+  size,
+  listening = false,
+  revealed = false,
+}: {
+  card: AnyCard;
+  size: 'stage' | 'lg';
+  listening?: boolean;
+  revealed?: boolean;
+}) {
   const { t } = useTranslation();
   switch (card.kind) {
     case 'chord':
+      return <ChordCueFace card={card} size={size} listening={listening} revealed={revealed} />;
     case 'transition': {
-      const chord = chordOf(card.kind === 'chord' ? card.chordId : card.toChordId);
+      const chord = chordOf(card.toChordId);
       return chord ? <ChordName symbol={chord.symbol} size={size} /> : null;
     }
     case 'note':
@@ -340,7 +353,12 @@ function Cue({ view }: { view: PracticeView }) {
         }
         transition={{ duration: 0.28 }}
       >
-        <CardFace card={card} size="stage" />
+        <CardFace
+          card={card}
+          size="stage"
+          listening={view.listening}
+          revealed={state.status === 'retry' || state.status === 'done'}
+        />
       </motion.span>
     </div>
   );
@@ -451,16 +469,24 @@ function Feedback({ view }: { view: PracticeView }) {
     );
   } else if (state.status === 'retry') {
     tone = 'bad';
+    const card = state.trial.card;
+    const listeningCard = card.kind === 'chord' && card.cue === 'audio';
     const latest = fb?.stage === 'target' ? fb.judge : null;
     body = (
       <>
         <X className="size-5 shrink-0" aria-hidden />
         {outcome?.timedOut && !latest ? (
           <span>{t('practice.timeout')}</span>
+        ) : listeningCard ? (
+          <span>{t('practice.earWrong')}</span>
         ) : latest ? (
           wrongText(latest, state.trial.target)
         ) : null}
-        {!noCorrection && <span className="text-muted-foreground">{t('practice.fixIt')}</span>}
+        {!noCorrection && (
+          <span className="text-muted-foreground">
+            {listeningCard ? t('practice.earFixIt') : t('practice.fixIt')}
+          </span>
+        )}
       </>
     );
   } else if (state.status === 'done' && outcome) {

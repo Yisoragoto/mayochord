@@ -83,7 +83,8 @@ export function PracticeSetupPage() {
   const now = useMemo(() => Date.now(), []);
 
   const group = PRACTICE_GROUPS.find((g) => g.id === groupId);
-  const transitionUnavailable = drill === 'transition' && group && !group.sequence;
+  // 切换、听和弦都要一条进行（"全部和弦"没有顺序，听和弦的选项也太多）
+  const transitionUnavailable = drill !== 'name-to-chord' && group && !group.sequence;
   const groupName = (g: PracticeGroup) =>
     g.name ? (g.name[i18n.language as 'zh-CN'] ?? g.name['zh-CN']) : t('practice.allChords');
 
@@ -112,7 +113,7 @@ export function PracticeSetupPage() {
               const cards = cardsForGroup(g, drill, mode);
               const counts = progress ? phaseCounts(cards, progress, now) : null;
               const selected = g.id === groupId;
-              const disabled = drill === 'transition' && !g.sequence;
+              const disabled = drill !== 'name-to-chord' && !g.sequence;
               return (
                 <label
                   key={g.id}
@@ -176,11 +177,16 @@ export function PracticeSetupPage() {
               <ToggleGroupItem value="transition" className="flex-1">
                 {t('practice.drillTransition')}
               </ToggleGroupItem>
+              <ToggleGroupItem value="ear-to-chord" className="flex-1">
+                {t('practice.drillEar')}
+              </ToggleGroupItem>
             </ToggleGroup>
             <p className="text-sm text-muted-foreground">
               {drill === 'transition'
                 ? t('practice.drillTransitionHint')
-                : t('practice.drillNameHint')}
+                : drill === 'ear-to-chord'
+                  ? t('practice.drillEarHint')
+                  : t('practice.drillNameHint')}
             </p>
           </Option>
 

@@ -25,7 +25,15 @@ import type { AnyCard } from './cards';
  *
  * 全部是纯函数：网页用实时的和弦尝试驱动 stepTrial，测试用 evaluateTrial 重放事件。
  */
-export type DrillType = 'name-to-chord' | 'transition' | 'name-to-note' | 'interval';
+export type DrillType =
+  | 'name-to-chord'
+  | 'build-chord'
+  | 'ear-to-chord'
+  | 'staff-to-chord'
+  | 'roman-to-chord'
+  | 'transition'
+  | 'name-to-note'
+  | 'interval';
 
 export interface Trial {
   id: string;

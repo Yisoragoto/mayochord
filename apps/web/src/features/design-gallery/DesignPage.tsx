@@ -1,4 +1,4 @@
-import { type ChordSymbol, histogram, type VoicedNote } from '@mayochord/core';
+import { type ChordSymbol, chordCard, histogram, type VoicedNote } from '@mayochord/core';
 import {
   ArrowRight,
   BookOpen,
@@ -26,6 +26,7 @@ import { Slider } from '@/design/ui/slider';
 import { Switch } from '@/design/ui/switch';
 import { referenceMarks } from '@/features/chords/voicing-view';
 import { StatusBadge } from '@/features/graph/GraphPage';
+import { ChordCueFace } from '@/features/practice/ChordCues';
 import { OffsetHistogram } from '@/features/progression/RunSummaryView';
 import { VoiceLeading } from '@/features/progression/VoiceLeading';
 import { cn } from '@/lib/utils';
@@ -179,6 +180,41 @@ function Specimen({ theme }: { theme: ResolvedTheme }) {
             width: 20,
           })}
         />
+      </Block>
+
+      <Block title="题面（cue）：文字名称 / 级数 / 听声音 / 五线谱">
+        <div className="grid items-end gap-8 sm:grid-cols-2">
+          <ChordCueFace
+            card={chordCard('ebm', { cue: 'spelled' })}
+            size="lg"
+            listening={false}
+            revealed={false}
+          />
+          <ChordCueFace
+            card={chordCard('am', { cue: 'roman', key: 'C' })}
+            size="lg"
+            listening={false}
+            revealed={false}
+          />
+          <ChordCueFace
+            card={chordCard('am', { cue: 'audio', key: 'C' })}
+            size="lg"
+            listening
+            revealed={false}
+          />
+          <ChordCueFace
+            card={chordCard('am', { cue: 'audio', key: 'C' })}
+            size="lg"
+            listening={false}
+            revealed
+          />
+          <ChordCueFace
+            card={chordCard('gm7', { cue: 'staff', voicingMode: 'reference' })}
+            size="lg"
+            listening={false}
+            revealed={false}
+          />
+        </div>
       </Block>
 
       <Block title="和弦符号">

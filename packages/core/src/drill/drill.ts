@@ -5,6 +5,7 @@ import type { JudgeMode } from '../recognition/judge';
 import type {
   AnyCard,
   ChordCard,
+  Cue,
   IntervalCard,
   NoteCard,
   TransitionCard,
@@ -61,30 +62,56 @@ export interface Drill<C extends AnyCard = AnyCard> {
 export const judgeModeFor = (mode: VoicingMode, slash = false): JudgeMode =>
   mode === 'reference' ? 'strict' : slash ? 'bass' : 'loose';
 
-/** 看名弹和弦：显示和弦名，弹出这个和弦。 */
-export const nameToChordDrill: Drill<ChordCard> = {
-  type: 'name-to-chord',
-  accepts: (card): card is ChordCard => card.kind === 'chord',
-  createTrial(card, ctx) {
-    return {
-      id: ctx.trialId,
-      drillType: 'name-to-chord',
-      card,
-      targetChordId: card.chordId,
-      target: [...ctx.referenceNotes(card.chordId)],
-      fromChordId: null,
-      from: null,
-      mode: judgeModeFor(card.voicingMode, ctx.hasBass?.(card.chordId) ?? false),
-      timeLimitMs: ctx.timeLimitMs,
-      onsetWindowMs: ctx.onsetWindowMs,
-      hintAtStart: ctx.hintAtStart,
-    };
-  },
-  evaluate: evaluateTrial,
-  toEvidence(trial, outcome) {
-    return [{ ...outcome, cardId: trial.card.id, cardKind: 'chord', drillType: 'name-to-chord' }];
-  },
+/** 和弦卡的题面 → 练习类型（反应时间的个人中位数、85% 时限按练习类型分开） */
+export const CHORD_CUE_DRILL: Record<Cue, DrillType> = {
+  name: 'name-to-chord',
+  spelled: 'build-chord',
+  audio: 'ear-to-chord',
+  staff: 'staff-to-chord',
+  roman: 'roman-to-chord',
 };
+
+/**
+ * 看题面弹和弦：看和弦名、文字名称（12 调构建）、听声音、看五线谱、看级数，弹出这个和弦。
+ * 判定都一样（宽松 / 严格 / 斜杠和弦看低音），只是题面不同。
+ */
+function chordCueDrill(cue: Cue): Drill<ChordCard> {
+  const type = CHORD_CUE_DRILL[cue];
+  return {
+    type,
+    accepts: (card): card is ChordCard => card.kind === 'chord' && card.cue === cue,
+    createTrial(card, ctx) {
+      return {
+        id: ctx.trialId,
+        drillType: type,
+        card,
+        targetChordId: card.chordId,
+        target: [...ctx.referenceNotes(card.chordId)],
+        fromChordId: null,
+        from: null,
+        mode: judgeModeFor(card.voicingMode, ctx.hasBass?.(card.chordId) ?? false),
+        timeLimitMs: ctx.timeLimitMs,
+        onsetWindowMs: ctx.onsetWindowMs,
+        hintAtStart: ctx.hintAtStart,
+      };
+    },
+    evaluate: evaluateTrial,
+    toEvidence(trial, outcome) {
+      return [{ ...outcome, cardId: trial.card.id, cardKind: 'chord', drillType: type }];
+    },
+  };
+}
+
+/** 看名弹和弦：显示和弦名，弹出这个和弦。 */
+export const nameToChordDrill = chordCueDrill('name');
+/** 12 调构建：显示文字名称（"E♭ 小三和弦"），任意转位都算对（规格 10） */
+export const buildChordDrill = chordCueDrill('spelled');
+/** 听辨 / 对比配对 / 听音挑战：听声音，答出或弹出这个和弦 */
+export const earToChordDrill = chordCueDrill('audio');
+/** 五线谱提示：看大谱表上的和弦弹出来 */
+export const staffToChordDrill = chordCueDrill('staff');
+/** 看级数弹和弦：例如 C 调的 VIm → Am */
+export const romanToChordDrill = chordCueDrill('roman');
 
 /**
  * 和弦切换：先弹"从"和弦（不计分），弹稳后立刻显示目标，测量从"从"和弦弹稳到目标和弦弹出的时间。
@@ -191,6 +218,10 @@ export function drillForCard(card: AnyCard): Drill {
 }
 
 registerDrill(nameToChordDrill);
+registerDrill(buildChordDrill);
+registerDrill(earToChordDrill);
+registerDrill(staffToChordDrill);
+registerDrill(romanToChordDrill);
 registerDrill(transitionDrill);
 registerDrill(nameToNoteDrill);
 registerDrill(intervalDrill);

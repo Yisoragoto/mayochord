@@ -52,7 +52,7 @@ describe('内置内容包', () => {
   it('通过校验，格式版本正确', () => {
     expect(builtin.schemaVersion).toBe(CONTENT_SCHEMA_VERSION);
     expect(BUILTIN_PACK.id).toBe('mayochord-core');
-    expect(BUILTIN_PACK.chords).toHaveLength(47);
+    expect(BUILTIN_PACK.chords).toHaveLength(72);
     // 第 11 节的 11 个和弦 + 5 个就近转位推导的键位是写好的，其余自动生成
     const written = BUILTIN_PACK.chords.filter((c) => c.reference.status !== 'generated');
     expect(written).toHaveLength(16);
@@ -70,9 +70,9 @@ describe('内置内容包', () => {
     ]);
   });
 
-  it('知识图谱：21 个主题，先修关系无环，卡片由练习内容生成', () => {
+  it('知识图谱：30 个主题，先修关系无环，卡片由练习内容生成', () => {
     const { graph, topicById, cardById, topicsOfCard } = BUILTIN_PACK;
-    expect(BUILTIN_PACK.topics).toHaveLength(21);
+    expect(BUILTIN_PACK.topics).toHaveLength(30);
     expect(graph.order[0]).toBe('keyboard-names');
     expect(graph.order.indexOf('c-major-triads')).toBeGreaterThan(
       graph.order.indexOf('minor-triad-formula'),
@@ -118,6 +118,32 @@ describe('内置内容包', () => {
       bpm: 76,
     });
     expect(topicById.get('marusa-tempo')?.cards[0]?.id).toBe('transition:fmaj7>e7:reference');
+    // M5：题面（文字名称、级数、听声音、五线谱）与对比配对
+    expect(topicById.get('build-sevenths')?.cards).toHaveLength(36);
+    expect(topicById.get('build-triads')?.cards[3]?.id).toBe('chord:eb:spelled:any');
+    expect(topicById.get('roman-c')?.cards[5]).toMatchObject({
+      id: 'chord:am:roman@C:any',
+      key: 'C',
+    });
+    expect(topicById.get('staff-c-triads')?.cards[0]?.id).toBe('chord:c:staff:reference');
+    const ear = topicById.get('ear-c-triads');
+    expect(ear?.cards[0]?.id).toBe('chord:c:audio@C:any');
+    expect(BUILTIN_PACK.choicesByCard.get('chord:c:audio@C:any')).toEqual([
+      'c',
+      'dm',
+      'em',
+      'f',
+      'g',
+      'am',
+    ]);
+    // 对比配对：没有调，选项就是这一对
+    expect(
+      topicById
+        .get('contrast-major-minor')
+        ?.cards.map((c) => c.id)
+        .slice(0, 2),
+    ).toEqual(['chord:c:audio:any', 'chord:cm:audio:any']);
+    expect(BUILTIN_PACK.choicesByCard.get('chord:cm:audio:any')).toEqual(['c', 'cm']);
     // 课程默认值
     expect(topicById.get('maj7-formula')?.lesson).toMatchObject({
       guided: { count: 6 },
@@ -202,7 +228,7 @@ describe('内置内容包', () => {
     expect(BUILTIN_PACK.progressionById.get('marusa')?.steps.map((s) => s.beats)).toEqual([
       4, 4, 4, 2, 2,
     ]);
-    expect(BUILTIN_PACK.voicingById.size).toBe(47);
+    expect(BUILTIN_PACK.voicingById.size).toBe(72);
   });
 });
 
@@ -286,6 +312,19 @@ describe('内容包校验', () => {
         (topic(p, 'marusa-tempo').practice as { progression: string }).progression = 'yy';
       }).join(),
     ).toContain('不存在的进行：yy');
+    expect(
+      variant((p) => {
+        delete (topic(p, 'roman-c').practice as { key?: string }).key;
+      }).join(),
+    ).toContain('级数题需要指定调');
+    expect(
+      variant((p) => {
+        (topic(p, 'contrast-7-maj7').practice as { pairs: string[][] }).pairs.push(
+          ['c7', 'c7'],
+          ['zz', 'c7'],
+        );
+      }).join(),
+    ).toMatch(/一对里的两个和弦相同：c7.*不存在的和弦：zz/);
     expect(
       variant((p) => {
         const step = topic(p, 'marusa').lesson.explain[0] as { demo: { chord: string } };

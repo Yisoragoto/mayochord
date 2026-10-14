@@ -20,6 +20,8 @@ export interface PlayOptions {
   stagger?: number;
   /** 力度 0–127，默认 80 */
   velocity?: number;
+  /** 从现在起推迟多久开始（秒），默认 0 */
+  delay?: number;
 }
 
 export type PianoStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -50,8 +52,8 @@ class SamplerPiano implements AudioOutput {
   }
 
   playNotes(notes: readonly number[], opts: PlayOptions = {}) {
-    const { duration = 1.6, stagger = 0, velocity = 80 } = opts;
-    const now = this.tone.now() + 0.02;
+    const { duration = 1.6, stagger = 0, velocity = 80, delay = 0 } = opts;
+    const now = this.tone.now() + 0.02 + delay;
     [...notes]
       .sort((a, b) => a - b)
       .forEach((n, i) => {
