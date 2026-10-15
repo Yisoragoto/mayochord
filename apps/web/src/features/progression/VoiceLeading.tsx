@@ -2,6 +2,7 @@ import { type VoicedNote, voiceLeading } from '@mayochord/core';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { keyboardLayout, keyCenterX } from '@/design/keyboard/Keyboard';
+import { clauseSep } from '@/lib/localize';
 import { cn } from '@/lib/utils';
 
 export interface VoiceLeadingProps {
@@ -43,7 +44,7 @@ export function VoiceLeading({ from, to, low, high, className }: VoiceLeadingPro
             n: (m.semitones as number) > 0 ? `+${m.semitones}` : String(m.semitones),
           }),
     )
-    .join('，');
+    .join(clauseSep());
 
   return (
     <svg

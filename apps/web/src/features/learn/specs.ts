@@ -1,4 +1,4 @@
-import type { TopicEntry } from '@mayochord/content';
+import { BUILTIN_PACK, type TopicEntry } from '@mayochord/content';
 import type { AnyCard } from '@mayochord/core';
 import type { SessionSpec } from '../practice/controller';
 
@@ -56,12 +56,51 @@ export function masterySpec(topic: TopicEntry): SessionSpec {
   };
 }
 
-/** 每日任务：热身 / 复习（交错，答错几题后重做） */
+/** 测验、诊断用的固定时限：这些卡片所属主题的掌握检查时限里最长的 */
+export function checkTimeLimit(cards: readonly AnyCard[]): number {
+  const limits = cards.flatMap((c) =>
+    (BUILTIN_PACK.topicsOfCard.get(c.id) ?? []).map(
+      (id) => BUILTIN_PACK.topicById.get(id)?.lesson.mastery.timeLimitMs ?? 6000,
+    ),
+  );
+  return limits.length > 0 ? Math.max(...limits) : 6000;
+}
+
+/**
+ * 每日任务：热身 / 针对性补救 / 复习（交错，答错几题后重做）/
+ * 测验（限时、不能看提示、答错不重做，规格 6.6）
+ */
 export function taskSpec(
-  kind: 'warmup' | 'review',
+  kind: 'warmup' | 'remediation' | 'review' | 'quiz',
   cards: readonly AnyCard[],
   config: Record<string, unknown>,
 ): SessionSpec {
+  if (kind === 'quiz') {
+    return {
+      kind,
+      cards,
+      length: cards.length,
+      order: 'sequential',
+      hints: 'never',
+      fixedTimeLimitMs: checkTimeLimit(cards),
+      retryWrong: false,
+      requireCorrection: false,
+      config,
+    };
+  }
+  if (kind === 'remediation') {
+    // 每张卡至少练两遍：先回忆，答错马上看提示改正，几题后再出现
+    return {
+      kind,
+      cards,
+      length: cards.length * 2,
+      order: 'mixed',
+      hints: 'auto',
+      retryWrong: true,
+      requireCorrection: true,
+      config,
+    };
+  }
   return {
     kind,
     cards,

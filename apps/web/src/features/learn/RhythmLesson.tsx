@@ -15,6 +15,7 @@ import {
   runSpecFrom,
   sourceFromProgression,
 } from '@/features/progression/run-source';
+import { localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { useSettings } from '@/stores/settings';
 import { Explain, LessonResult, StageIntro } from './LessonPage';
@@ -29,7 +30,7 @@ type Stage =
   | { kind: 'paused'; next: Next }
   | { kind: 'result'; outcome: TopicOutcome };
 
-const pick = (text: { 'zh-CN': string }) => text['zh-CN'];
+const pick = localize;
 /** 引导练习放慢到目标速度的 80% */
 const GUIDED_FACTOR = 0.8;
 const GUIDED_LOOPS = 2;

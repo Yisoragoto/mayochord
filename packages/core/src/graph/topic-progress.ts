@@ -8,13 +8,15 @@ import type { TopicGraph } from './topic-graph';
  * - drillType 'lesson'         开始/推进课程（rating 为 null，只表示"学习中"）
  * - drillType 'mastery-check'  掌握检查：通过（correct）时 rating 有值，作为主题的第一次复习
  * - drillType 'topic-review'   每日任务里对这个主题的复习（rating 由正确率得出）
+ * - drillType 'quiz'           测验里这个主题的成绩（M6，与复习一样记入主题记忆）
+ * - drillType 'diagnostic'     诊断测试推断为已掌握（M6，与通过掌握检查一样，rating 通常为 Hard）
  * - evidence 'implicit'        隐式重复：练包含它的上层主题得到的部分信用（weight 0–1）；
  *                              correct = false 表示底层失败传给上层的负信用
  */
 export const TOPIC_CARD_PREFIX = 'topic:';
 export const topicCardId = (topicId: string) => `${TOPIC_CARD_PREFIX}${topicId}`;
 
-export type TopicLogType = 'lesson' | 'mastery-check' | 'topic-review';
+export type TopicLogType = 'lesson' | 'mastery-check' | 'diagnostic' | 'topic-review' | 'quiz';
 
 export interface TopicProgress {
   topicId: string;
@@ -103,7 +105,8 @@ export function applyTopicLog(
   switch (log.drillType as TopicLogType) {
     case 'lesson':
       return p.lessonStartedAt === null ? { ...p, lessonStartedAt: log.ts } : p;
-    case 'mastery-check': {
+    case 'mastery-check':
+    case 'diagnostic': {
       if (!log.correct || log.rating === null) {
         return { ...p, lessonStartedAt: p.lessonStartedAt ?? log.ts };
       }
@@ -116,7 +119,8 @@ export function applyTopicLog(
         penalty: 0,
       };
     }
-    case 'topic-review': {
+    case 'topic-review':
+    case 'quiz': {
       if (log.rating === null) return p;
       const next = { ...review(p, log.rating, log.ts, params), credit: 0, penalty: 0 };
       const laterDay =

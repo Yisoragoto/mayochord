@@ -252,6 +252,72 @@ describe('LearningService', () => {
     expect(snap.statuses.get('steady-c-g-am-f')).toBe('mastered');
   });
 
+  it('测验：按主题记成绩，答错的卡片进入针对性补救，之后答对就移出', async () => {
+    const s = service();
+    const hw = (BUILTIN_PACK.topicById.get('half-whole-steps')?.cards ?? []).map((c) => c.id);
+    const quiz = result(
+      [...keyboardCards.slice(0, 2), ...hw.slice(0, 2)],
+      (i) => i !== 1 && i !== 3,
+    );
+    const { outcomes, wrongCardIds } = await s.recordQuiz(
+      ['keyboard-names', 'half-whole-steps'],
+      quiz,
+    );
+    expect(outcomes.map((o) => [o.topicId, o.correct, o.total])).toEqual([
+      ['keyboard-names', 1, 2],
+      ['half-whole-steps', 1, 2],
+    ]);
+    expect(wrongCardIds).toEqual([keyboardCards[1], hw[1]]);
+    expect((await s.snapshot()).lastQuizAt).toBe(now);
+    expect(await s.remediationCards()).toEqual(wrongCardIds);
+    now += 1000;
+    await repos.reviewLogs.appendMany(result([keyboardCards[1] as string], () => true).logs);
+    expect(await s.remediationCards()).toEqual([hw[1]]);
+  });
+
+  it('跳级：通过后面主题的掌握检查，没掌握的先修推断为已掌握', async () => {
+    const s = service();
+    const thirds = (BUILTIN_PACK.topicById.get('thirds')?.cards ?? []).map((c) => c.id);
+    await s.recordMastery(
+      'thirds',
+      result(thirds, () => true),
+    );
+    const snap = await s.snapshot();
+    expect(snap.statuses.get('keyboard-names')).toBe('mastered');
+    expect(snap.statuses.get('half-whole-steps')).toBe('mastered');
+    const logs = await repos.reviewLogs.byCardPrefix('topic:');
+    expect(
+      logs.filter((l) => l.drillType === 'diagnostic').map((l) => [l.cardId, l.rating]),
+    ).toEqual([
+      ['topic:keyboard-names', 2],
+      ['topic:half-whole-steps', 2],
+    ]);
+  });
+
+  it('诊断测试：直接通过的记 Good、推断的记 Hard；今天还没开始就重新编排', async () => {
+    const s = service();
+    const before = await s.plan();
+    expect(before.plan.tasks[0]?.topicIds).toEqual(['keyboard-names']);
+    const mastered = await s.recordDiagnostic(
+      ['thirds'],
+      ['keyboard-names', 'half-whole-steps', 'thirds'],
+    );
+    expect(mastered).toEqual(['thirds', 'keyboard-names', 'half-whole-steps']);
+    const after = await s.plan();
+    const lessons = after.plan.tasks.filter((t) => t.kind === 'lesson').flatMap((t) => t.topicIds);
+    expect(lessons).not.toContain('keyboard-names');
+    expect(lessons[0]).toBe('major-triad-formula');
+    // 最近掌握了 3 个主题：顺便排了一次测验
+    expect(after.plan.tasks.map((t) => t.kind)).toContain('quiz');
+    const ratings = (await repos.reviewLogs.byCardPrefix('topic:')).map((l) => [
+      l.cardId,
+      l.rating,
+    ]);
+    expect(ratings).toContainEqual(['topic:thirds', 3]);
+    // 再次推断已经掌握的主题：不重复写
+    expect(await s.inferMastered(['thirds'])).toEqual([]);
+  });
+
   it('存储不可用时返回空进度', async () => {
     const s = new LearningService({
       pack: BUILTIN_PACK,

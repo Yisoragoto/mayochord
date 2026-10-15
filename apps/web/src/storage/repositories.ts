@@ -1,5 +1,6 @@
 import type { CardProgress, ReviewLog } from '@mayochord/core';
 import Dexie from 'dexie';
+import { type Backup, exportBackup, importBackup } from './backup';
 import type { CalibrationRecord, DailyPlanRecord, MayoChordDB, SessionRecord } from './db';
 
 /**
@@ -51,8 +52,19 @@ export interface CalibrationRepository {
   put(record: CalibrationRecord): Promise<void>;
 }
 
+/** 备份与迁移（规格 12） */
+export interface BackupRepository {
+  /** 全部数据 */
+  export(now: number, appVersion?: string): Promise<Backup>;
+  /** 用备份替换全部数据 */
+  import(backup: Backup): Promise<void>;
+  /** 全部作答日志（导出 CSV、统计用），按追加顺序 */
+  allLogs(): Promise<ReviewLog[]>;
+}
+
 export interface Repositories {
   reviewLogs: ReviewLogRepository;
+  backup: BackupRepository;
   settings: SettingsRepository;
   calibrations: CalibrationRepository;
   cardStates: CardStateRepository;
@@ -136,6 +148,11 @@ export function createDexieRepositories(db: MayoChordDB): Repositories {
       async put(plan) {
         await db.dailyPlans.put(plan);
       },
+    },
+    backup: {
+      export: (now, appVersion) => exportBackup(db, now, appVersion),
+      import: (backup) => importBackup(db, backup),
+      allLogs: async () => (await db.reviewLogs.orderBy('seq').toArray()).map(stripSeq),
     },
   };
 }

@@ -1,13 +1,15 @@
 import { BUILTIN_PACK } from '@mayochord/content';
-import { selectReviewCards } from '@mayochord/core';
+import { type IntervalName, selectReviewCards } from '@mayochord/core';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Check, TriangleAlert } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design/ui/button';
 import { wallNow } from '@/lib/clock';
+import { listSep, localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
+import { cardLabel } from '../practice/cards-view';
 import type { SessionResult } from '../practice/controller';
 import { LoadingScreen, useEscapeToFinish } from '../practice/PracticeSessionPage';
 import { practice, usePractice } from '../practice/practice';
@@ -20,12 +22,15 @@ import { taskSpec } from './specs';
 interface RunnableTask {
   /** 每日任务的 ID；临时复习（从图谱进入）没有 */
   id: string | null;
-  kind: 'warmup' | 'review';
+  kind: 'warmup' | 'remediation' | 'review' | 'quiz';
   topicIds: string[];
   cardIds: string[];
 }
 
-const topicTitle = (id: string) => BUILTIN_PACK.topicById.get(id)?.title['zh-CN'] ?? id;
+const topicTitle = (id: string) => {
+  const topic = BUILTIN_PACK.topicById.get(id);
+  return topic ? localize(topic.title) : id;
+};
 
 /** 每日任务里的热身、复习 */
 export function DailyTaskPage({ taskId }: { taskId: string }) {
@@ -84,6 +89,8 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
   const navigate = useNavigate();
   const status = usePractice((v) => v.status);
   const [outcomes, setOutcomes] = useState<TopicOutcome[] | null>(null);
+  const [wrong, setWrong] = useState<string[] | null>(null);
+  const [follow, setFollow] = useState<RunnableTask | null>(null);
   const [completed, setCompleted] = useState(false);
 
   const start = useCallback(() => {
@@ -95,8 +102,13 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
       setCompleted(result.completed);
       if (!result.completed) return;
       void (async () => {
-        const o =
-          task.kind === 'review' ? await learning.recordTopicReviews(task.topicIds, result) : [];
+        let o: TopicOutcome[] = [];
+        if (task.kind === 'review') o = await learning.recordTopicReviews(task.topicIds, result);
+        if (task.kind === 'quiz') {
+          const quiz = await learning.recordQuiz(task.topicIds, result);
+          o = quiz.outcomes;
+          setWrong(quiz.wrongCardIds);
+        }
         if (task.id) {
           await learning.updateTask(task.id.split(':')[0] as string, task.id, {
             status: 'done',
@@ -119,6 +131,8 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
 
   useEscapeToFinish(useCallback(() => void navigate({ to: '/' }), [navigate]));
 
+  // 测验之后马上补练答错的卡片
+  if (follow) return <TaskRunner key="follow" task={follow} />;
   if (status === 'summary') {
     return (
       <SessionSummaryView
@@ -128,6 +142,14 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
         backLabel={t('learn.backToToday')}
       >
         {outcomes && outcomes.length > 0 && <TopicOutcomes outcomes={outcomes} />}
+        {wrong && (
+          <QuizMistakes
+            cardIds={wrong}
+            onRemediate={() =>
+              setFollow({ id: null, kind: 'remediation', topicIds: [], cardIds: wrong })
+            }
+          />
+        )}
       </SessionSummaryView>
     );
   }
@@ -144,8 +166,34 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
   if (status !== 'running') return <LoadingScreen />;
   return (
     <SessionRunner
-      title={`${t(`today.kind.${task.kind}`)}${task.topicIds.length > 0 ? ` · ${task.topicIds.map(topicTitle).join('、')}` : ''}`}
+      title={`${t(`today.kind.${task.kind}`)}${task.topicIds.length > 0 ? ` · ${task.topicIds.map(topicTitle).join(listSep())}` : ''}`}
     />
+  );
+}
+
+/** 测验答错的卡片：马上补练，或者明天出现在"针对性补救"任务里 */
+function QuizMistakes({ cardIds, onRemediate }: { cardIds: string[]; onRemediate: () => void }) {
+  const { t } = useTranslation();
+  if (cardIds.length === 0) {
+    return <p className="text-sm text-mark-correct">{t('today.quizAllRight')}</p>;
+  }
+  const intervalLabel = (i: IntervalName) => t(`practice.intervals.${i}`);
+  return (
+    <div className="space-y-3 rounded-lg border border-warning/40 p-4">
+      <p className="text-sm">
+        {t('today.quizWrong', { n: cardIds.length })}
+        <span className="font-medium">
+          {learning
+            .cardsByIds(cardIds)
+            .map((c) => cardLabel(c, intervalLabel))
+            .join(listSep())}
+        </span>
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button onClick={onRemediate}>{t('today.remediateNow')}</Button>
+        <span className="text-sm text-muted-foreground">{t('today.remediateLater')}</span>
+      </div>
+    </div>
   );
 }
 

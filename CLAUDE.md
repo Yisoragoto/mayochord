@@ -13,8 +13,8 @@
 | M3 知识图谱与每日任务 | 完成（用户 2026-10-15 测试通过） |
 | M4 节奏与进行 | 完成（用户 2026-10-15 测试通过） |
 | M5 听觉与读谱 | 完成（用户 2026-10-15 确认） |
-| M6 统计与发布 | 进行中 |
-| M7 导入乐谱跟弹 | 未开始 |
+| M6 统计与发布 | 完成（用户 2026-10-15 确认） |
+| M7 导入乐谱跟弹 | 进行中 |
 
 ## 常用命令（仓库根目录）
 
@@ -40,11 +40,11 @@ pnpm e2e          # Playwright（本地用已安装的 Chrome，CI 用 chromium�
 - **TypeScript**：strict + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`。禁止 `any`（Biome `noExplicitAny: error`）；确需时用 `biome-ignore` 写明原因。
 - **core 包**（`packages/core`）：纯 TypeScript，不依赖 React 和浏览器 API（tsconfig 的 `lib` 不含 DOM 来强制）。判定、评分、调度、时间分析都写成纯函数并测试。
 - **内部包不预构建**：`exports` 直接指向 `src/*.ts`，由 Vite/Vitest 编译。
-- **i18n**：界面文字放在 `apps/web/src/i18n/locales/`，默认 `zh-CN`，通过 `t()` 使用。`/design` 页面是开发用的组件展示页，说明文字不进 i18n。
+- **i18n**：界面文字放在 `apps/web/src/i18n/locales/`（`zh-CN.ts`、`en.ts`；`en.ts` 的类型由 zh-CN 推出，少了键会类型检查失败），默认 `zh-CN`，通过 `t()` 使用。内容包里的多语言文字用 `lib/localize.ts` 的 `localize()`（当前语言，没有翻译时用中文），列表分隔符用 `listSep()`，日期用 `locale()`。`/design` 页面是开发用的组件展示页，说明文字不进 i18n。
 - **shadcn/ui 组件**在 `apps/web/src/design/ui/`。用 CLI 添加后要做两件事：把 `from "cn"` 改成 `from "@/lib/utils"`（CLI 在 monorepo 里解析别名有误），并检查 CLI 有没有往 `package.json` 加一个无用的 `cn` 依赖（M0 时加过，M2 已删除）；删除 `dark:` 变体并把 `accent` 悬停色改为 `surface-2`（见下方设计系统）。
 - **路由**：TanStack Router 文件路由（`apps/web/src/routes/`），`routeTree.gen.ts` 由插件生成并提交到仓库。
 - **GitHub Pages**：browser history + 构建时把 `index.html` 复制为 `404.html`（`vite.config.ts` 的 `spaFallback` 插件）。`base` 默认 `/mayochord/`，可用环境变量 `MAYOCHORD_BASE` 覆盖。
-- **localStorage** 只存外观设置（`mayochord.appearance`，首屏脚本在 `index.html` 读取以避免闪烁）。业务数据一律走 Dexie。
+- **localStorage** 只存外观设置：深浅色与界面语言（`mayochord.appearance`，首屏脚本与 `i18n/index.ts` 读取以避免闪烁）。业务数据一律走 Dexie。
 - **音乐理论自行实现**（规格第 3 节已改）：Tonal 自 2026-09-28 起各子包发布入口错误，已移除。不要再引入 Tonal。
 - **拼写**：音名一律保留拼写（'Bb4' 不写成 'A#4'），由字母+度数推出（`spellInterval`）。显示时用 `prettyAccidentals` 换成 ♭ ♯。
 - **和弦 ID**（URL 安全）：`chordSlug(root, quality, bass)`，例如 gm7、fmaj7、c7-9、bb、fsm7b5、c-on-e。内容包校验会检查 ID 与和弦一致。
@@ -69,7 +69,8 @@ packages/core/src/
   scheduler/    FSRS 封装（memory.ts）、卡片进度与新卡三阶段（progress.ts）、练习内出题顺序（session.ts）、
                 85% 自适应（adaptive.ts）、轮次总结（summary.ts）、隐式重复（implicit.ts）、每日任务编排（daily.ts）
   strategy/     调度策略对象：各项参数集中在这里（createDefaultStrategy）
-  graph/        主题图谱（校验、拓扑、包含权重）、分层布局、主题进度与状态（topic-progress.ts）
+  graph/        主题图谱（校验、拓扑、包含权重）、分层布局、主题进度与状态（topic-progress.ts）、诊断测试（diagnostic.ts）
+  stats/        统计页的纯函数：反应时间趋势、切换热力图、节拍偏差、总体
   timing/       音频时钟↔performance.now() 换算（clock.ts）、节拍网格与"在拍上"容差（beat-grid.ts）、
                 延迟校准（latency.ts）、统计（平均、标准差、直方图）
   drill/progression-run.ts  跟拍弹进行的判定（纯函数状态机）、证据、评分、总结、BPM 的 85% 规则
@@ -85,7 +86,7 @@ apps/web/src/
                 /review/$topicId（从图谱进入的复习）、/practice、/practice/session（专注模式）、
                 /chords、/chords/$chordId、/monitor、/settings、/design
   features/     shell、today（每日任务）、graph（知识图谱）、learn（LearningService、课程、每日任务运行）、
-                practice（PracticeController、SessionRunner、自由练习、轮次总结）、
+                practice（PracticeController、SessionRunner、ChordCues 题面、自由练习、轮次总结）、stats（统计页）、
                 progression（进行练习器：ProgressionRunController、ProgressionRunner、总结、声部进行图 VoiceLeading）、
                 chords（和弦库、详情、试弹）、midi（设备面板）、monitor、settings、design-gallery
   input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
@@ -93,12 +94,15 @@ apps/web/src/
   audio/        tone.ts（懒加载 Tone.js，钢琴与节拍器共用一个原生 AudioContext；outputStamp 时钟换算）、
                 piano.ts（Salamander 采样）、metronome.ts（Tone.Clock 节拍器）、cues.ts（听辨题：终止式 + 目标和弦）、
                 live-sound.ts、feedback-sound.ts
-  storage/      Dexie 数据库 db.ts、仓储接口与实现 repositories.ts
+  storage/      Dexie 数据库 db.ts、仓储接口与实现 repositories.ts、备份与 CSV（backup.ts）
   design/       tokens.css、ui/（shadcn）、keyboard/、staff/（VexFlow，懒加载）、ChordName、Wordmark
   stores/       Zustand：appearance、settings
-  lib/          clock.ts（墙上时钟、练习日参数、开发用的模拟时间）、uuid.ts
+  lib/          clock.ts（墙上时钟、练习日参数、开发用的模拟时间）、uuid.ts、localize.ts（内容的多语言）、download.ts
+  design/charts/ EChart（ECharts 懒加载、按需引入、颜色取自主题令牌）
 apps/web/public/samples/salamander/   钢琴采样（CC-BY 3.0，见 NOTICE）
-apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAccess
+apps/web/e2e/   Playwright；fake-midi.ts 注入假的 navigator.requestMIDIAccess；fixtures/sample-backup.json（统计、导入用的样例数据）；
+                screenshots.spec.ts 生成 README 截图（平时跳过，见文件注释）
+docs/           architecture.md、content-pack.md、learning-science.md、screenshots/
 ```
 
 ## 数据格式
@@ -385,6 +389,53 @@ M3 新增 version 2（dailyPlans 表），`db.test.ts` 有 v1 数据升级测试
 ### 跟拍主题的课程（`RhythmLesson`）
 
 讲解示范 → 引导（目标速度 × 0.8，显示键位和声部进行，弹 2 遍）→ 独立（目标速度、隐藏键位，干净地弹对 `independent.requiredCorrect` 个和弦就结束）→ 掌握检查（目标速度、隐藏键位，弹满 `mastery.questions` 个和弦所需的遍数；没有漏弹且干净率 ≥ `mastery.minAccuracy` 通过；干净率 ≥ 95% 记 Good，否则 Hard）。`mastery.timeLimitMs`、`guided.count` 对跟拍主题不用。
+
+## 统计、测验、诊断与发布（M6）
+
+### 备份与迁移（`storage/backup.ts`，设置页"数据"）
+
+- 导出 JSON：`{ kind: 'mayochord-backup', formatVersion: 1, exportedAt, dbVersion, appVersion, tables: { reviewLogs, settings, calibrations, cardStates, sessions, dailyPlans, userPacks } }`。作答日志去掉本地自增的 `seq`，导入时按时间重新生成。
+- 导入会**替换**全部数据（一个事务，失败不改动），之后重新加载页面。Zod 校验，错误分 json / kind / format 三种提示。
+- CSV：作答日志每条一行，带 ISO 时间列，数组用空格连接，开头加 BOM（Excel 打开中文不乱码）。
+- 业务代码通过仓储接口 `repos.backup`（export / import / allLogs）访问。
+
+### 统计页（`/stats`，`core/stats`）
+
+- 总体（作答次数、正确率、练习天数、连续天数）、主题掌握进度、最近 30 天每天的 XP（柱状图）、看名弹和弦练得最多的 6 个和弦的反应时间中位数（折线图，只算正确且没看提示的）、和弦切换热力图（切换练习的平均用时，单一色相浅→深 = 快→慢）、跟拍练习的节拍偏差分布与每天的标准差。
+- ECharts 6.1（Apache-2.0）按需引入（line / bar / heatmap + SVG 渲染），只在统计页懒加载；颜色在渲染时读取主题令牌，切换深浅色时重画。
+- 分类色：dataviz 参考色板前 6 个（`--chart-1…6`，深浅两套），已用校验脚本对 `--card` 校验（色弱分离、正常视觉）。浅色下 3 个颜色对比度不足 3:1 → 每个图表都有"查看数据表"。
+- 桌面导航有"统计"；手机底栏放不下，从"今天"的"最近 7 天"旁边的"查看统计"进入。
+
+### 测验与针对性补救（规格 6.6，`scheduler/daily.ts` + `LearningService.recordQuiz`）
+
+- 测验：最近 14 天掌握了 ≥ 3 个主题、离上次测验 ≥ 4 天、且上次测验之后又掌握了新主题时排一次。最近掌握的在前，最多 6 个主题，每个 2 张卡（回忆概率最低的），交错；按顺序、不能看提示、答错不重做、时限取这些卡所属主题掌握检查时限中最长的。
+- 成绩按主题记为主题日志 `'quiz'`（与复习一样更新主题记忆、传递隐式信用）。答错的卡片存在 settings 键 `'remediation'`（`{ at, cardIds }`）。
+- 针对性补救：编排时把上次测验答错、之后还没答对过的卡片（最多 8 张）排在热身之后；每张卡至少练两遍、答错马上看提示改正。测验结束页也可以"马上补练"。
+
+### 诊断测试（`/diagnostic`，`graph/diagnostic.ts`）
+
+- 每次测一个主题 4 题（均匀挑卡），限时、不能看提示，答对 3 题算会；最多测 10 个主题，可以随时停下。跟拍主题不参与（由先修推断）；已经掌握的主题不测。
+- 选题：还不确定的主题里，不确定先修数与不确定后继数中较小的一个最大（二分）。通过 → 它和全部先修推断为已掌握；没通过 → 全部后继推断为还要学（已推断为掌握的不变）。
+- 结束时：直接通过的主题记主题日志 `'diagnostic'`（Good），推断的记 Hard；今天的任务都还没开始时重新编排今天。
+- "今天"在还没开始任何主题时显示诊断测试入口；图谱页也有入口。
+- **跳级**：图谱上未解锁的主题可以直接进入课程（"已经会了？直接学这一课"）；通过任何主题的掌握检查后，它还没掌握的先修主题都记 `'diagnostic'`（Hard）推断为已掌握。
+
+### 英文界面
+
+- 设置 → 外观里切换（每种语言用自己的名字显示）。内容包 30 个主题的标题、简介、讲解都有英文；进行名称、说明也有英文。
+- 12 调构建的文字题在英文下是"E♭ minor"这样的说法。
+
+### PWA
+
+- `vite-plugin-pwa` 2.0（MIT）+ `workbox-window` 7.4.1（MIT）：自动更新；预缓存 js/css/html/svg/png（约 100 个文件、3 MB，含 VexFlow）；字体（woff2）和钢琴采样运行时缓存（CacheFirst）。导航回退到 `index.html`。只在正式版本注册 Service Worker。
+- 图标：`public/icon-192.png`、`icon-512.png`、`icon-maskable-512.png`（安全区 80%）、`apple-touch-icon.png`，由 favicon.svg 渲染。
+- 端到端测试：缓存后断网，和弦库、统计页照常打开。
+
+### Lighthouse（2026-10-15，生产构建本地预览）
+
+- 桌面预设：今天 92 / 100 / 100 / 100（性能 / 无障碍 / 最佳实践 / SEO），统计 89 / 100 / 100 / 100，图谱 97 / 100 / 100 / 100。
+- 移动预设（慢速 4G 模拟）性能只有约 44：中文字体子集（约 850 KB）和路由 chunk 的串行加载。应用面向电脑上的 Chrome + USB 键盘，暂不优化；以后可以考虑减少首屏字体、预加载首页路由。
+- 为此修过的无障碍问题：`--subtle-foreground` 加深/提亮到对比度 ≥ 4.5:1，"今天"右侧统计改成列表、任务标题改为 h2。
 
 ## 设计系统
 

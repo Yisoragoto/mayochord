@@ -11,7 +11,8 @@ import { type CardProgress, type DayParams, dayKey } from './progress';
  * 3. 新课：先继续"学习中"的课程，再按图谱顺序开始新主题；每天新课有上限；
  *    同一个干扰组（例如 M7 与 7）的主题不在同一天引入；
  * 4. 总时长不超过每天的目标时长（至少安排一节课，除非复习已经占满）。
- * 测验在 M6 加入。
+ * 5. 测验（M6，规格 6.6）：最近掌握了几个主题、离上次测验够久时，排一次限时、无提示、覆盖多个主题的测验；
+ *    上次测验答错的卡片排成"针对性补救"任务（热身之后）。
  */
 export interface TopicPlanInfo {
   id: string;
@@ -30,6 +31,15 @@ export interface PlanParams {
   /** 每道复习题的预计用时（秒） */
   secondsPerQuestion: number;
   coverWeight: number;
+  /** 测验：离上次测验至少几天 */
+  quizEveryDays: number;
+  /** 测验：最近 quizWindowDays 天里至少掌握了这么多个主题才测 */
+  quizMinTopics: number;
+  quizWindowDays: number;
+  quizMaxTopics: number;
+  quizCardsPerTopic: number;
+  /** 针对性补救最多几张卡 */
+  remediationCards: number;
 }
 
 export const DEFAULT_PLAN: PlanParams = {
@@ -41,9 +51,15 @@ export const DEFAULT_PLAN: PlanParams = {
   topicsPerReviewTask: 3,
   secondsPerQuestion: 15,
   coverWeight: 0.5,
+  quizEveryDays: 4,
+  quizMinTopics: 3,
+  quizWindowDays: 14,
+  quizMaxTopics: 6,
+  quizCardsPerTopic: 2,
+  remediationCards: 8,
 };
 
-export type TaskKind = 'warmup' | 'review' | 'lesson';
+export type TaskKind = 'warmup' | 'remediation' | 'review' | 'quiz' | 'lesson';
 
 export interface PlannedTask {
   id: string;
@@ -73,6 +89,10 @@ export interface PlanInput {
   cardProgress: ReadonlyMap<string, CardProgress>;
   /** 上一个练习日练过的卡片 ID（按时间顺序） */
   recentCardIds: readonly string[];
+  /** 上次测验的时间（没有测过为 null） */
+  lastQuizAt?: number | null;
+  /** 上次测验答错、之后还没答对过的卡片（针对性补救） */
+  remediationCardIds?: readonly string[];
   params?: Partial<PlanParams>;
 }
 
@@ -140,6 +160,23 @@ export function planDay(input: PlanInput): DailyPlanDraft {
     used += p.warmupMinutes;
   }
 
+  // 1b. 针对性补救：上次测验答错的卡片
+  const fix = [...new Set(input.remediationCardIds ?? [])]
+    .filter((id) => known.has(id))
+    .slice(0, p.remediationCards);
+  if (fix.length > 0) {
+    const minutes = Math.max(1, Math.round((fix.length * 2 * p.secondsPerQuestion) / 60));
+    tasks.push({
+      id: taskId('remediation'),
+      kind: 'remediation',
+      topicIds: [],
+      cardIds: fix,
+      minutes,
+      covers: [],
+    });
+    used += minutes;
+  }
+
   // 2. 到期复习
   const due = graph.order.filter((id) => {
     const tp = topicProgress.get(id);
@@ -185,6 +222,50 @@ export function planDay(input: PlanInput): DailyPlanDraft {
       cardIds,
       minutes,
       covers: group.flatMap((g) => g.covers),
+    });
+    used += minutes;
+  }
+
+  // 2b. 测验：最近掌握的几个主题，每个挑回忆概率最低的几张卡，交错
+  const DAY = 86_400_000;
+  const recent = graph.order
+    .filter((id) => {
+      const at = topicProgress.get(id)?.masteredAt ?? null;
+      return at !== null && topics.has(id) && now - at <= p.quizWindowDays * DAY;
+    })
+    .sort(
+      (a, b) =>
+        (topicProgress.get(b)?.masteredAt as number) - (topicProgress.get(a)?.masteredAt as number),
+    );
+  const lastQuiz = input.lastQuizAt ?? null;
+  const fresh = recent.filter(
+    (id) => lastQuiz === null || (topicProgress.get(id)?.masteredAt as number) > lastQuiz,
+  );
+  if (
+    recent.length >= p.quizMinTopics &&
+    fresh.length > 0 &&
+    (lastQuiz === null || now - lastQuiz >= p.quizEveryDays * DAY)
+  ) {
+    const quizTopics = recent.slice(0, p.quizMaxTopics);
+    const cardIds = interleave(
+      quizTopics.map((id) =>
+        selectReviewCards(
+          topics.get(id) as TopicPlanInfo,
+          cardProgress,
+          end,
+          now,
+          p.quizCardsPerTopic,
+        ),
+      ),
+    );
+    const minutes = Math.max(1, Math.round((cardIds.length * p.secondsPerQuestion) / 60));
+    tasks.push({
+      id: taskId('quiz'),
+      kind: 'quiz',
+      topicIds: quizTopics,
+      cardIds,
+      minutes,
+      covers: [],
     });
     used += minutes;
   }

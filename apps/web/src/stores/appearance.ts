@@ -3,10 +3,15 @@ import { createJSONStorage, persist, type StateStorage } from 'zustand/middlewar
 
 export type ThemePreference = 'system' | 'dark' | 'light';
 export type ResolvedTheme = 'dark' | 'light';
+/** 界面语言（默认简体中文，规格第 2 节） */
+export type Language = 'zh-CN' | 'en';
+export const LANGUAGES: readonly Language[] = ['zh-CN', 'en'];
 
 interface AppearanceState {
   theme: ThemePreference;
+  language: Language;
   setTheme: (t: ThemePreference) => void;
+  setLanguage: (l: Language) => void;
 }
 
 /** localStorage 在隐私模式等情况下可能不可用：读写失败时静默退回默认值。 */
@@ -39,18 +44,20 @@ export const useAppearance = create<AppearanceState>()(
   persist(
     (set) => ({
       theme: 'system',
+      language: 'zh-CN',
       setTheme: (theme) => set({ theme }),
+      setLanguage: (language) => set({ language }),
     }),
     {
       name: 'mayochord.appearance',
-      // v2：M0 选定“真夜中”后去掉了视觉方向（direction）字段
-      version: 2,
+      // v2：M0 选定“真夜中”后去掉了视觉方向（direction）字段；v3（M6）：加上界面语言
+      version: 3,
       migrate: (persisted) => {
-        const theme = (persisted as { theme?: ThemePreference } | null)?.theme;
-        return { theme: theme ?? 'system' } as AppearanceState;
+        const p = persisted as { theme?: ThemePreference; language?: Language } | null;
+        return { theme: p?.theme ?? 'system', language: p?.language ?? 'zh-CN' } as AppearanceState;
       },
       storage: createJSONStorage(() => safeLocalStorage),
-      partialize: ({ theme }) => ({ theme }),
+      partialize: ({ theme, language }) => ({ theme, language }),
     },
   ),
 );

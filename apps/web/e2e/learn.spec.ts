@@ -110,3 +110,25 @@ test('图谱：点击节点看详情；未解锁的主题提示先修', async ({
   await page.getByRole('link', { name: '开始课程' }).click();
   await expect(page).toHaveURL(/learn\/keyboard-names/);
 });
+
+test('诊断测试：从今天进入；没通过的主题之后的都还要学；可以中途停下', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto('');
+  await expect(page.getByText('已经有基础了？')).toBeVisible();
+  await page.getByRole('link', { name: '诊断测试' }).first().click();
+  await expect(page.getByRole('heading', { name: '诊断测试' })).toBeVisible();
+  await page.getByRole('button', { name: '开始', exact: true }).click();
+
+  // 第一组：4 道题都跳过（算答错）
+  for (let i = 0; i < 4; i++) {
+    await expect(cue(page)).toHaveAttribute('data-trial-status', 'awaiting');
+    await expect(page.getByRole('button', { name: '提示' })).toHaveCount(0);
+    await page.getByRole('button', { name: '跳过' }).click();
+    await expect(cue(page)).not.toHaveAttribute('data-trial-status', 'awaiting');
+  }
+  await expect(page.getByTestId('probe-result')).toContainText('还要学：');
+  await page.getByRole('button', { name: '到这里就好' }).click();
+  await expect(page.getByTestId('diagnostic-done')).toHaveText('从第一个主题开始学');
+  await page.getByRole('link', { name: '回到今天' }).click();
+  await expect(page.getByTestId('task').first()).toContainText('新课 · 认识键盘与音名');
+});

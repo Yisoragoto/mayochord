@@ -45,7 +45,16 @@ export interface PracticeConfig {
   length: number;
 }
 
-export type SessionKind = 'practice' | 'warmup' | 'review' | 'guided' | 'independent' | 'mastery';
+export type SessionKind =
+  | 'practice'
+  | 'warmup'
+  | 'remediation'
+  | 'review'
+  | 'quiz'
+  | 'diagnostic'
+  | 'guided'
+  | 'independent'
+  | 'mastery';
 
 /**
  * 一轮练习的规格。自由练习、每日任务（热身、复习）、课程的各个阶段都用它描述。

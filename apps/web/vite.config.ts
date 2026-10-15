@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 /**
  * GitHub Pages 的 SPA 回退：把 index.html 复制为 404.html。
@@ -23,14 +24,62 @@ function spaFallback(): Plugin {
   };
 }
 
+// 部署到 <user>.github.io/mayochord/；可用 MAYOCHORD_BASE 覆盖（例如自定义域名时设为 '/'）
+const base = process.env.MAYOCHORD_BASE ?? '/mayochord/';
+
 export default defineConfig({
-  // 部署到 <user>.github.io/mayochord/；可用 MAYOCHORD_BASE 覆盖（例如自定义域名时设为 '/'）
-  base: process.env.MAYOCHORD_BASE ?? '/mayochord/',
+  base,
   plugins: [
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
     spaFallback(),
+    // PWA（规格 M6）：可以添加到主屏幕、离线使用。应用本体预缓存；
+    // 字体子集与钢琴采样第一次用到时缓存（中文字体子集很多，不全部预下载）
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: false,
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      manifest: {
+        name: 'MayoChord',
+        short_name: 'MayoChord',
+        description: '连接 MIDI 键盘练和弦：看名弹和弦、和弦切换、跟拍弹进行、听辨与读谱。',
+        lang: 'zh-CN',
+        start_url: base,
+        scope: base,
+        display: 'standalone',
+        background_color: '#0b0d12',
+        theme_color: '#0b0d12',
+        icons: [
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        // VexFlow（约 720 kB）也预缓存，离线时五线谱照常显示
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+        navigateFallback: `${base}index.html`,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('.woff2'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'fonts', expiration: { maxEntries: 300 } },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/samples/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'piano-samples', expiration: { maxEntries: 100 } },
+          },
+        ],
+      },
+    }),
   ],
   resolve: {
     alias: { '@': resolve(import.meta.dirname, 'src') },

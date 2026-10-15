@@ -46,6 +46,13 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
+  /* 图表分类色（统计页）：dataviz 参考色板的前 6 个，已对 --card 校验（色弱分离、对比度） */
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
   --background: #0b0d12;
   --foreground: #ece8df;
   --card: #12151d;
@@ -55,7 +62,7 @@
   --surface-2: #191d28;
   --muted: #191d28;
   --muted-foreground: #959cac;
-  --subtle-foreground: #6b7385;
+  --subtle-foreground: #80889a; /* ≥ 4.5:1 on background / card / surface-2（M6 Lighthouse） */
   --border: #252a37;
   --border-strong: #3a4154;
   --input: #2c3242;
@@ -88,6 +95,13 @@
 
 [data-theme="light"] {
   color-scheme: light;
+  /* 图表分类色：浅色下 3、4、5 号与背景对比不足 3:1，统计页同时提供数据表 */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
   --background: #f3efe6;
   --foreground: #16181f;
   --card: #fbf8f2;
@@ -97,7 +111,7 @@
   --surface-2: #ebe5d8;
   --muted: #ebe5d8;
   --muted-foreground: #585d69;
-  --subtle-foreground: #7c808a;
+  --subtle-foreground: #5e626c; /* ≥ 4.5:1 on background / card */
   --border: #dad2c2;
   --border-strong: #bfb5a2;
   --input: #cfc6b4;

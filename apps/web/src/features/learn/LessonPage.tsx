@@ -15,6 +15,7 @@ import { getPiano } from '@/audio/piano';
 import { Keyboard, type KeyMark } from '@/design/keyboard/Keyboard';
 import { Button } from '@/design/ui/button';
 import { keyboardRange, referenceMarks } from '@/features/chords/voicing-view';
+import { localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
 import { ChordStaff } from '../practice/ChordCues';
@@ -34,7 +35,7 @@ type Stage =
   | { kind: 'paused'; spec: SessionSpec }
   | { kind: 'result'; outcome: TopicOutcome };
 
-const pick = (text: { 'zh-CN': string }) => text['zh-CN'];
+const pick = localize;
 
 /**
  * 主题课程（规格 6.2）：讲解与示范 → 引导练习 → 独立练习 → 掌握检查。

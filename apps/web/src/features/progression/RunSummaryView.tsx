@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChordName } from '@/design/ChordName';
 import { Button } from '@/design/ui/button';
+import { clauseSep } from '@/lib/localize';
 import { useRun } from './run';
 import type { RunSource } from './run-source';
 
@@ -213,7 +214,7 @@ export function OffsetHistogram({ bins }: { bins: readonly HistogramBin[] }) {
         values: bins
           .filter((b) => b.count > 0)
           .map((b) => `${b.from}…${b.to} ms：${b.count}`)
-          .join('，'),
+          .join(clauseSep()),
       })}
     >
       {bins.map((b, i) => {

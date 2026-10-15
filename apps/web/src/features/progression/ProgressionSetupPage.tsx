@@ -13,6 +13,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
 import { keyboardRange, referenceMarks } from '@/features/chords/voicing-view';
 import { MidiConnectButton } from '@/features/midi/MidiDevicePanel';
 import { PracticeTabs } from '@/features/practice/PracticeTabs';
+import { localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
 import { type ProgressionPrefs, useSettings } from '@/stores/settings';
@@ -54,7 +55,7 @@ export function useProgressionPrefs() {
 }
 
 export function ProgressionSetupPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   useDocumentTitle(t('progression.title'));
   const [prefs, set] = useProgressionPrefs();
   const latency = useSettings((s) => s.settings.latencyCalibrated);
@@ -95,7 +96,7 @@ export function ProgressionSetupPage() {
                   id={p.id}
                   selected={prefs.progressionId === p.id}
                   onSelect={() => set({ progressionId: p.id })}
-                  title={p.name[i18n.language as 'zh-CN'] ?? p.name['zh-CN']}
+                  title={localize(p.name)}
                   hideTitle={nameIsChain(p.name['zh-CN'], SOURCES[i] as RunSource)}
                 >
                   <ChordChain chords={(SOURCES[i] as RunSource).steps.map((s) => s.chord)} />

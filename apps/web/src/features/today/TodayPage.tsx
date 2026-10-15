@@ -5,14 +5,17 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  ClipboardCheck,
   Dumbbell,
   Flame,
+  Gauge,
   Network,
   Repeat2,
   Shuffle,
   SkipForward,
   Sun,
   Undo2,
+  Wrench,
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState } from 'react';
@@ -20,15 +23,25 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/design/ui/button';
 import { learning, refreshLearning, useLearning } from '@/features/learn/service';
 import { dayParams, wallNow } from '@/lib/clock';
+import { clauseSep, listSep, locale, localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
 import { type StoredTask, tryRepositories } from '@/storage';
 import { useSettings } from '@/stores/settings';
 
 const DAY = 86_400_000;
-const topicTitle = (id: string) => BUILTIN_PACK.topicById.get(id)?.title['zh-CN'] ?? id;
+const topicTitle = (id: string) => {
+  const topic = BUILTIN_PACK.topicById.get(id);
+  return topic ? localize(topic.title) : id;
+};
 
-const KIND_ICON = { warmup: Sun, review: Repeat2, lesson: BookOpen } as const;
+const KIND_ICON = {
+  warmup: Sun,
+  remediation: Wrench,
+  review: Repeat2,
+  quiz: ClipboardCheck,
+  lesson: BookOpen,
+} as const;
 
 /** 最近 7 天每天的 XP（来自练习记录） */
 function useWeekXp(refreshKey: unknown) {
@@ -74,7 +87,7 @@ export function TodayPage() {
     ? [...snapshot.statuses.values()].filter((s) => s === 'mastered' || s === 'review').length
     : 0;
 
-  const date = new Intl.DateTimeFormat('zh-CN', {
+  const date = new Intl.DateTimeFormat(locale(), {
     month: 'long',
     day: 'numeric',
     weekday: 'long',
@@ -91,6 +104,12 @@ export function TodayPage() {
         .slice(0, 3)
     : [];
   const nextTask = tasks.find((x) => x.status === 'pending');
+  // 还没开始学任何主题：建议先做诊断测试（有基础的人不用从头学）
+  const fresh =
+    snapshot !== null &&
+    [...snapshot.topicProgress.values()].every(
+      (p) => p.lessonStartedAt === null && p.masteredAt === null,
+    );
   const totalMinutes = tasks
     .filter((x) => x.status !== 'skipped')
     .reduce((s, x) => s + x.minutes, 0);
@@ -110,6 +129,18 @@ export function TodayPage() {
         </header>
 
         {error && <p className="text-sm text-warning">{t('today.error')}</p>}
+        {fresh && (
+          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-primary/40 bg-primary/8 p-4">
+            <Gauge className="size-6 shrink-0 text-primary" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">{t('today.diagnosticTitle')}</p>
+              <p className="text-sm text-muted-foreground">{t('today.diagnosticBody')}</p>
+            </div>
+            <Button asChild size="sm">
+              <Link to="/diagnostic">{t('today.diagnosticStart')}</Link>
+            </Button>
+          </div>
+        )}
         {!plan && loading && (
           <div className="space-y-3" role="status" aria-label={t('today.loading')}>
             {[0, 1, 2].map((i) => (
@@ -180,7 +211,7 @@ export function TodayPage() {
 
       <aside className="space-y-6">
         <XpRing xp={xpToday} goal={goal} />
-        <dl className="grid grid-cols-2 gap-3 text-sm lg:grid-cols-1">
+        <ul className="grid grid-cols-2 gap-3 text-sm lg:grid-cols-1">
           <Stat icon={<Flame className="size-4 text-primary" aria-hidden />}>
             {streak > 0 ? t('today.streak', { n: streak }) : t('today.streakNone')}
           </Stat>
@@ -192,7 +223,7 @@ export function TodayPage() {
           <Stat icon={<Check className="size-4 text-mark-correct" aria-hidden />}>
             {t('today.mastered', { n: masteredCount, total: BUILTIN_PACK.topics.length })}
           </Stat>
-        </dl>
+        </ul>
         <WeekBars days={week} goal={goal} />
       </aside>
     </div>
@@ -220,10 +251,10 @@ function EmptyState({
 
 function Stat({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+    <li className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
       {icon}
       <span>{children}</span>
-    </div>
+    </li>
   );
 }
 
@@ -254,9 +285,9 @@ function TaskCard({
     await refreshLearning();
   };
   const title =
-    task.kind === 'warmup'
-      ? t('today.kind.warmup')
-      : `${t(`today.kind.${task.kind}`)} · ${task.topicIds.map(topicTitle).join('、')}`;
+    task.kind === 'warmup' || task.kind === 'remediation'
+      ? t(`today.kind.${task.kind}`)
+      : `${t(`today.kind.${task.kind}`)} · ${task.topicIds.map(topicTitle).join(listSep())}`;
 
   return (
     <motion.li
@@ -281,11 +312,11 @@ function TaskCard({
         {done ? <Check className="size-5" aria-hidden /> : <Icon className="size-5" aria-hidden />}
       </div>
       <div className="min-w-0 flex-1">
-        <h3 className={cn('font-medium', skipped && 'line-through')}>{title}</h3>
+        <h2 className={cn('font-medium', skipped && 'line-through')}>{title}</h2>
         <p className="text-sm text-muted-foreground">{t(`today.kindHint.${task.kind}`)}</p>
         {task.covers.length > 0 && (
           <p className="mt-1 text-xs text-subtle-foreground">
-            {t('today.covers', { topics: task.covers.map(topicTitle).join('、') })}
+            {t('today.covers', { topics: task.covers.map(topicTitle).join(listSep()) })}
           </p>
         )}
         <p className="mt-1 font-mono text-xs text-subtle-foreground tabular-nums">
@@ -388,11 +419,16 @@ function WeekBars({ days, goal }: { days: { day: string; xp: number }[]; goal: n
   const max = Math.max(goal, ...days.map((d) => d.xp));
   return (
     <figure className="space-y-2">
-      <figcaption className="text-sm text-muted-foreground">{t('today.week')}</figcaption>
+      <figcaption className="flex items-baseline justify-between text-sm text-muted-foreground">
+        {t('today.week')}
+        <Link to="/stats" className="underline underline-offset-2 hover:text-foreground">
+          {t('today.moreStats')}
+        </Link>
+      </figcaption>
       <div
         className="flex h-24 items-end gap-1.5"
         role="img"
-        aria-label={days.map((d) => `${d.day} ${Math.floor(d.xp)} XP`).join('，')}
+        aria-label={days.map((d) => `${d.day} ${Math.floor(d.xp)} XP`).join(clauseSep())}
       >
         {days.map((d) => (
           <div key={d.day} className="flex flex-1 flex-col items-center gap-1">

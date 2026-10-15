@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignRouteImport } from './routes/design'
+import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as GraphRouteImport } from './routes/graph'
 import { Route as MonitorRouteImport } from './routes/monitor'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StatsRouteImport } from './routes/stats'
 import { Route as ChordsIndexRouteImport } from './routes/chords/index'
 import { Route as ChordsChordIdRouteImport } from './routes/chords/$chordId'
 import { Route as LearnTopicIdRouteImport } from './routes/learn/$topicId'
@@ -34,6 +36,11 @@ const DesignRoute = DesignRouteImport.update({
   path: '/design',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiagnosticRoute = DiagnosticRouteImport.update({
+  id: '/diagnostic',
+  path: '/diagnostic',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GraphRoute = GraphRouteImport.update({
   id: '/graph',
   path: '/graph',
@@ -47,6 +54,11 @@ const MonitorRoute = MonitorRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChordsIndexRoute = ChordsIndexRouteImport.update({
@@ -99,9 +111,11 @@ const TodayTaskTaskIdRoute = TodayTaskTaskIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/graph': typeof GraphRoute
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
   '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
@@ -115,9 +129,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/graph': typeof GraphRoute
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
   '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
@@ -132,9 +148,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/design': typeof DesignRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/graph': typeof GraphRoute
   '/monitor': typeof MonitorRoute
   '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
   '/chords/$chordId': typeof ChordsChordIdRoute
   '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
@@ -150,9 +168,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/design'
+    | '/diagnostic'
     | '/graph'
     | '/monitor'
     | '/settings'
+    | '/stats'
     | '/chords/$chordId'
     | '/learn/$topicId'
     | '/practice/session'
@@ -166,9 +186,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/design'
+    | '/diagnostic'
     | '/graph'
     | '/monitor'
     | '/settings'
+    | '/stats'
     | '/chords/$chordId'
     | '/learn/$topicId'
     | '/practice/session'
@@ -182,9 +204,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/design'
+    | '/diagnostic'
     | '/graph'
     | '/monitor'
     | '/settings'
+    | '/stats'
     | '/chords/$chordId'
     | '/learn/$topicId'
     | '/practice/session'
@@ -199,9 +223,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignRoute: typeof DesignRoute
+  DiagnosticRoute: typeof DiagnosticRoute
   GraphRoute: typeof GraphRoute
   MonitorRoute: typeof MonitorRoute
   SettingsRoute: typeof SettingsRoute
+  StatsRoute: typeof StatsRoute
   ChordsChordIdRoute: typeof ChordsChordIdRoute
   LearnTopicIdRoute: typeof LearnTopicIdRoute
   PracticeSessionRoute: typeof PracticeSessionRoute
@@ -229,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diagnostic': {
+      id: '/diagnostic'
+      path: '/diagnostic'
+      fullPath: '/diagnostic'
+      preLoaderRoute: typeof DiagnosticRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/graph': {
       id: '/graph'
       path: '/graph'
@@ -248,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chords/': {
@@ -319,9 +359,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignRoute: DesignRoute,
+  DiagnosticRoute: DiagnosticRoute,
   GraphRoute: GraphRoute,
   MonitorRoute: MonitorRoute,
   SettingsRoute: SettingsRoute,
+  StatsRoute: StatsRoute,
   ChordsChordIdRoute: ChordsChordIdRoute,
   LearnTopicIdRoute: LearnTopicIdRoute,
   PracticeSessionRoute: PracticeSessionRoute,

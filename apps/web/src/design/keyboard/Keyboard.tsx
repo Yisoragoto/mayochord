@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import './keyboard.css';
 
@@ -106,6 +107,7 @@ export function Keyboard({
   className,
   'aria-label': ariaLabel,
 }: KeyboardProps) {
+  const { t } = useTranslation();
   const uid = useId().replace(/:/g, '');
   const { keys, width } = useMemo(() => keyboardLayout(low, high), [low, high]);
   const whites = keys.filter((k) => !k.black);
@@ -173,8 +175,8 @@ export function Keyboard({
   const label =
     ariaLabel ??
     (pressed && pressed.size > 0
-      ? `键盘，按下：${Array.from(pressed, (n) => midiToName(n)).join(' ')}`
-      : '键盘');
+      ? t('keyboard.pressed', { notes: Array.from(pressed, (n) => midiToName(n)).join(' ') })
+      : t('keyboard.label'));
 
   return (
     <svg

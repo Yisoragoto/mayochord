@@ -2,6 +2,7 @@ import type { ChordEntry } from '@mayochord/content';
 import { prettyAccidentals, semitoneFormula } from '@mayochord/core';
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
+import { listSep } from '@/lib/localize';
 
 /** 半音距离公式，例如 A +3 C +4 E。 */
 export function Formula({ chord }: { chord: ChordEntry }) {
@@ -11,7 +12,7 @@ export function Formula({ chord }: { chord: ChordEntry }) {
   return (
     <p className="font-mono text-sm tabular">
       <span className="sr-only">
-        {t('chords.formulaLabel', { tones: pretty.join(' '), steps: steps.join('、') })}
+        {t('chords.formulaLabel', { tones: pretty.join(' '), steps: steps.join(listSep()) })}
       </span>
       <span aria-hidden className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
         {pretty.map((tone, i) => (

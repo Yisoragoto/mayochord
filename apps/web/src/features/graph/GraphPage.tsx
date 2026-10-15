@@ -29,12 +29,13 @@ import { Button } from '@/design/ui/button';
 import { Switch } from '@/design/ui/switch';
 import { learning, refreshLearning, useLearning } from '@/features/learn/service';
 import { phaseCounts } from '@/features/practice/controller';
+import { listSep, locale, localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
 
 const NODE_W = 184;
 const NODE_H = 60;
-const pick = (x: { 'zh-CN': string }) => x['zh-CN'];
+const pick = localize;
 
 /** 状态 → 样式（颜色之外还有图标和边框样式区分，照顾色弱） */
 const STATUS_STYLE: Record<TopicStatus, { box: string; text: string; dash?: string }> = {
@@ -176,6 +177,12 @@ export function GraphPage() {
           <span className="font-mono text-muted-foreground tabular-nums">
             {t('graph.progress', { n: masteredCount, total })}
           </span>
+          <Link
+            to="/diagnostic"
+            className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            {t('graph.diagnostic')}
+          </Link>
           <span className="flex items-center gap-2">
             <Switch
               id="graph-encompass"
@@ -537,7 +544,7 @@ function GraphCanvas({
 }
 
 const formatDate = (ts: number) =>
-  new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }).format(new Date(ts));
+  new Intl.DateTimeFormat(locale(), { month: 'long', day: 'numeric' }).format(new Date(ts));
 
 function TopicPanel({
   topicId,
@@ -570,6 +577,18 @@ function TopicPanel({
           <ArrowRight />
         </Link>
       </Button>
+    );
+  } else if (status === 'locked') {
+    // 跳级：已经会的可以直接参加这个主题的掌握检查，通过后它的先修主题也算掌握
+    action = (
+      <div className="space-y-2">
+        <Button asChild variant="outline" className="w-full">
+          <Link to="/learn/$topicId" params={{ topicId }}>
+            {t('graph.skipAhead')}
+          </Link>
+        </Button>
+        <p className="text-xs text-subtle-foreground">{t('graph.skipAheadHint')}</p>
+      </div>
     );
   } else if (status === 'mastered' || status === 'review') {
     action = (
@@ -651,7 +670,9 @@ function TopicPanel({
       {status === 'locked' && missing.length > 0 && (
         <p className="text-sm text-muted-foreground">
           {t('graph.lockedHint', {
-            topics: missing.map((p) => pick(learning.topic(p)?.title ?? { 'zh-CN': p })).join('、'),
+            topics: missing
+              .map((p) => pick(learning.topic(p)?.title ?? { 'zh-CN': p }))
+              .join(listSep()),
           })}
         </p>
       )}

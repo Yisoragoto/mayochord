@@ -3,6 +3,7 @@ import type { ReviewLog } from '../log/review-log';
 import { endOfPracticeDay, planDay, type TopicPlanInfo } from '../scheduler/daily';
 import { implicitCredits } from '../scheduler/implicit';
 import { emptyProgress } from '../scheduler/progress';
+import { allDependents, emptyDiagnostic, nextProbe, recordProbe, undecided } from './diagnostic';
 import { layoutTopicGraph, topicRanks } from './layout';
 import {
   allPrerequisites,
@@ -370,5 +371,116 @@ describe('每日任务编排', () => {
     expect(new Date(endOfPracticeDay(T0, dayParams)).toISOString()).toBe(
       '2026-10-14T20:00:00.000Z',
     );
+  });
+});
+
+describe('测验与针对性补救（M6）', () => {
+  const info = (id: string): TopicPlanInfo => ({
+    id,
+    cardIds: [0, 1, 2, 3].map((i) => `${id}:card${i}`),
+    lessonMinutes: 8,
+  });
+  const topics = new Map(NODES.map((n) => [n.id, info(n.id)]));
+  const base = {
+    now: T0 + 3 * DAY,
+    day: dayParams,
+    graph,
+    topics,
+    cardProgress: new Map(),
+    recentCardIds: [],
+  };
+  // 最近 3 天掌握了 keys、steps、thirds（记忆还没到期）
+  const progress = new Map([
+    ['keys', mastered('keys', T0)],
+    ['steps', mastered('steps', T0 + DAY)],
+    ['thirds', mastered('thirds', T0 + 2 * DAY)],
+  ]);
+
+  it('最近掌握了 3 个主题、没测过：排一次测验，最近掌握的在前，每个主题 2 张卡交错', () => {
+    const plan = planDay({ ...base, topicProgress: progress });
+    const quiz = plan.tasks.find((t) => t.kind === 'quiz');
+    expect(quiz?.topicIds).toEqual(['thirds', 'steps', 'keys']);
+    expect(quiz?.cardIds).toEqual([
+      'thirds:card0',
+      'steps:card0',
+      'keys:card0',
+      'thirds:card1',
+      'steps:card1',
+      'keys:card1',
+    ]);
+    expect(quiz?.minutes).toBe(2);
+  });
+
+  it('不测：主题不够、刚测过、测过之后没有新掌握的', () => {
+    const two = new Map([...progress].slice(1));
+    const kinds = (p: Parameters<typeof planDay>[0]) => planDay(p).tasks.map((t) => t.kind);
+    expect(kinds({ ...base, topicProgress: two })).not.toContain('quiz');
+    expect(kinds({ ...base, topicProgress: progress, lastQuizAt: T0 + 2.5 * DAY })).not.toContain(
+      'quiz',
+    );
+    // 5 天前测过，但之后没有新掌握的主题
+    expect(
+      kinds({ ...base, now: T0 + 8 * DAY, topicProgress: progress, lastQuizAt: T0 + 2.5 * DAY }),
+    ).not.toContain('quiz');
+  });
+
+  it('上次测验答错的卡片：热身之后排"针对性补救"', () => {
+    const plan = planDay({
+      ...base,
+      topicProgress: progress,
+      recentCardIds: ['keys:card0'],
+      remediationCardIds: ['steps:card2', 'nope', 'steps:card2', 'thirds:card3'],
+    });
+    expect(plan.tasks.map((t) => t.kind).slice(0, 2)).toEqual(['warmup', 'remediation']);
+    expect(plan.tasks[1]).toMatchObject({ cardIds: ['steps:card2', 'thirds:card3'], minutes: 1 });
+  });
+
+  it('测验与诊断的主题日志：测验像复习一样更新记忆；诊断推断像掌握检查一样', () => {
+    const p = applyTopicLog(
+      mastered('keys'),
+      tlog('keys', { drillType: 'quiz', rating: 1, correct: false, ts: T0 + 2 * DAY }),
+      tparams,
+    );
+    expect(p.memory?.lapses).toBe(1);
+    const d = applyTopicLog(
+      emptyTopicProgress('keys'),
+      tlog('keys', { drillType: 'diagnostic', rating: 2 }),
+      tparams,
+    );
+    expect(d.masteredAt).toBe(T0);
+    expect(topicStatus(graph, new Map([['keys', d]]), 'steps', T0)).toBe('available');
+  });
+});
+
+describe('诊断测试（M6）', () => {
+  it('二分：先测中间层；通过 → 先修都已掌握；没通过 → 后继都要学', () => {
+    let s = emptyDiagnostic();
+    const first = nextProbe(graph, s);
+    expect(first).toBe('thirds');
+    s = recordProbe(graph, s, 'thirds', true);
+    expect(s.known).toEqual(['keys', 'steps', 'thirds']);
+    expect(undecided(graph, s)).toEqual(['major', 'minor', 'c-triads', 'prog']);
+    const second = nextProbe(graph, s) as string;
+    expect(['major', 'minor', 'c-triads']).toContain(second);
+    s = recordProbe(graph, s, 'c-triads', false);
+    expect(s.unknown).toEqual(['c-triads', 'prog']);
+    s = recordProbe(graph, s, 'major', true);
+    s = recordProbe(graph, s, 'minor', false);
+    expect(s).toMatchObject({
+      passed: ['thirds', 'major'],
+      failed: ['c-triads', 'minor'],
+      known: ['keys', 'steps', 'thirds', 'major'],
+      unknown: ['minor', 'c-triads', 'prog'],
+    });
+    expect(nextProbe(graph, s)).toBeNull();
+  });
+
+  it('只在候选主题里选；后继', () => {
+    expect(nextProbe(graph, emptyDiagnostic(), ['keys', 'prog'])).toBe('keys');
+    expect([...allDependents(graph, 'major')].sort()).toEqual(['c-triads', 'prog']);
+    // 已经推断为掌握的不会因为后继没通过而变成没掌握
+    let s = recordProbe(graph, emptyDiagnostic(), 'steps', true);
+    s = recordProbe(graph, s, 'keys', false);
+    expect(s.known).toContain('keys');
   });
 });

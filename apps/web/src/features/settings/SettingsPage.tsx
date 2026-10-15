@@ -27,11 +27,13 @@ import { Switch } from '@/design/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
 import { refreshLearning } from '@/features/learn/service';
 import { MidiDevicePanel } from '@/features/midi/MidiDevicePanel';
+import { LanguageSwitcher } from '@/features/shell/LanguageSwitcher';
 import { ThemeSwitcher } from '@/features/shell/ThemeSwitcher';
 import { useCalibration } from '@/input/calibration';
 import { useComputerKeyboard } from '@/input/computer-keyboard';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { type AppSettings, useSettings } from '@/stores/settings';
+import { DataPanel } from './DataPanel';
 import { LatencyPanel } from './LatencyPanel';
 
 const noteName = (n: number) => prettyAccidentals(midiToName(n));
@@ -73,8 +75,14 @@ export function SettingsPage() {
       <Section title={t('settings.judgeTitle')} hint={t('settings.judgeHint')}>
         <JudgePanel />
       </Section>
+      <Section id="data" title={t('settings.dataTitle')} hint={t('settings.dataHint')}>
+        <DataPanel />
+      </Section>
       <Section title={t('settings.appearanceTitle')}>
-        <ThemeSwitcher />
+        <div className="flex flex-wrap items-center gap-6">
+          <ThemeSwitcher />
+          <LanguageSwitcher />
+        </div>
       </Section>
       <Section title={t('settings.aboutTitle')}>
         <AboutPanel />

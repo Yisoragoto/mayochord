@@ -14,6 +14,7 @@ import { ChordName } from '@/design/ChordName';
 import { Keyboard } from '@/design/keyboard/Keyboard';
 import { Staff } from '@/design/staff/Staff';
 import { Badge } from '@/design/ui/badge';
+import { localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
 import { Formula, Tones } from './Formula';
@@ -124,7 +125,7 @@ function ChordDetail({ chord }: { chord: ChordEntry }) {
           {note && (
             <p className="flex gap-2 rounded-lg border-l-4 border-warning bg-warning/5 px-4 py-3 text-sm leading-relaxed">
               <Info className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
-              {note['zh-CN']}
+              {localize(note)}
             </p>
           )}
 
@@ -167,7 +168,7 @@ function ChordDetail({ chord }: { chord: ChordEntry }) {
           <ul className="grid gap-3 md:grid-cols-2">
             {progressions.map((p) => (
               <li key={p.id} className="rounded-xl border border-border bg-card p-4">
-                <p className="mb-3 text-sm font-medium">{p.name['zh-CN']}</p>
+                <p className="mb-3 text-sm font-medium">{localize(p.name)}</p>
                 <ol className="flex flex-wrap gap-2">
                   {p.steps.map((s, i) => (
                     <li

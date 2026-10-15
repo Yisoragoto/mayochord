@@ -7,6 +7,7 @@ import { Label } from '@/design/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/design/ui/select';
 import { useCalibration } from '@/input/calibration';
 import { useMidi, webMidi } from '@/input/webmidi';
+import { listSep } from '@/lib/localize';
 import { cn } from '@/lib/utils';
 
 const NONE = '__none__';
@@ -76,7 +77,9 @@ export function MidiDevicePanel() {
         <p className="text-sm text-muted-foreground">
           {t('midi.outputs')}：
           <span className="text-foreground">
-            {midi.outputs.length ? midi.outputs.map((p) => p.name).join('、') : t('midi.noOutputs')}
+            {midi.outputs.length
+              ? midi.outputs.map((p) => p.name).join(listSep())
+              : t('midi.noOutputs')}
           </span>
         </p>
       </div>

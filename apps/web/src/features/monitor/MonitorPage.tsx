@@ -17,6 +17,7 @@ import { MidiDevicePanel } from '@/features/midi/MidiDevicePanel';
 import { useLiveInput } from '@/input/live';
 import { PlayableKeyboard } from '@/input/PlayableKeyboard';
 import { type RawMidiMessage, useMidi, webMidi } from '@/input/webmidi';
+import { downloadText, fileStamp } from '@/lib/download';
 import { cn } from '@/lib/utils';
 import { useSettings } from '@/stores/settings';
 import { type LogEntry, parseRaw, SummaryAccumulator } from './recorder';
@@ -329,15 +330,8 @@ function SummaryPanel({
     ],
   ];
 
-  const download = () => {
-    const blob = new Blob([exportJson()], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `mayochord-midi-capture-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const download = () =>
+    downloadText(`mayochord-midi-capture-${fileStamp()}.json`, exportJson(), 'application/json');
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(exportJson());

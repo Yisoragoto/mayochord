@@ -32,6 +32,11 @@ declare module '@tanstack/react-router' {
 
 bootstrap();
 
+// PWA：正式版本注册 Service Worker（开发服务器不注册，避免缓存干扰调试）
+if (import.meta.env.PROD) {
+  void import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
+}
+
 const rootEl = document.getElementById('root');
 if (!rootEl) throw new Error('#root not found');
 createRoot(rootEl).render(

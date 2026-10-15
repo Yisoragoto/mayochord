@@ -14,6 +14,7 @@ import { ChordName } from '@/design/ChordName';
 import { Button } from '@/design/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
 import { MidiConnectButton } from '@/features/midi/MidiDevicePanel';
+import { localize } from '@/lib/localize';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
 import { tryRepositories } from '@/storage';
@@ -73,7 +74,7 @@ function useGroupProgress(drill: DrillType, mode: VoicingMode) {
 }
 
 export function PracticeSetupPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   useDocumentTitle(t('practice.title'));
   const [groupId, setGroupId] = useState(PRACTICE_GROUPS[0]?.id ?? 'all');
   const [drill, setDrill] = useState<PracticeSearch['drill']>('name-to-chord');
@@ -85,8 +86,7 @@ export function PracticeSetupPage() {
   const group = PRACTICE_GROUPS.find((g) => g.id === groupId);
   // 切换、听和弦都要一条进行（"全部和弦"没有顺序，听和弦的选项也太多）
   const transitionUnavailable = drill !== 'name-to-chord' && group && !group.sequence;
-  const groupName = (g: PracticeGroup) =>
-    g.name ? (g.name[i18n.language as 'zh-CN'] ?? g.name['zh-CN']) : t('practice.allChords');
+  const groupName = (g: PracticeGroup) => (g.name ? localize(g.name) : t('practice.allChords'));
 
   return (
     <div className="space-y-8">

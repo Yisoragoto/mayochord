@@ -1,6 +1,7 @@
 import type { LoadedPack, TopicEntry } from '@mayochord/content';
 import {
   type AnyCard,
+  allPrerequisites,
   applyTopicLog,
   type CardProgress,
   type DayParams,
@@ -43,6 +44,15 @@ export interface LearningSnapshot {
   topicProgress: Map<string, TopicProgress>;
   cardProgress: Map<string, CardProgress>;
   statuses: Map<string, TopicStatus>;
+  /** 上次测验的时间（没有测过为 null） */
+  lastQuizAt: number | null;
+}
+
+/** 上次测验答错的卡片（针对性补救），存在 settings 表 */
+const REMEDIATION_KEY = 'remediation';
+interface Remediation {
+  at: number;
+  cardIds: string[];
 }
 
 export interface TopicOutcome {
@@ -94,12 +104,14 @@ export class LearningService {
     for (const t of this.deps.pack.topics) {
       topicProgress.set(t.id, replayTopicProgress(t.id, byTopic.get(t.id) ?? [], params));
     }
+    const quizzes = topicLogs.filter((l) => l.drillType === 'quiz').map((l) => l.ts);
     return {
       now,
       date: dayKey(now, this.deps.day()),
       topicProgress,
       cardProgress: new Map(cards.map((c) => [c.cardId, c])),
       statuses: topicStatuses(this.deps.pack.graph, topicProgress, now),
+      lastQuizAt: quizzes.length > 0 ? Math.max(...quizzes) : null,
     };
   }
 
@@ -145,6 +157,8 @@ export class LearningService {
       topicProgress: snapshot.topicProgress,
       cardProgress: snapshot.cardProgress,
       recentCardIds: await this.lastPracticeDayCards(snapshot.now),
+      lastQuizAt: snapshot.lastQuizAt,
+      remediationCardIds: await this.remediationCards(),
       params: this.deps.planParams(),
     });
     const plan: DailyPlanRecord = {
@@ -165,6 +179,20 @@ export class LearningService {
   }
 
   /** 上一个练习日（今天之前最近一个有作答的日子）练过的卡片 */
+  /** 上次测验答错、之后还没答对过的卡片 */
+  async remediationCards(): Promise<string[]> {
+    const repos = this.repos();
+    if (!repos) return [];
+    const raw = (await repos.settings.get(REMEDIATION_KEY)) as Remediation | undefined;
+    if (!raw || !Array.isArray(raw.cardIds)) return [];
+    const fixed = new Set(
+      (await repos.reviewLogs.since(raw.at + 1))
+        .filter((l) => l.evidence === 'explicit' && l.correct)
+        .map((l) => l.cardId),
+    );
+    return raw.cardIds.filter((id) => !fixed.has(id));
+  }
+
   private async lastPracticeDayCards(now: number): Promise<string[]> {
     const repos = this.repos();
     if (!repos) return [];
@@ -321,6 +349,7 @@ export class LearningService {
       rating,
     });
     await this.appendWithImplicit(topicId, log, passed);
+    if (passed) await this.inferPrerequisites(topicId);
     return { ...outcome, passed, rating };
   }
 
@@ -340,6 +369,7 @@ export class LearningService {
       rating,
     });
     await this.appendWithImplicit(topicId, log, passed);
+    if (passed) await this.inferPrerequisites(topicId);
     return {
       topicId,
       total: summary.total,
@@ -348,6 +378,70 @@ export class LearningService {
       rating,
       passed,
     };
+  }
+
+  /**
+   * 测验（规格 6.6）：每个主题按正确率评分（与复习一样记入主题记忆），
+   * 答错的卡片记下来，下次编排成"针对性补救"任务。返回各主题结果与答错的卡片。
+   */
+  async recordQuiz(
+    topicIds: readonly string[],
+    result: SessionResult,
+  ): Promise<{ outcomes: TopicOutcome[]; wrongCardIds: string[] }> {
+    const outcomes: TopicOutcome[] = [];
+    for (const id of topicIds) {
+      const o = this.outcomeFor(id, result);
+      outcomes.push(o);
+      if (o.rating === null) continue;
+      const log = this.topicLog(id, 'quiz', {
+        sessionId: result.sessionId,
+        correct: o.passed,
+        rating: o.rating,
+      });
+      await this.appendWithImplicit(id, log, o.passed);
+    }
+    const wrongCardIds = [...new Set(result.logs.filter((l) => !l.correct).map((l) => l.cardId))];
+    const remediation: Remediation = { at: this.deps.wallNow(), cardIds: wrongCardIds };
+    await this.repos()?.settings.set(REMEDIATION_KEY, remediation);
+    return { outcomes, wrongCardIds };
+  }
+
+  /**
+   * 跳级（通过了后面主题的掌握检查，或诊断测试推断）：还没掌握的先修主题推断为已掌握，
+   * 记 'diagnostic'，评分 Hard（复习来得早一些，如果其实没掌握很快就会暴露）。
+   */
+  async inferMastered(topicIds: readonly string[], rating: Rating = 2): Promise<string[]> {
+    const repos = this.repos();
+    if (!repos) return [];
+    const snap = await this.snapshot();
+    const fresh = topicIds.filter((id) => snap.topicProgress.get(id)?.masteredAt == null);
+    for (const id of fresh) {
+      await repos.reviewLogs.append(this.topicLog(id, 'diagnostic', { correct: true, rating }));
+    }
+    return fresh;
+  }
+
+  /** 通过某个主题的掌握检查后，它还没掌握的先修主题也推断为已掌握 */
+  private async inferPrerequisites(topicId: string) {
+    const graph = this.deps.pack.graph;
+    const pre = allPrerequisites(graph, topicId);
+    await this.inferMastered(graph.order.filter((id) => pre.has(id)));
+  }
+
+  /**
+   * 诊断测试结束：直接通过的主题记 Good，推断的记 Hard；今天还没开始做任务时重新编排今天的任务
+   * （起点变了）。返回新标记为已掌握的主题。
+   */
+  async recordDiagnostic(passed: readonly string[], known: readonly string[]): Promise<string[]> {
+    const direct = await this.inferMastered(passed, 3);
+    const inferred = await this.inferMastered(
+      known.filter((id) => !passed.includes(id)),
+      2,
+    );
+    const snap = await this.snapshot();
+    const plan = await this.repos()?.dailyPlans.get(snap.date);
+    if (!plan || plan.tasks.every((t) => t.status === 'pending')) await this.plan(true);
+    return [...direct, ...inferred];
   }
 
   /** 每日复习任务：每个主题按正确率评分，并传递隐式信用（成功向下、失败向上） */

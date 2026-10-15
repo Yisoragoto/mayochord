@@ -1,5 +1,13 @@
 import { Link, useMatches } from '@tanstack/react-router';
-import { Activity, CalendarCheck2, Dumbbell, Library, Network, Settings } from 'lucide-react';
+import {
+  Activity,
+  CalendarCheck2,
+  ChartColumn,
+  Dumbbell,
+  Library,
+  Network,
+  Settings,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TooltipProvider } from '@/design/ui/tooltip';
@@ -11,6 +19,7 @@ const NAV = [
   { to: '/graph', key: 'graph', icon: Network, mobile: true },
   { to: '/practice', key: 'practice', icon: Dumbbell, mobile: true },
   { to: '/chords', key: 'chords', icon: Library, mobile: true },
+  { to: '/stats', key: 'stats', icon: ChartColumn, mobile: false },
   { to: '/monitor', key: 'monitor', icon: Activity, mobile: false },
   { to: '/settings', key: 'settings', icon: Settings, mobile: true },
 ] as const;

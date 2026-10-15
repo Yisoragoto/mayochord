@@ -881,7 +881,8 @@
       },
       "key": "C",
       "description": {
-        "zh-CN": "IV – V – iii – vi"
+        "zh-CN": "IV – V – iii – vi",
+        "en": "IV – V – iii – vi"
       },
       "steps": [
         {
@@ -915,7 +916,8 @@
       },
       "key": "G",
       "description": {
-        "zh-CN": "IV – V – iii – vi。D、Bm 的键位按就近转位设计。"
+        "zh-CN": "IV – V – iii – vi。D、Bm 的键位按就近转位设计。",
+        "en": "IV – V – iii – vi. D and Bm use nearest-inversion voicings."
       },
       "steps": [
         {
@@ -949,7 +951,8 @@
       },
       "key": "C",
       "description": {
-        "zh-CN": "IVM7 – III7 – VIm7 – Vm7 I7"
+        "zh-CN": "IVM7 – III7 – VIm7 – Vm7 I7",
+        "en": "IVM7 – III7 – VIm7 – Vm7 I7"
       },
       "steps": [
         {
@@ -987,7 +990,8 @@
       },
       "key": "C",
       "description": {
-        "zh-CN": "键位按就近转位设计：右手每次只移动半音或全音。"
+        "zh-CN": "键位按就近转位设计：右手每次只移动半音或全音。",
+        "en": "Nearest-inversion voicings: the right hand moves only by semitones or whole tones."
       },
       "steps": [
         {
@@ -1041,7 +1045,8 @@
         }
       ],
       "description": {
-        "zh-CN": "每个和弦提前一个 16 分音符换（第一遍的第一个和弦仍在第 1 拍）。"
+        "zh-CN": "每个和弦提前一个 16 分音符换（第一遍的第一个和弦仍在第 1 拍）。",
+        "en": "Each chord changes one 16th note early (the very first chord still lands on beat 1)."
       }
     }
   ],
@@ -1049,10 +1054,12 @@
     {
       "id": "keyboard-names",
       "title": {
-        "zh-CN": "认识键盘与音名"
+        "zh-CN": "认识键盘与音名",
+        "en": "Keys and note names"
       },
       "summary": {
-        "zh-CN": "白键 C D E F G A B，黑键用升降号命名；中央 C 是 C4。"
+        "zh-CN": "白键 C D E F G A B，黑键用升降号命名；中央 C 是 C4。",
+        "en": "White keys are C D E F G A B; black keys use sharps and flats; middle C is C4."
       },
       "prerequisites": [],
       "encompasses": [],
@@ -1064,7 +1071,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "白键依次叫 C D E F G A B，然后又回到 C。找 C 的办法：它在两个黑键一组的左边。"
+              "zh-CN": "白键依次叫 C D E F G A B，然后又回到 C。找 C 的办法：它在两个黑键一组的左边。",
+              "en": "The white keys are named C D E F G A B, then C again. To find C: it sits just left of each group of two black keys."
             },
             "demo": {
               "notes": ["C4", "D4", "E4", "F4", "G4", "A4", "B4"],
@@ -1074,7 +1082,8 @@
           },
           {
             "text": {
-              "zh-CN": "黑键用旁边的白键加升降号命名：C 右边的黑键叫 C♯（升 C），也叫 D♭（降 D）。同一个键有两个名字，用哪个取决于调。"
+              "zh-CN": "黑键用旁边的白键加升降号命名：C 右边的黑键叫 C♯（升 C），也叫 D♭（降 D）。同一个键有两个名字，用哪个取决于调。",
+              "en": "A black key takes its name from a neighbouring white key plus a sharp or flat: the black key right of C is C♯ (C sharp), also called D♭ (D flat). Which name you use depends on the key."
             },
             "demo": {
               "notes": ["C#4", "Eb4", "F#4", "Ab4", "Bb4"],
@@ -1084,7 +1093,8 @@
           },
           {
             "text": {
-              "zh-CN": "中央 C 是 C4，往右一组是 C5，往左一组是 C3。练习时弹哪个八度的音都算对。"
+              "zh-CN": "中央 C 是 C4，往右一组是 C5，往左一组是 C3。练习时弹哪个八度的音都算对。",
+              "en": "Middle C is C4; the next group to the right is C5, to the left C3. In practice any octave counts."
             },
             "demo": {
               "notes": ["C3", "C4", "C5"],
@@ -1110,10 +1120,12 @@
     {
       "id": "half-whole-steps",
       "title": {
-        "zh-CN": "半音与全音"
+        "zh-CN": "半音与全音",
+        "en": "Semitones and whole tones"
       },
       "summary": {
-        "zh-CN": "相邻的两个键相差一个半音，两个半音是一个全音。"
+        "zh-CN": "相邻的两个键相差一个半音，两个半音是一个全音。",
+        "en": "Neighbouring keys are a semitone apart; two semitones make a whole tone."
       },
       "prerequisites": ["keyboard-names"],
       "encompasses": [
@@ -1163,7 +1175,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "相邻的两个键相差一个半音，不管是白键还是黑键。E 和 F、B 和 C 之间没有黑键，所以它们本身就相差半音。"
+              "zh-CN": "相邻的两个键相差一个半音，不管是白键还是黑键。E 和 F、B 和 C 之间没有黑键，所以它们本身就相差半音。",
+              "en": "Any two neighbouring keys, white or black, are a semitone apart. E–F and B–C have no black key between them, so they are already a semitone apart."
             },
             "demo": {
               "notes": ["E4", "F4"],
@@ -1173,7 +1186,8 @@
           },
           {
             "text": {
-              "zh-CN": "两个半音是一个全音：C 到 D 中间隔着 C♯。"
+              "zh-CN": "两个半音是一个全音：C 到 D 中间隔着 C♯。",
+              "en": "Two semitones make a whole tone: C to D, with C♯ in between."
             },
             "demo": {
               "notes": ["C4", "C#4", "D4"],
@@ -1183,7 +1197,8 @@
           },
           {
             "text": {
-              "zh-CN": "练习：看到“E ↑ 半音”，同时按下 E 和它上方半音的 F。最低的音必须是题目给的音，八度不限。"
+              "zh-CN": "练习：看到“E ↑ 半音”，同时按下 E 和它上方半音的 F。最低的音必须是题目给的音，八度不限。",
+              "en": "Practice: for “E ↑ semitone”, press E and the F a semitone above it together. The given note must be the lowest; any octave is fine."
             },
             "demo": {
               "notes": ["E4", "F4"],
@@ -1209,10 +1224,12 @@
     {
       "id": "thirds",
       "title": {
-        "zh-CN": "大三度与小三度"
+        "zh-CN": "大三度与小三度",
+        "en": "Major and minor thirds"
       },
       "summary": {
-        "zh-CN": "大三度 = 4 个半音，小三度 = 3 个半音。三和弦由三度叠成。"
+        "zh-CN": "大三度 = 4 个半音，小三度 = 3 个半音。三和弦由三度叠成。",
+        "en": "Major third = 4 semitones, minor third = 3. Triads are stacked thirds."
       },
       "prerequisites": ["half-whole-steps"],
       "encompasses": [
@@ -1262,7 +1279,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "大三度 = 4 个半音，例如 C 到 E。"
+              "zh-CN": "大三度 = 4 个半音，例如 C 到 E。",
+              "en": "A major third is 4 semitones, e.g. C to E."
             },
             "demo": {
               "notes": ["C4", "C#4", "D4", "D#4", "E4"],
@@ -1272,7 +1290,8 @@
           },
           {
             "text": {
-              "zh-CN": "小三度 = 3 个半音，例如 A 到 C。"
+              "zh-CN": "小三度 = 3 个半音，例如 A 到 C。",
+              "en": "A minor third is 3 semitones, e.g. A to C."
             },
             "demo": {
               "notes": ["A4", "Bb4", "B4", "C5"],
@@ -1282,7 +1301,8 @@
           },
           {
             "text": {
-              "zh-CN": "三和弦就是两个三度叠起来的，所以先把这两种三度弹熟。"
+              "zh-CN": "三和弦就是两个三度叠起来的，所以先把这两种三度弹熟。",
+              "en": "A triad is two thirds stacked, so get both kinds of third under your fingers first."
             },
             "demo": {
               "notes": ["C4", "E4", "G4"],
@@ -1308,10 +1328,12 @@
     {
       "id": "major-triad-formula",
       "title": {
-        "zh-CN": "大三和弦公式"
+        "zh-CN": "大三和弦公式",
+        "en": "Major triad formula"
       },
       "summary": {
-        "zh-CN": "大三和弦 = 根音 +4 三音 +3 五音。"
+        "zh-CN": "大三和弦 = 根音 +4 三音 +3 五音。",
+        "en": "Major triad = root +4 third +3 fifth."
       },
       "prerequisites": ["thirds"],
       "encompasses": [
@@ -1328,7 +1350,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "大三和弦 = 根音 + 大三度（4 个半音）+ 小三度（3 个半音）。C 大三和弦：C +4 E +3 G。"
+              "zh-CN": "大三和弦 = 根音 + 大三度（4 个半音）+ 小三度（3 个半音）。C 大三和弦：C +4 E +3 G。",
+              "en": "Major triad = root + major third (4 semitones) + minor third (3 semitones). C major: C +4 E +3 G."
             },
             "demo": {
               "notes": ["C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4"],
@@ -1338,7 +1361,8 @@
           },
           {
             "text": {
-              "zh-CN": "换一个根音也一样数：D +4 F♯ +3 A。"
+              "zh-CN": "换一个根音也一样数：D +4 F♯ +3 A。",
+              "en": "It works the same from any root: D +4 F♯ +3 A."
             },
             "demo": {
               "chord": "d",
@@ -1348,7 +1372,8 @@
           },
           {
             "text": {
-              "zh-CN": "练习时左手可以弹根音，也可以只用右手；任意转位都算对。"
+              "zh-CN": "练习时左手可以弹根音，也可以只用右手；任意转位都算对。",
+              "en": "You can play the root in the left hand or use only the right hand; any inversion counts."
             },
             "demo": {
               "chord": "c",
@@ -1375,10 +1400,12 @@
     {
       "id": "minor-triad-formula",
       "title": {
-        "zh-CN": "小三和弦公式"
+        "zh-CN": "小三和弦公式",
+        "en": "Minor triad formula"
       },
       "summary": {
-        "zh-CN": "小三和弦 = 根音 +3 三音 +4 五音。"
+        "zh-CN": "小三和弦 = 根音 +3 三音 +4 五音。",
+        "en": "Minor triad = root +3 third +4 fifth."
       },
       "prerequisites": ["thirds"],
       "encompasses": [
@@ -1395,7 +1422,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "小三和弦 = 根音 + 小三度（3）+ 大三度（4）。A 小三和弦：A +3 C +4 E。"
+              "zh-CN": "小三和弦 = 根音 + 小三度（3）+ 大三度（4）。A 小三和弦：A +3 C +4 E。",
+              "en": "Minor triad = root + minor third (3) + major third (4). A minor: A +3 C +4 E."
             },
             "demo": {
               "notes": ["A4", "Bb4", "B4", "C5", "Db5", "D5", "Eb5", "E5"],
@@ -1405,7 +1433,8 @@
           },
           {
             "text": {
-              "zh-CN": "和大三和弦相比，只是中间的三音低了半音：C 是 C E G，Cm 是 C E♭ G。"
+              "zh-CN": "和大三和弦相比，只是中间的三音低了半音：C 是 C E G，Cm 是 C E♭ G。",
+              "en": "Compared with the major triad only the middle note, the third, is a semitone lower: C is C E G, Cm is C E♭ G."
             },
             "demo": {
               "chord": "cm",
@@ -1415,7 +1444,8 @@
           },
           {
             "text": {
-              "zh-CN": "和弦名里的小写 m 表示小三和弦：Am、Dm、Em。"
+              "zh-CN": "和弦名里的小写 m 表示小三和弦：Am、Dm、Em。",
+              "en": "A lowercase m in a chord name means minor: Am, Dm, Em."
             },
             "demo": {
               "chord": "am",
@@ -1442,10 +1472,12 @@
     {
       "id": "c-major-triads",
       "title": {
-        "zh-CN": "C 调三和弦"
+        "zh-CN": "C 调三和弦",
+        "en": "Triads in C major"
       },
       "summary": {
-        "zh-CN": "C、Dm、Em、F、G、Am：C 大调音阶上叠出来的三和弦。"
+        "zh-CN": "C、Dm、Em、F、G、Am：C 大调音阶上叠出来的三和弦。",
+        "en": "C, Dm, Em, F, G, Am: the triads built on the C major scale."
       },
       "prerequisites": ["major-triad-formula", "minor-triad-formula"],
       "encompasses": [
@@ -1466,7 +1498,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "在 C 大调音阶 C D E F G A B 上，从每个音开始隔一个音叠三度，就得到 C 调的三和弦：C、Dm、Em、F、G、Am（还有 Bdim，先不练）。"
+              "zh-CN": "在 C 大调音阶 C D E F G A B 上，从每个音开始隔一个音叠三度，就得到 C 调的三和弦：C、Dm、Em、F、G、Am（还有 Bdim，先不练）。",
+              "en": "On the C major scale C D E F G A B, stacking thirds from each note (skipping every other note) gives the triads of C: C, Dm, Em, F, G, Am (and Bdim, which we skip for now)."
             },
             "demo": {
               "notes": ["C4", "D4", "E4", "F4", "G4", "A4", "B4"],
@@ -1476,7 +1509,8 @@
           },
           {
             "text": {
-              "zh-CN": "其中 C、F、G 是大三和弦，Dm、Em、Am 是小三和弦。参考键位：左手弹根音，右手弹三个音。"
+              "zh-CN": "其中 C、F、G 是大三和弦，Dm、Em、Am 是小三和弦。参考键位：左手弹根音，右手弹三个音。",
+              "en": "C, F and G are major; Dm, Em and Am are minor. Reference voicing: root in the left hand, three notes in the right."
             },
             "demo": {
               "chord": "f",
@@ -1486,7 +1520,8 @@
           },
           {
             "text": {
-              "zh-CN": "判定是宽松的：按对三个音，任意转位都算对。"
+              "zh-CN": "判定是宽松的：按对三个音，任意转位都算对。",
+              "en": "Judging is loose: the right three notes in any inversion count."
             },
             "demo": {
               "chord": "am",
@@ -1512,10 +1547,12 @@
     {
       "id": "prog-c-g-am-f",
       "title": {
-        "zh-CN": "C – G – Am – F 进行"
+        "zh-CN": "C – G – Am – F 进行",
+        "en": "The C – G – Am – F progression"
       },
       "summary": {
-        "zh-CN": "流行歌里最常见的进行之一，练和弦之间的切换。"
+        "zh-CN": "流行歌里最常见的进行之一，练和弦之间的切换。",
+        "en": "One of the most common progressions in pop; practise changing between chords."
       },
       "prerequisites": ["c-major-triads"],
       "encompasses": [
@@ -1532,7 +1569,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "C – G – Am – F 是流行歌里最常见的进行之一。这一课练的是切换：前一个和弦弹稳之后，尽快换到下一个。"
+              "zh-CN": "C – G – Am – F 是流行歌里最常见的进行之一。这一课练的是切换：前一个和弦弹稳之后，尽快换到下一个。",
+              "en": "C – G – Am – F is one of the most common pop progressions. This lesson is about changes: once a chord is stable, switch to the next as fast as you can."
             },
             "demo": {
               "chord": "c",
@@ -1542,7 +1580,8 @@
           },
           {
             "text": {
-              "zh-CN": "注意共同音：C 到 Am 时右手的 C、E 不用动，只把 G 换成 A。"
+              "zh-CN": "注意共同音：C 到 Am 时右手的 C、E 不用动，只把 G 换成 A。",
+              "en": "Watch the common tones: from C to Am the right hand keeps C and E and only moves G to A."
             },
             "demo": {
               "chord": "am",
@@ -1552,7 +1591,8 @@
           },
           {
             "text": {
-              "zh-CN": "计时从前一个和弦弹稳开始，到下一个和弦的最后一个音落下为止。"
+              "zh-CN": "计时从前一个和弦弹稳开始，到下一个和弦的最后一个音落下为止。",
+              "en": "Timing runs from when the previous chord is stable until the last note of the next chord lands."
             },
             "demo": {
               "chord": "g",
@@ -1578,10 +1618,12 @@
     {
       "id": "triads-12-keys",
       "title": {
-        "zh-CN": "12 调大三、小三和弦"
+        "zh-CN": "12 调大三、小三和弦",
+        "en": "Major and minor triads in 12 keys"
       },
       "summary": {
-        "zh-CN": "用公式在任何根音上搭出大三、小三和弦。"
+        "zh-CN": "用公式在任何根音上搭出大三、小三和弦。",
+        "en": "Build major and minor triads on any root with the formula."
       },
       "prerequisites": ["major-triad-formula", "minor-triad-formula"],
       "encompasses": [
@@ -1627,7 +1669,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "用公式在任何根音上搭三和弦：大三 = +4 +3，小三 = +3 +4。黑键上的根音也一样数半音。例如 E♭：E♭ +4 G +3 B♭。"
+              "zh-CN": "用公式在任何根音上搭三和弦：大三 = +4 +3，小三 = +3 +4。黑键上的根音也一样数半音。例如 E♭：E♭ +4 G +3 B♭。",
+              "en": "Build triads on any root with the formula: major = +4 +3, minor = +3 +4. Count semitones the same way from black-key roots, e.g. E♭: E♭ +4 G +3 B♭."
             },
             "demo": {
               "chord": "eb",
@@ -1637,7 +1680,8 @@
           },
           {
             "text": {
-              "zh-CN": "F♯m：F♯ +3 A +4 C♯。"
+              "zh-CN": "F♯m：F♯ +3 A +4 C♯。",
+              "en": "F♯m: F♯ +3 A +4 C♯."
             },
             "demo": {
               "chord": "fsm",
@@ -1647,7 +1691,8 @@
           },
           {
             "text": {
-              "zh-CN": "任意转位都算对，左手可以不弹。"
+              "zh-CN": "任意转位都算对，左手可以不弹。",
+              "en": "Any inversion counts, and the left hand is optional."
             },
             "demo": {
               "chord": "bbm",
@@ -1673,10 +1718,12 @@
     {
       "id": "inversions",
       "title": {
-        "zh-CN": "转位"
+        "zh-CN": "转位",
+        "en": "Inversions"
       },
       "summary": {
-        "zh-CN": "把最低的音移到上面得到转位；斜杠后面的音是最低音。"
+        "zh-CN": "把最低的音移到上面得到转位；斜杠后面的音是最低音。",
+        "en": "Move the lowest note up to get an inversion; the note after the slash is the bass."
       },
       "prerequisites": ["c-major-triads"],
       "encompasses": [
@@ -1693,7 +1740,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "把三和弦最低的音移到最上面，就得到转位：C E G → E G C（第一转位）→ G C E（第二转位）。"
+              "zh-CN": "把三和弦最低的音移到最上面，就得到转位：C E G → E G C（第一转位）→ G C E（第二转位）。",
+              "en": "Move the lowest note of a triad to the top to get an inversion: C E G → E G C (first inversion) → G C E (second inversion)."
             },
             "demo": {
               "notes": ["E4", "G4", "C5"],
@@ -1703,7 +1751,8 @@
           },
           {
             "text": {
-              "zh-CN": "斜杠后面的音是最低音：C/E 表示最低音是 E 的 C 和弦。这一课要求最低的音必须是斜杠后面的音。"
+              "zh-CN": "斜杠后面的音是最低音：C/E 表示最低音是 E 的 C 和弦。这一课要求最低的音必须是斜杠后面的音。",
+              "en": "The note after the slash is the lowest note: C/E is a C chord with E in the bass. In this lesson the lowest note must be the one after the slash."
             },
             "demo": {
               "chord": "c-on-e",
@@ -1713,7 +1762,8 @@
           },
           {
             "text": {
-              "zh-CN": "第二转位：C/G。"
+              "zh-CN": "第二转位：C/G。",
+              "en": "Second inversion: C/G."
             },
             "demo": {
               "chord": "c-on-g",
@@ -1739,10 +1789,12 @@
     {
       "id": "voice-leading",
       "title": {
-        "zh-CN": "就近转位与声部进行"
+        "zh-CN": "就近转位与声部进行",
+        "en": "Nearest inversions and voice leading"
       },
       "summary": {
-        "zh-CN": "换和弦时右手找最近的转位：共同音不动，其他音只走半音或全音。"
+        "zh-CN": "换和弦时右手找最近的转位：共同音不动，其他音只走半音或全音。",
+        "en": "When changing chords, move the right hand to the nearest inversion: hold common tones, move the others by a semitone or tone."
       },
       "prerequisites": ["inversions", "prog-c-g-am-f"],
       "encompasses": [
@@ -1764,7 +1816,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "换和弦时，右手不必每次都弹原位，而是找离当前位置最近的转位：共同音保持不动，其他音只移动半音或全音。"
+              "zh-CN": "换和弦时，右手不必每次都弹原位，而是找离当前位置最近的转位：共同音保持不动，其他音只移动半音或全音。",
+              "en": "When changing chords the right hand does not have to return to root position: find the inversion nearest to where you are. Common tones stay; the other notes move by a semitone or a whole tone."
             },
             "demo": {
               "chord": "c",
@@ -1774,7 +1827,8 @@
           },
           {
             "text": {
-              "zh-CN": "C → G：右手 C E G 变成 B D G。G 不动，C 下行半音到 B，E 下行全音到 D。"
+              "zh-CN": "C → G：右手 C E G 变成 B D G。G 不动，C 下行半音到 B，E 下行全音到 D。",
+              "en": "C → G: the right hand's C E G becomes B D G. G stays, C moves down a semitone to B, E down a tone to D."
             },
             "demo": {
               "chord": "g",
@@ -1784,7 +1838,8 @@
           },
           {
             "text": {
-              "zh-CN": "这一课用严格判定：必须弹参考键位（键盘图上的位置）。"
+              "zh-CN": "这一课用严格判定：必须弹参考键位（键盘图上的位置）。",
+              "en": "This lesson is judged strictly: play the reference voicing shown on the keyboard."
             },
             "demo": {
               "chord": "am",
@@ -1810,10 +1865,12 @@
     {
       "id": "royal-road",
       "title": {
-        "zh-CN": "王道进行（C 调、G 调）"
+        "zh-CN": "王道进行（C 调、G 调）",
+        "en": "Royal Road progression (C and G)"
       },
       "summary": {
-        "zh-CN": "IV – V – iii – vi：F – G – Em – Am 与 C – D – Bm – Em。"
+        "zh-CN": "IV – V – iii – vi：F – G – Em – Am 与 C – D – Bm – Em。",
+        "en": "IV – V – iii – vi: F – G – Em – Am and C – D – Bm – Em."
       },
       "prerequisites": ["voice-leading", "triads-12-keys"],
       "encompasses": [
@@ -1835,7 +1892,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "王道进行 IV – V – iii – vi：C 调是 F – G – Em – Am，G 调是 C – D – Bm – Em。"
+              "zh-CN": "王道进行 IV – V – iii – vi：C 调是 F – G – Em – Am，G 调是 C – D – Bm – Em。",
+              "en": "The Royal Road progression IV – V – iii – vi: F – G – Em – Am in C, C – D – Bm – Em in G."
             },
             "demo": {
               "chord": "f",
@@ -1845,7 +1903,8 @@
           },
           {
             "text": {
-              "zh-CN": "G 调里也按就近转位：从 C 到 D，右手三个音都上行全音。"
+              "zh-CN": "G 调里也按就近转位：从 C 到 D，右手三个音都上行全音。",
+              "en": "In G, use nearest inversions too: from C to D all three right-hand notes move up a whole tone."
             },
             "demo": {
               "chord": "d",
@@ -1871,10 +1930,12 @@
     {
       "id": "maj7-formula",
       "title": {
-        "zh-CN": "大七和弦 M7"
+        "zh-CN": "大七和弦 M7",
+        "en": "Major seventh chords (M7)"
       },
       "summary": {
-        "zh-CN": "M7 = 大三和弦 + 大七度（比根音低半音的音）。"
+        "zh-CN": "M7 = 大三和弦 + 大七度（比根音低半音的音）。",
+        "en": "M7 = major triad + major seventh (a semitone below the root)."
       },
       "prerequisites": ["c-major-triads"],
       "encompasses": [
@@ -1891,7 +1952,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "七和弦 = 三和弦再叠一个三度。大七和弦 M7 = 大三和弦 + 大七度：C E G B，B 比上面的 C 低半音。"
+              "zh-CN": "七和弦 = 三和弦再叠一个三度。大七和弦 M7 = 大三和弦 + 大七度：C E G B，B 比上面的 C 低半音。",
+              "en": "A seventh chord is a triad with another third on top. Major seventh M7 = major triad + major seventh: C E G B, where B is a semitone below the next C."
             },
             "demo": {
               "chord": "cmaj7",
@@ -1901,7 +1963,8 @@
           },
           {
             "text": {
-              "zh-CN": "写作 CM7（也写 Cmaj7、C△7）。参考键位里右手常常省略根音：FM7 = 左手 F，右手 A C E。"
+              "zh-CN": "写作 CM7（也写 Cmaj7、C△7）。参考键位里右手常常省略根音：FM7 = 左手 F，右手 A C E。",
+              "en": "Written CM7 (also Cmaj7, C△7). The reference voicings often leave the root out of the right hand: FM7 = F in the left hand, A C E in the right."
             },
             "demo": {
               "chord": "fmaj7",
@@ -1928,10 +1991,12 @@
     {
       "id": "dom7-formula",
       "title": {
-        "zh-CN": "属七和弦 7"
+        "zh-CN": "属七和弦 7",
+        "en": "Dominant seventh chords (7)"
       },
       "summary": {
-        "zh-CN": "7 = 大三和弦 + 小七度（比根音低全音的音）。"
+        "zh-CN": "7 = 大三和弦 + 小七度（比根音低全音的音）。",
+        "en": "7 = major triad + minor seventh (a whole tone below the root)."
       },
       "prerequisites": ["c-major-triads"],
       "encompasses": [
@@ -1948,7 +2013,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "属七和弦 7 = 大三和弦 + 小七度：C E G B♭，B♭ 比上面的 C 低全音。"
+              "zh-CN": "属七和弦 7 = 大三和弦 + 小七度：C E G B♭，B♭ 比上面的 C 低全音。",
+              "en": "Dominant seventh 7 = major triad + minor seventh: C E G B♭, where B♭ is a whole tone below the next C."
             },
             "demo": {
               "chord": "c7",
@@ -1958,7 +2024,8 @@
           },
           {
             "text": {
-              "zh-CN": "C7 和 CM7 只差一个音（B♭ 和 B），很容易混。所以它们安排在不同的日子学，都学会之后再对比练习。"
+              "zh-CN": "C7 和 CM7 只差一个音（B♭ 和 B），很容易混。所以它们安排在不同的日子学，都学会之后再对比练习。",
+              "en": "C7 and CM7 differ by a single note (B♭ vs B) and are easy to mix up, so they are introduced on different days and contrasted once both are learned."
             },
             "demo": {
               "chord": "g7",
@@ -1985,10 +2052,12 @@
     {
       "id": "m7-formula",
       "title": {
-        "zh-CN": "小七和弦 m7"
+        "zh-CN": "小七和弦 m7",
+        "en": "Minor seventh chords (m7)"
       },
       "summary": {
-        "zh-CN": "m7 = 小三和弦 + 小七度。"
+        "zh-CN": "m7 = 小三和弦 + 小七度。",
+        "en": "m7 = minor triad + minor seventh."
       },
       "prerequisites": ["c-major-triads"],
       "encompasses": [
@@ -2005,7 +2074,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "小七和弦 m7 = 小三和弦 + 小七度：A C E G。"
+              "zh-CN": "小七和弦 m7 = 小三和弦 + 小七度：A C E G。",
+              "en": "Minor seventh m7 = minor triad + minor seventh: A C E G."
             },
             "demo": {
               "chord": "am7",
@@ -2015,7 +2085,8 @@
           },
           {
             "text": {
-              "zh-CN": "Dm7、Em7、Am7 都是 C 调里的小七和弦。"
+              "zh-CN": "Dm7、Em7、Am7 都是 C 调里的小七和弦。",
+              "en": "Dm7, Em7 and Am7 are the minor seventh chords in C."
             },
             "demo": {
               "chord": "dm7",
@@ -2042,10 +2113,12 @@
     {
       "id": "m7b5-formula",
       "title": {
-        "zh-CN": "半减七和弦 m7♭5"
+        "zh-CN": "半减七和弦 m7♭5",
+        "en": "Half-diminished chords (m7♭5)"
       },
       "summary": {
-        "zh-CN": "m7♭5 = 小七和弦把五音降半音。"
+        "zh-CN": "m7♭5 = 小七和弦把五音降半音。",
+        "en": "m7♭5 = a minor seventh chord with the fifth lowered a semitone."
       },
       "prerequisites": ["m7-formula"],
       "encompasses": [
@@ -2062,7 +2135,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "m7♭5 = 小七和弦把五音降半音：B D F A。"
+              "zh-CN": "m7♭5 = 小七和弦把五音降半音：B D F A。",
+              "en": "m7♭5 = minor seventh with the fifth lowered a semitone: B D F A."
             },
             "demo": {
               "chord": "bm7b5",
@@ -2072,7 +2146,8 @@
           },
           {
             "text": {
-              "zh-CN": "它是 C 调 VII 级上的七和弦，在小调的 II – V – I 里很常见。"
+              "zh-CN": "它是 C 调 VII 级上的七和弦，在小调的 II – V – I 里很常见。",
+              "en": "It is the seventh chord on degree VII of C major, and common in minor-key ii – V – i."
             },
             "demo": {
               "chord": "em7b5",
@@ -2099,10 +2174,12 @@
     {
       "id": "c-major-sevenths",
       "title": {
-        "zh-CN": "C 调七和弦"
+        "zh-CN": "C 调七和弦",
+        "en": "Seventh chords in C major"
       },
       "summary": {
-        "zh-CN": "CM7、Dm7、Em7、FM7、G7、Am7、Bm7♭5。"
+        "zh-CN": "CM7、Dm7、Em7、FM7、G7、Am7、Bm7♭5。",
+        "en": "CM7, Dm7, Em7, FM7, G7, Am7, Bm7♭5."
       },
       "prerequisites": ["maj7-formula", "dom7-formula", "m7-formula", "m7b5-formula"],
       "encompasses": [
@@ -2131,7 +2208,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "C 大调每个音上的七和弦：CM7、Dm7、Em7、FM7、G7、Am7、Bm7♭5。"
+              "zh-CN": "C 大调每个音上的七和弦：CM7、Dm7、Em7、FM7、G7、Am7、Bm7♭5。",
+              "en": "The seventh chords on each note of C major: CM7, Dm7, Em7, FM7, G7, Am7, Bm7♭5."
             },
             "demo": {
               "notes": ["C4", "D4", "E4", "F4", "G4", "A4", "B4"],
@@ -2141,7 +2219,8 @@
           },
           {
             "text": {
-              "zh-CN": "FM7、Am7、Dm7、G7、CM7 用参考键位，其他和弦的键位按公式自动排列。判定是宽松的。"
+              "zh-CN": "FM7、Am7、Dm7、G7、CM7 用参考键位，其他和弦的键位按公式自动排列。判定是宽松的。",
+              "en": "FM7, Am7, Dm7, G7 and CM7 use reference voicings; the others are generated from the formula. Judging is loose."
             },
             "demo": {
               "chord": "fmaj7",
@@ -2167,10 +2246,12 @@
     {
       "id": "ii-v-i",
       "title": {
-        "zh-CN": "II – V – I"
+        "zh-CN": "II – V – I",
+        "en": "ii – V – I"
       },
       "summary": {
-        "zh-CN": "Dm7 – G7 – CM7：爵士与流行里最重要的终止式。"
+        "zh-CN": "Dm7 – G7 – CM7：爵士与流行里最重要的终止式。",
+        "en": "Dm7 – G7 – CM7: the most important cadence in jazz and pop."
       },
       "prerequisites": ["c-major-sevenths", "voice-leading"],
       "encompasses": [
@@ -2192,7 +2273,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "II – V – I 是爵士和流行里最重要的终止式。C 调是 Dm7 – G7 – CM7。"
+              "zh-CN": "II – V – I 是爵士和流行里最重要的终止式。C 调是 Dm7 – G7 – CM7。",
+              "en": "ii – V – I is the most important cadence in jazz and pop. In C: Dm7 – G7 – CM7."
             },
             "demo": {
               "chord": "dm7",
@@ -2202,7 +2284,8 @@
           },
           {
             "text": {
-              "zh-CN": "就近转位：Dm7 → G7 时 F 不动，A 下行全音到 G，C 下行半音到 B。"
+              "zh-CN": "就近转位：Dm7 → G7 时 F 不动，A 下行全音到 G，C 下行半音到 B。",
+              "en": "Nearest inversions: Dm7 → G7 keeps F, moves A down a tone to G and C down a semitone to B."
             },
             "demo": {
               "chord": "g7",
@@ -2228,10 +2311,12 @@
     {
       "id": "marusa",
       "title": {
-        "zh-CN": "丸サ進行"
+        "zh-CN": "丸サ進行",
+        "en": "Marunouchi Sadistic progression"
       },
       "summary": {
-        "zh-CN": "FM7 – E7 – Am7 – Gm7 – C7(9)。"
+        "zh-CN": "FM7 – E7 – Am7 – Gm7 – C7(9)。",
+        "en": "FM7 – E7 – Am7 – Gm7 – C7(9)."
       },
       "prerequisites": ["ii-v-i"],
       "encompasses": [
@@ -2261,7 +2346,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "丸サ進行 FM7 – E7 – Am7 – Gm7 – C7(9)，在日本流行歌里很常见。"
+              "zh-CN": "丸サ進行 FM7 – E7 – Am7 – Gm7 – C7(9)，在日本流行歌里很常见。",
+              "en": "The Marunouchi Sadistic progression (丸サ進行), FM7 – E7 – Am7 – Gm7 – C7(9), is everywhere in Japanese pop."
             },
             "demo": {
               "chord": "fmaj7",
@@ -2271,7 +2357,8 @@
           },
           {
             "text": {
-              "zh-CN": "C7(9) 是在 C7 上再加九音 D（括号表示附加的扩展音）。参考键位：左手 C，右手 E B♭ D。"
+              "zh-CN": "C7(9) 是在 C7 上再加九音 D（括号表示附加的扩展音）。参考键位：左手 C，右手 E B♭ D。",
+              "en": "C7(9) is C7 with the ninth D added (brackets mark an added tension). Reference voicing: C in the left hand, E B♭ D in the right."
             },
             "demo": {
               "chord": "c7-9",
@@ -2297,10 +2384,12 @@
     {
       "id": "steady-c-g-am-f",
       "title": {
-        "zh-CN": "跟着节拍器弹 C–G–Am–F"
+        "zh-CN": "跟着节拍器弹 C–G–Am–F",
+        "en": "C–G–Am–F with a metronome"
       },
       "summary": {
-        "zh-CN": "每个和弦 4 拍，在拍点上换和弦，不停下来。"
+        "zh-CN": "每个和弦 4 拍，在拍点上换和弦，不停下来。",
+        "en": "Four beats per chord, change on the beat, without stopping."
       },
       "prerequisites": ["prog-c-g-am-f"],
       "encompasses": [
@@ -2318,12 +2407,14 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "到现在为止，你都是想好了再弹。接下来要跟着节拍器弹：和弦在拍点上落下，节拍器不会等人。"
+              "zh-CN": "到现在为止，你都是想好了再弹。接下来要跟着节拍器弹：和弦在拍点上落下，节拍器不会等人。",
+              "en": "So far you have played each chord when ready. Now you play with a metronome: chords land on the beat, and the metronome does not wait."
             }
           },
           {
             "text": {
-              "zh-CN": "节拍器先数一小节预备拍（4 下），然后在第 1 拍弹 C。每个和弦 4 拍，数到下一小节的第 1 拍就换下一个和弦。"
+              "zh-CN": "节拍器先数一小节预备拍（4 下），然后在第 1 拍弹 C。每个和弦 4 拍，数到下一小节的第 1 拍就换下一个和弦。",
+              "en": "The metronome counts one bar in (4 clicks), then play C on beat 1. Each chord lasts 4 beats; change on beat 1 of the next bar."
             },
             "demo": {
               "chord": "c",
@@ -2333,7 +2424,8 @@
           },
           {
             "text": {
-              "zh-CN": "提前准备：在当前和弦的第 4 拍就把手移到下一个和弦上方，第 1 拍正好落下。两个和弦的共同音（例如 C 到 Am 的 C、E）可以一直按着不放。"
+              "zh-CN": "提前准备：在当前和弦的第 4 拍就把手移到下一个和弦上方，第 1 拍正好落下。两个和弦的共同音（例如 C 到 Am 的 C、E）可以一直按着不放。",
+              "en": "Prepare early: on beat 4 of the current chord, move your hand over the next chord so it lands exactly on beat 1. Common tones (e.g. C and E from C to Am) can stay held."
             },
             "demo": {
               "chord": "am",
@@ -2343,7 +2435,8 @@
           },
           {
             "text": {
-              "zh-CN": "过关标准：不停顿、没有错音、和弦的音同时落下、跟住节拍器。界面会显示每个和弦是早了还是晚了多少毫秒。练之前建议先到设置里做一次延迟校准。"
+              "zh-CN": "过关标准：不停顿、没有错音、和弦的音同时落下、跟住节拍器。界面会显示每个和弦是早了还是晚了多少毫秒。练之前建议先到设置里做一次延迟校准。",
+              "en": "To pass: no stopping, no wrong notes, notes together, with the metronome. Each chord shows how many milliseconds early or late it was. Do a latency calibration in Settings first."
             }
           }
         ],
@@ -2361,10 +2454,12 @@
     {
       "id": "sixteenth-anticipation",
       "title": {
-        "zh-CN": "16 分音符先行切分"
+        "zh-CN": "16 分音符先行切分",
+        "en": "16th-note anticipation"
       },
       "summary": {
-        "zh-CN": "和弦提前一个 16 分音符换过去：J-pop 里最常见的“往前推”的节奏。"
+        "zh-CN": "和弦提前一个 16 分音符换过去：J-pop 里最常见的“往前推”的节奏。",
+        "en": "Change chords one 16th note early: the forward push typical of J-pop."
       },
       "prerequisites": ["steady-c-g-am-f"],
       "encompasses": [
@@ -2382,17 +2477,20 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "J-pop 里很常见的一种节奏：和弦不在小节的第 1 拍换，而是提前一个 16 分音符，在上一小节第 4 拍的最后一个 16 分音符就换过去（日语叫“食い”）。"
+              "zh-CN": "J-pop 里很常见的一种节奏：和弦不在小节的第 1 拍换，而是提前一个 16 分音符，在上一小节第 4 拍的最后一个 16 分音符就换过去（日语叫“食い”）。",
+              "en": "A very common J-pop rhythm: the chord changes not on beat 1 but one 16th note early, on the last 16th of beat 4 of the previous bar (called “食い” in Japanese)."
             }
           },
           {
             "text": {
-              "zh-CN": "一拍可以分成 4 个 16 分音符，数作“1 e & a”。先行切分就是在第 4 拍的“a”换和弦，听起来像整首歌往前推了一下。"
+              "zh-CN": "一拍可以分成 4 个 16 分音符，数作“1 e & a”。先行切分就是在第 4 拍的“a”换和弦，听起来像整首歌往前推了一下。",
+              "en": "One beat splits into four 16ths, counted “1 e & a”. Anticipation means changing on the “a” of beat 4, which makes the song feel pushed forward."
             }
           },
           {
             "text": {
-              "zh-CN": "练习时节拍器照常数拍，判定位置提前一个 16 分音符：比拍点早一个 16 分音符落下才算在拍上。第一遍的第一个和弦仍在第 1 拍。"
+              "zh-CN": "练习时节拍器照常数拍，判定位置提前一个 16 分音符：比拍点早一个 16 分音符落下才算在拍上。第一遍的第一个和弦仍在第 1 拍。",
+              "en": "The metronome counts as usual, but the target is one 16th note early: landing a 16th before the beat counts as on time. The very first chord still lands on beat 1."
             },
             "demo": {
               "chord": "g",
@@ -2402,7 +2500,8 @@
           },
           {
             "text": {
-              "zh-CN": "先在慢速下一边弹一边小声数“1 e & a 2 e & a…”，熟练之后再加快。"
+              "zh-CN": "先在慢速下一边弹一边小声数“1 e & a 2 e & a…”，熟练之后再加快。",
+              "en": "Start slowly, counting “1 e & a 2 e & a…” under your breath while you play, then speed up."
             }
           }
         ],
@@ -2420,10 +2519,12 @@
     {
       "id": "marusa-tempo",
       "title": {
-        "zh-CN": "跟拍弹丸サ進行"
+        "zh-CN": "跟拍弹丸サ進行",
+        "en": "Marunouchi Sadistic with a metronome"
       },
       "summary": {
-        "zh-CN": "FM7 – E7 – Am7 – Gm7 C7(9)，跟着节拍器不停下来地弹。"
+        "zh-CN": "FM7 – E7 – Am7 – Gm7 C7(9)，跟着节拍器不停下来地弹。",
+        "en": "FM7 – E7 – Am7 – Gm7 C7(9), with the metronome, without stopping."
       },
       "prerequisites": ["marusa", "steady-c-g-am-f"],
       "encompasses": [
@@ -2446,7 +2547,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "丸サ進行：FM7 – E7 – Am7 – Gm7 C7(9)。前三个和弦各 4 拍，最后的 Gm7 和 C7(9) 各 2 拍，换得更快。"
+              "zh-CN": "丸サ進行：FM7 – E7 – Am7 – Gm7 C7(9)。前三个和弦各 4 拍，最后的 Gm7 和 C7(9) 各 2 拍，换得更快。",
+              "en": "Marunouchi Sadistic: FM7 – E7 – Am7 – Gm7 C7(9). The first three chords get 4 beats each; Gm7 and C7(9) get 2 beats each, so the changes come faster."
             },
             "demo": {
               "chord": "fmaj7",
@@ -2456,7 +2558,8 @@
           },
           {
             "text": {
-              "zh-CN": "Gm7 到 C7(9) 只隔 2 拍。右手的 B♭4、D5 不动，只有 F4 下移半音到 E4；左手从 G3 换到 C3。"
+              "zh-CN": "Gm7 到 C7(9) 只隔 2 拍。右手的 B♭4、D5 不动，只有 F4 下移半音到 E4；左手从 G3 换到 C3。",
+              "en": "Gm7 to C7(9) is only 2 beats. The right hand keeps B♭4 and D5 and only moves F4 down a semitone to E4; the left hand moves from G3 to C3."
             },
             "demo": {
               "chord": "c7-9",
@@ -2466,7 +2569,8 @@
           },
           {
             "text": {
-              "zh-CN": "这一课按参考键位判定（严格模式），练的是固定的手型和声部进行。过关标准和前面一样：不停顿、没有错音、同时落下、跟住节拍器。"
+              "zh-CN": "这一课按参考键位判定（严格模式），练的是固定的手型和声部进行。过关标准和前面一样：不停顿、没有错音、同时落下、跟住节拍器。",
+              "en": "This lesson is judged against the reference voicing (strict): it trains a fixed hand shape and voice leading. Same pass criteria: no stopping, no wrong notes, together, with the metronome."
             }
           }
         ],
@@ -2484,10 +2588,12 @@
     {
       "id": "build-triads",
       "title": {
-        "zh-CN": "12 调构建：三和弦"
+        "zh-CN": "12 调构建：三和弦",
+        "en": "Building triads in 12 keys"
       },
       "summary": {
-        "zh-CN": "看文字名称（例如“E♭ 小三和弦”）弹出和弦，任意转位都算对。"
+        "zh-CN": "看文字名称（例如“E♭ 小三和弦”）弹出和弦，任意转位都算对。",
+        "en": "Play a chord from its name in words (e.g. “E♭ minor”); any inversion counts."
       },
       "prerequisites": ["triads-12-keys"],
       "encompasses": [
@@ -2530,12 +2636,14 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "这一课不给和弦符号，只给文字名称，例如“E♭ 小三和弦”“F♯ 大三和弦”。你要自己从根音出发，用公式搭出和弦。"
+              "zh-CN": "这一课不给和弦符号，只给文字名称，例如“E♭ 小三和弦”“F♯ 大三和弦”。你要自己从根音出发，用公式搭出和弦。",
+              "en": "No chord symbols here, just names in words such as “E♭ minor” or “F♯ major”. Start from the root and build the chord with the formula."
             }
           },
           {
             "text": {
-              "zh-CN": "大三和弦 = 根音 +4 +3 个半音；小三和弦 = 根音 +3 +4 个半音。先找到根音，再数半音。"
+              "zh-CN": "大三和弦 = 根音 +4 +3 个半音；小三和弦 = 根音 +3 +4 个半音。先找到根音，再数半音。",
+              "en": "Major = root +4 +3 semitones; minor = root +3 +4. Find the root first, then count."
             },
             "demo": {
               "chord": "ebm",
@@ -2546,7 +2654,8 @@
           },
           {
             "text": {
-              "zh-CN": "任意转位、任意八度都算对，重点是快速想出组成音。"
+              "zh-CN": "任意转位、任意八度都算对，重点是快速想出组成音。",
+              "en": "Any inversion and any octave counts: the point is to find the chord tones quickly."
             }
           }
         ],
@@ -2567,10 +2676,12 @@
     {
       "id": "build-sevenths",
       "title": {
-        "zh-CN": "12 调构建：七和弦"
+        "zh-CN": "12 调构建：七和弦",
+        "en": "Building seventh chords in 12 keys"
       },
       "summary": {
-        "zh-CN": "看文字名称（例如“D♭ 属七和弦”）弹出 12 个调的大七、属七、小七和弦。"
+        "zh-CN": "看文字名称（例如“D♭ 属七和弦”）弹出 12 个调的大七、属七、小七和弦。",
+        "en": "Play major, dominant and minor seventh chords in 12 keys from their names (e.g. “D♭ dominant seventh”)."
       },
       "prerequisites": ["build-triads", "c-major-sevenths"],
       "encompasses": [
@@ -2625,7 +2736,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "大七和弦（M7）= 大三和弦 + 根音下方半音的音（大七度）；属七和弦（7）= 大三和弦 + 根音下方全音的音（小七度）；小七和弦（m7）= 小三和弦 + 小七度。"
+              "zh-CN": "大七和弦（M7）= 大三和弦 + 根音下方半音的音（大七度）；属七和弦（7）= 大三和弦 + 根音下方全音的音（小七度）；小七和弦（m7）= 小三和弦 + 小七度。",
+              "en": "Major seventh (M7) = major triad + the note a semitone below the root (major seventh); dominant seventh (7) = major triad + the note a whole tone below the root (minor seventh); minor seventh (m7) = minor triad + minor seventh."
             },
             "demo": {
               "chord": "dbmaj7",
@@ -2636,12 +2748,14 @@
           },
           {
             "text": {
-              "zh-CN": "先搭三和弦，再加第四个音：大七度离根音只差一个半音，小七度差一个全音。"
+              "zh-CN": "先搭三和弦，再加第四个音：大七度离根音只差一个半音，小七度差一个全音。",
+              "en": "Build the triad first, then add the fourth note: the major seventh is a semitone below the root, the minor seventh a whole tone."
             }
           },
           {
             "text": {
-              "zh-CN": "任意转位都算对。"
+              "zh-CN": "任意转位都算对。",
+              "en": "Any inversion counts."
             }
           }
         ],
@@ -2662,10 +2776,12 @@
     {
       "id": "roman-c",
       "title": {
-        "zh-CN": "C 调的级数"
+        "zh-CN": "C 调的级数",
+        "en": "Roman numerals in C"
       },
       "summary": {
-        "zh-CN": "用级数（I、IIm、IIIm、IV、V、VIm）说出 C 调里的和弦，看级数弹出来。"
+        "zh-CN": "用级数（I、IIm、IIIm、IV、V、VIm）说出 C 调里的和弦，看级数弹出来。",
+        "en": "Name the chords of C by degree (I, IIm, IIIm, IV, V, VIm) and play them from the numeral."
       },
       "prerequisites": ["c-major-triads"],
       "encompasses": [
@@ -2684,12 +2800,14 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "级数用罗马数字表示和弦的根音是调里的第几个音：C 调里 C 是 I，D 是 II，E 是 III，F 是 IV，G 是 V，A 是 VI。"
+              "zh-CN": "级数用罗马数字表示和弦的根音是调里的第几个音：C 调里 C 是 I，D 是 II，E 是 III，F 是 IV，G 是 V，A 是 VI。",
+              "en": "A Roman numeral says which note of the key the chord is built on: in C, C is I, D is II, E is III, F is IV, G is V and A is VI."
             }
           },
           {
             "text": {
-              "zh-CN": "后面跟和弦性质：小三和弦写 m（IIm = Dm，VIm = Am），七和弦写 7（V7 = G7）。这是 J-pop 常用的写法。"
+              "zh-CN": "后面跟和弦性质：小三和弦写 m（IIm = Dm，VIm = Am），七和弦写 7（V7 = G7）。这是 J-pop 常用的写法。",
+              "en": "The chord quality follows: minor gets an m (IIm = Dm, VIm = Am), sevenths a 7 (V7 = G7). This is the style common in J-pop."
             },
             "demo": {
               "chord": "am",
@@ -2700,7 +2818,8 @@
           },
           {
             "text": {
-              "zh-CN": "记住级数，换调的时候只要把同样的级数搬到新的调里，例如王道进行就是 IV–V–IIIm–VIm。"
+              "zh-CN": "记住级数，换调的时候只要把同样的级数搬到新的调里，例如王道进行就是 IV–V–IIIm–VIm。",
+              "en": "Learn the numerals and you can move any progression to a new key: the Royal Road is IV–V–IIIm–VIm in every key."
             }
           }
         ],
@@ -2721,10 +2840,12 @@
     {
       "id": "ear-c-triads",
       "title": {
-        "zh-CN": "听辨：C 调里的和弦"
+        "zh-CN": "听辨：C 调里的和弦",
+        "en": "Ear training: chords in C"
       },
       "summary": {
-        "zh-CN": "先听 C 调的终止式（I–IV–V–I）确定调性，再听一个和弦，答出它的级数或在琴上弹出来。"
+        "zh-CN": "先听 C 调的终止式（I–IV–V–I）确定调性，再听一个和弦，答出它的级数或在琴上弹出来。",
+        "en": "Hear the C cadence (I–IV–V–I) to set the key, then name the next chord by degree or play it."
       },
       "prerequisites": ["roman-c"],
       "encompasses": [
@@ -2743,7 +2864,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "每一题先播放 C 调的终止式 C–F–G–C，耳朵记住“家”在哪里，然后播放目标和弦。"
+              "zh-CN": "每一题先播放 C 调的终止式 C–F–G–C，耳朵记住“家”在哪里，然后播放目标和弦。",
+              "en": "Each question first plays the C cadence C–F–G–C so your ear knows where “home” is, then the target chord."
             },
             "demo": {
               "chord": "c",
@@ -2755,12 +2877,14 @@
           },
           {
             "text": {
-              "zh-CN": "可以点级数按钮回答，也可以直接在琴上弹出这个和弦。从目标和弦响起时开始计时。"
+              "zh-CN": "可以点级数按钮回答，也可以直接在琴上弹出这个和弦。从目标和弦响起时开始计时。",
+              "en": "Tap a numeral button or play the chord on your keyboard. Timing starts when the target chord sounds."
             }
           },
           {
             "text": {
-              "zh-CN": "听的时候注意：大三和弦（I、IV、V）明亮，小三和弦（IIm、IIIm、VIm）偏暗。VIm 听起来像“伤感的 I”。"
+              "zh-CN": "听的时候注意：大三和弦（I、IV、V）明亮，小三和弦（IIm、IIIm、VIm）偏暗。VIm 听起来像“伤感的 I”。",
+              "en": "Listen for colour: the major chords (I, IV, V) sound bright, the minor ones (IIm, IIIm, VIm) darker. VIm sounds like a “sad I”."
             },
             "demo": {
               "chord": "am",
@@ -2772,7 +2896,8 @@
           },
           {
             "text": {
-              "zh-CN": "听不清可以点“重听”。"
+              "zh-CN": "听不清可以点“重听”。",
+              "en": "Did not catch it? Press Replay."
             }
           }
         ],
@@ -2793,10 +2918,12 @@
     {
       "id": "contrast-major-minor",
       "title": {
-        "zh-CN": "对比：大三和弦与小三和弦"
+        "zh-CN": "对比：大三和弦与小三和弦",
+        "en": "Contrast: major vs minor triads"
       },
       "summary": {
-        "zh-CN": "每次只差一个音（三音高半音或低半音）。听声音，从一对里选出它。"
+        "zh-CN": "每次只差一个音（三音高半音或低半音）。听声音，从一对里选出它。",
+        "en": "They differ by one note (the third, a semitone higher or lower). Listen and pick which one you heard."
       },
       "prerequisites": ["major-triad-formula", "minor-triad-formula", "c-major-triads"],
       "encompasses": [],
@@ -2808,7 +2935,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "C 和 Cm 只差一个音：E 和 E♭。大三和弦明亮，小三和弦偏暗。"
+              "zh-CN": "C 和 Cm 只差一个音：E 和 E♭。大三和弦明亮，小三和弦偏暗。",
+              "en": "C and Cm differ by one note: E vs E♭. Major sounds bright, minor darker."
             },
             "demo": {
               "chord": "c",
@@ -2819,7 +2947,8 @@
           },
           {
             "text": {
-              "zh-CN": "对比着听 Cm。"
+              "zh-CN": "对比着听 Cm。",
+              "en": "Now compare with Cm."
             },
             "demo": {
               "chord": "cm",
@@ -2830,7 +2959,8 @@
           },
           {
             "text": {
-              "zh-CN": "每题播放一对里的一个，选出是哪一个，或者在琴上弹出来。答完会告诉你这一对差在哪个音。"
+              "zh-CN": "每题播放一对里的一个，选出是哪一个，或者在琴上弹出来。答完会告诉你这一对差在哪个音。",
+              "en": "Each question plays one chord of a pair; pick which one or play it. Afterwards you will see which note makes the difference."
             }
           }
         ],
@@ -2851,10 +2981,12 @@
     {
       "id": "contrast-7-maj7",
       "title": {
-        "zh-CN": "对比：属七和弦与大七和弦"
+        "zh-CN": "对比：属七和弦与大七和弦",
+        "en": "Contrast: dominant vs major seventh"
       },
       "summary": {
-        "zh-CN": "7 和 M7 只差一个音（七音差半音）。听声音，从一对里选出它。"
+        "zh-CN": "7 和 M7 只差一个音（七音差半音）。听声音，从一对里选出它。",
+        "en": "7 and M7 differ by one note (the seventh, a semitone apart). Listen and pick which one you heard."
       },
       "prerequisites": ["maj7-formula", "dom7-formula"],
       "encompasses": [],
@@ -2866,7 +2998,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "C7 和 CM7 只差一个音：B♭ 和 B。属七和弦有“想往下走”的紧张感，大七和弦柔和、带一点漂浮感。"
+              "zh-CN": "C7 和 CM7 只差一个音：B♭ 和 B。属七和弦有“想往下走”的紧张感，大七和弦柔和、带一点漂浮感。",
+              "en": "C7 and CM7 differ by one note: B♭ vs B. The dominant seventh is tense and wants to move on; the major seventh is soft and a little floating."
             },
             "demo": {
               "chord": "c7",
@@ -2877,7 +3010,8 @@
           },
           {
             "text": {
-              "zh-CN": "对比着听 CM7。"
+              "zh-CN": "对比着听 CM7。",
+              "en": "Now compare with CM7."
             },
             "demo": {
               "chord": "cmaj7",
@@ -2888,7 +3022,8 @@
           },
           {
             "text": {
-              "zh-CN": "这两个和弦最容易混，之前分开学过，现在专门练区分。"
+              "zh-CN": "这两个和弦最容易混，之前分开学过，现在专门练区分。",
+              "en": "These two are the easiest to confuse. You learned them separately; now practise telling them apart."
             }
           }
         ],
@@ -2910,10 +3045,12 @@
     {
       "id": "contrast-m7-m7b5",
       "title": {
-        "zh-CN": "对比：小七和弦与半减七和弦"
+        "zh-CN": "对比：小七和弦与半减七和弦",
+        "en": "Contrast: minor seventh vs half-diminished"
       },
       "summary": {
-        "zh-CN": "m7 和 m7♭5 只差一个音（五音差半音）。听声音，从一对里选出它。"
+        "zh-CN": "m7 和 m7♭5 只差一个音（五音差半音）。听声音，从一对里选出它。",
+        "en": "m7 and m7♭5 differ by one note (the fifth, a semitone apart). Listen and pick which one you heard."
       },
       "prerequisites": ["m7-formula", "m7b5-formula"],
       "encompasses": [],
@@ -2925,7 +3062,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "Am7 和 Am7♭5 只差一个音：E 和 E♭。半减七和弦更暗、更不稳定，常出现在小调的 II–V 里。"
+              "zh-CN": "Am7 和 Am7♭5 只差一个音：E 和 E♭。半减七和弦更暗、更不稳定，常出现在小调的 II–V 里。",
+              "en": "Am7 and Am7♭5 differ by one note: E vs E♭. The half-diminished chord is darker and less stable, typical of minor-key ii–V."
             },
             "demo": {
               "chord": "am7",
@@ -2936,7 +3074,8 @@
           },
           {
             "text": {
-              "zh-CN": "对比着听 Am7♭5。"
+              "zh-CN": "对比着听 Am7♭5。",
+              "en": "Now compare with Am7♭5."
             },
             "demo": {
               "chord": "am7b5",
@@ -2964,10 +3103,12 @@
     {
       "id": "staff-c-triads",
       "title": {
-        "zh-CN": "看五线谱：C 调三和弦"
+        "zh-CN": "看五线谱：C 调三和弦",
+        "en": "Reading the staff: triads in C"
       },
       "summary": {
-        "zh-CN": "看大谱表上的和弦，按谱上的音（包括八度）弹出来。"
+        "zh-CN": "看大谱表上的和弦，按谱上的音（包括八度）弹出来。",
+        "en": "Read a chord on the grand staff and play exactly those notes, octave included."
       },
       "prerequisites": ["c-major-triads"],
       "encompasses": [],
@@ -2981,7 +3122,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "大谱表上面是高音谱表（右手），下面是低音谱表（左手）。中央 C 在两个谱表之间的下加一线 / 上加一线。"
+              "zh-CN": "大谱表上面是高音谱表（右手），下面是低音谱表（左手）。中央 C 在两个谱表之间的下加一线 / 上加一线。",
+              "en": "On the grand staff the treble clef (top) is the right hand and the bass clef (bottom) the left. Middle C sits on the ledger line between them."
             },
             "demo": {
               "chord": "c",
@@ -2992,7 +3134,8 @@
           },
           {
             "text": {
-              "zh-CN": "高音谱表的线从下往上是 E G B D F，间是 F A C E；低音谱表的线是 G B D F A，间是 A C E G。"
+              "zh-CN": "高音谱表的线从下往上是 E G B D F，间是 F A C E；低音谱表的线是 G B D F A，间是 A C E G。",
+              "en": "Treble lines from bottom to top are E G B D F, spaces F A C E; bass lines are G B D F A, spaces A C E G."
             },
             "demo": {
               "chord": "am",
@@ -3003,7 +3146,8 @@
           },
           {
             "text": {
-              "zh-CN": "这一课按谱上的音判定（严格模式），八度也要对：左手的根音在低音谱表，右手的三个音在高音谱表。"
+              "zh-CN": "这一课按谱上的音判定（严格模式），八度也要对：左手的根音在低音谱表，右手的三个音在高音谱表。",
+              "en": "This lesson is judged strictly against the staff, octave included: the left-hand root is in the bass clef, the right hand's three notes in the treble clef."
             }
           }
         ],
@@ -3024,10 +3168,12 @@
     {
       "id": "staff-sevenths",
       "title": {
-        "zh-CN": "看五线谱：七和弦"
+        "zh-CN": "看五线谱：七和弦",
+        "en": "Reading the staff: seventh chords"
       },
       "summary": {
-        "zh-CN": "看大谱表弹出丸サ進行和 II–V–I 里的七和弦。"
+        "zh-CN": "看大谱表弹出丸サ進行和 II–V–I 里的七和弦。",
+        "en": "Read the seventh chords of Marunouchi Sadistic and ii–V–I from the grand staff."
       },
       "prerequisites": ["staff-c-triads", "c-major-sevenths"],
       "encompasses": [
@@ -3046,7 +3192,8 @@
         "explain": [
           {
             "text": {
-              "zh-CN": "七和弦在谱上是四个音（这里右手常常只弹三个，省略五音或根音）。先读左手的根音，再读右手。"
+              "zh-CN": "七和弦在谱上是四个音（这里右手常常只弹三个，省略五音或根音）。先读左手的根音，再读右手。",
+              "en": "On the staff a seventh chord has four notes (here the right hand often plays only three, leaving out the fifth or root). Read the left-hand root first, then the right hand."
             },
             "demo": {
               "chord": "fmaj7",
@@ -3057,7 +3204,8 @@
           },
           {
             "text": {
-              "zh-CN": "升降号写在音符左边，例如 E7 的 G♯、Gm7 的 B♭。"
+              "zh-CN": "升降号写在音符左边，例如 E7 的 G♯、Gm7 的 B♭。",
+              "en": "Accidentals sit to the left of the note, e.g. G♯ in E7 and B♭ in Gm7."
             },
             "demo": {
               "chord": "e7",
