@@ -702,6 +702,13 @@ export const en: Strings<TranslationShape> = {
     loops: 'Repeats',
     metronome: 'Metronome (tempo mode)',
     keyHints: 'Show the notes on the keyboard',
+    repeats: 'Follow repeat signs',
+    showChords: 'Show chords (detected)',
+    showChordsHint: 'Guessed from the notes in each bar — for reference only',
+    practiceChords: 'Practise these chords ({{n}})',
+    practiceChordsHint:
+      'Send the chords detected in these bars to the progression trainer as a custom sequence; you can edit them there',
+    repeatsHint: 'With repeats, endings and D.C./D.S.: {{n}} bars ({{m}} written)',
     start: { wait: 'Start (wait mode)', tempo: 'Start (tempo)', listen: 'Listen' },
     modeHint: {
       wait: 'No timing: it waits until every highlighted note is pressed, and notes wrongly played are counted. Good for learning to read.',
@@ -714,8 +721,6 @@ export const en: Strings<TranslationShape> = {
       audio: 'Could not start audio. Click the page and try again.',
     },
     warning: {
-      repeats:
-        'The score has repeat signs. For now it is played straight through without jumping back.',
       'tempo-changes': 'The tempo changes in the piece. Tempo mode keeps a steady ♩ = {{bpm}}.',
       'grace-notes': 'Grace notes are not shown or judged.',
       'parts-ignored':

@@ -1,5 +1,6 @@
 import { strToU8, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
+import { chordSequence, labelChords, spellInKey } from './chords';
 import { assignAccidentals, keyAlterations } from './finalize';
 import {
   buildFollowPlan,
@@ -33,6 +34,7 @@ import {
 } from './import';
 import { midiToScore, parseMidiFile } from './midi-file';
 import {
+  hasRepeats,
   measureAt,
   type NotationElement,
   notatedTicks,
@@ -43,6 +45,13 @@ import {
   ticksToType,
 } from './model';
 import { extractMxl, parseMusicXml, ScoreImportError } from './musicxml';
+import {
+  EMPTY_FLOW,
+  type MeasureFlow,
+  parseEndingNumbers,
+  playbackOrder,
+  practiceSequence,
+} from './repeats';
 import { child, childNumber, childText, parseXml, XmlError } from './xml';
 
 // ───────────────────────────── XML ─────────────────────────────
@@ -274,7 +283,8 @@ describe('parseMusicXml', () => {
       [48, 'left'],
     ]);
     expect(s.warnings).toContainEqual({ kind: 'parts-ignored', parts: ['Viola'] });
-    expect(s.warnings).toContainEqual({ kind: 'repeats' });
+    // 第 2 小节末尾有后反复：弹两遍
+    expect(s.playback).toEqual([0, 1, 0, 1]);
     expect(s.tempo).toBe(120);
     expect(s.tempoMarked).toBe(false);
     expect(s.title).toBe('Mvt');
@@ -308,11 +318,9 @@ describe('parseMusicXml', () => {
       [54, TPQ * 4],
     ]);
     expect(s.elements.find((e) => e.pitches[0]?.pitch === 54)?.pitches[0]?.accidental).toBe('#');
-    expect(s.warnings.map((w) => w.kind).sort()).toEqual([
-      'grace-notes',
-      'repeats',
-      'tempo-changes',
-    ]);
+    expect(s.warnings.map((w) => w.kind).sort()).toEqual(['grace-notes', 'tempo-changes']);
+    // 第 1 小节（下标）末尾 D.C.：回到开头再弹一遍
+    expect(s.playback).toEqual([0, 1, 0, 1, 2]);
     expect(s.tempo).toBe(60);
   });
 
@@ -623,7 +631,7 @@ describe('buildFollowPlan', () => {
     ]);
     expect(plan.length).toBe(TPQ * 8);
     const left = buildFollowPlan(followScore, 'left', 1, 9);
-    expect(left).toMatchObject({ from: 1, to: 1, start: TPQ * 4 });
+    expect(left).toMatchObject({ from: 1, to: 1, start: 0, segments: [{ measure: 1, start: 0 }] });
     expect(left.steps[0]?.notes).toEqual([]);
     expect(buildFollowPlan(followScore, 'both', 5, 0).from).toBe(1);
   });
@@ -782,5 +790,176 @@ describe('measure stats', () => {
     ]);
     expect(measureErrorRate({ measure: 0, total: 0, errors: 1, offBeat: 0 })).toBe(1);
     expect(measureErrorRate({ measure: 0, total: 0, errors: 0, offBeat: 0 })).toBe(0);
+  });
+});
+
+// ───────────────────────────── 反复记号 ─────────────────────────────
+
+describe('playbackOrder', () => {
+  const f = (over: Partial<MeasureFlow> = {}): MeasureFlow => ({ ...EMPTY_FLOW, ...over });
+
+  it.each([
+    ['|: A B :| C', [f({ repeatStart: true }), f({ repeatEnd: 2 }), f()], [0, 1, 0, 1, 2]],
+    [
+      '|: A B |1 C :|2 D | E',
+      [f({ repeatStart: true }), f(), f({ endings: [1], repeatEnd: 2 }), f({ endings: [2] }), f()],
+      [0, 1, 2, 0, 1, 3, 4],
+    ],
+    [
+      '|: A |1,2 B :|(×3) |3 C',
+      [f({ repeatStart: true }), f({ endings: [1, 2], repeatEnd: 3 }), f({ endings: [3] })],
+      [0, 1, 0, 1, 0, 2],
+    ],
+    ['A :| B :|（没有前反复）', [f({ repeatEnd: 2 }), f({ repeatEnd: 2 })], [0, 0, 1, 1]],
+    [
+      'D.S. al Coda',
+      [f(), f({ segno: true }), f({ toCoda: true }), f({ dalSegno: true }), f({ coda: true })],
+      [0, 1, 2, 3, 1, 2, 4],
+    ],
+    ['D.C. al Fine', [f(), f({ fine: true }), f({ daCapo: true })], [0, 1, 2, 0, 1]],
+    ['D.C. 之后不再反复', [f({ repeatEnd: 2 }), f({ daCapo: true })], [0, 0, 1, 0, 1]],
+    [
+      'D.C. 之后走最后一个结尾',
+      [
+        f({ repeatStart: true }),
+        f({ endings: [1], repeatEnd: 2 }),
+        f({ endings: [2], daCapo: true }),
+      ],
+      [0, 1, 0, 2, 0, 2],
+    ],
+    ['To Coda 找不到 coda 时继续', [f({ daCapo: true, toCoda: true })], [0, 0]],
+    ['D.S. 没有 segno 时回到开头', [f(), f({ dalSegno: true })], [0, 1, 0, 1]],
+  ])('%s', (_, flows, expected) => {
+    expect(playbackOrder(flows)).toEqual(expected);
+  });
+
+  it('parses ending numbers', () => {
+    expect(parseEndingNumbers('1, 2')).toEqual([1, 2]);
+    expect(parseEndingNumbers('1 2')).toEqual([1, 2]);
+    expect(parseEndingNumbers('x')).toEqual([]);
+  });
+
+  it('picks the measures of a practice range in playing order', () => {
+    const order = [0, 1, 2, 0, 1, 3, 4];
+    expect(practiceSequence(order, 0, 4, true)).toEqual(order);
+    expect(practiceSequence(order, 1, 3, true)).toEqual([1, 2, 1, 3]);
+    expect(practiceSequence(order, 1, 1, true)).toEqual([1]);
+    expect(practiceSequence(order, 0, 4, false)).toEqual([0, 1, 2, 3, 4]);
+    expect(practiceSequence([0, 1, 0, 2, 0, 2], 0, 2, true, true)).toEqual([0, 1, 0, 2, 0, 2]);
+    // 2 之后再也没有 1：按谱面顺序
+    expect(practiceSequence([0, 1, 2], 2, 1 + 2, true)).toEqual([2, 3]);
+  });
+
+  it('reads repeats, voltas and jumps from MusicXML and plans along the playing order', () => {
+    const m = (n: number, body: string, step = 'C') =>
+      `<measure number="${n}">${n === 1 ? '<attributes><divisions>1</divisions></attributes>' : ''}${body}${note(step, 4, 4)}</measure>`;
+    const xml = xmlScore(
+      `<part id="P">${m(1, '<barline location="left"><repeat direction="forward"/></barline><direction><direction-type><segno/></direction-type></direction>')}${m(
+        2,
+        '<barline location="left"><ending number="1" type="start"/></barline><barline location="right"><ending number="1" type="stop"/><repeat direction="backward"/></barline>',
+        'D',
+      )}${m(3, '<barline location="left"><ending number="2" type="start"/></barline>', 'E')}${m(
+        4,
+        '<barline location="right"><ending number="2" type="discontinue"/></barline><sound fine="yes"/>',
+        'F',
+      )}${m(5, '<direction><sound dalsegno="segno"/></direction>', 'G')}</part>`,
+    );
+    const s = parseMusicXml(xml);
+    expect(s.measures.map((x) => x.flow?.endings ?? null)).toEqual([null, [1], [2], [2], null]);
+    // |: C |1 D :|2 E F | G (D.S. al Fine) → C D C E F G，跳回 segno（第 1 小节）后走第 2 结尾到 Fine
+    expect(s.playback).toEqual([0, 1, 0, 2, 3, 4, 0, 2, 3]);
+    expect(hasRepeats(s)).toBe(true);
+    const plan = buildFollowPlan(s, 'both', 0, 4);
+    expect(plan.segments.map((x) => x.measure)).toEqual(s.playback);
+    expect(plan.steps.map((x) => x.notes[0]?.pitch)).toEqual([60, 62, 60, 64, 65, 67, 60, 64, 65]);
+    expect(plan.steps.map((x) => x.tick)).toEqual(
+      [0, 1, 2, 3, 4, 5, 6, 7, 8].map((k) => k * TPQ * 4),
+    );
+    expect(plan.length).toBe(9 * TPQ * 4);
+    const straight = buildFollowPlan(s, 'both', 0, 4, false);
+    expect(straight.steps).toHaveLength(5);
+    expect(hasRepeats(followScore)).toBe(false);
+  });
+});
+
+// ───────────────────────────── 自动标和弦 ─────────────────────────────
+
+describe('labelChords', () => {
+  /** 每小节：右手、左手各一个全音符和弦（音名带八度，例如 'G4'）；divisions = 1 */
+  const chordBar = (rh: string[], lh: string[], extra = '') => {
+    const notes = (names: string[], staff: number) =>
+      names
+        .map((n, i) => {
+          const m = /^([A-G])(#|b)?(\d)$/.exec(n) as RegExpExecArray;
+          const alter = m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0;
+          return note(m[1] as string, Number(m[3]), 4, {
+            staff,
+            type: 'whole',
+            chord: i > 0,
+            ...(alter ? { alter } : {}),
+          });
+        })
+        .join('');
+    return `${notes(rh, 1)}<backup><duration>4</duration></backup>${lh.length ? notes(lh, 2) : '<forward><duration>4</duration></forward>'}${extra}`;
+  };
+  const build = (bars: string[], fifths = 0, time = '4') =>
+    parseMusicXml(
+      xmlScore(
+        `<part id="P">${bars
+          .map(
+            (b, i) =>
+              `<measure number="${i + 1}">${i === 0 ? `<attributes><divisions>1</divisions><key><fifths>${fifths}</fifths></key><time><beats>${time}</beats><beat-type>4</beat-type></time><staves>2</staves></attributes>` : ''}${b}</measure>`,
+          )
+          .join('')}</part>`,
+      ),
+    );
+
+  it('names seventh chords, inversions, and spells roots in the key', () => {
+    const s = build([
+      chordBar(['F4', 'A4', 'C5'], ['D3']),
+      chordBar(['F4', 'B4', 'D5'], ['G2']),
+      chordBar(['E4', 'G4', 'B4'], ['C3']),
+      chordBar(['C4', 'E4', 'G4'], ['E3']),
+      chordBar(['E5'], []),
+    ]);
+    const labels = labelChords(s);
+    expect(labels.map((l) => l.text)).toEqual(['Dm7', 'G7', 'CM7', 'C/E']);
+    expect(labels[0]).toMatchObject({ measure: 0, start: 0, end: TPQ * 4 });
+    expect(labels[0]?.confidence).toBeGreaterThan(0.9);
+    expect(spellInKey(10, 0)).toBe('Bb');
+    expect(spellInKey(6, 2)).toBe('F#');
+    expect(spellInKey(1, 3)).toBe('C#');
+    expect(spellInKey(8, -3)).toBe('Ab');
+    expect(spellInKey(1, -1)).toBe('Db');
+  });
+
+  it('spells chords in sharp and flat keys', () => {
+    const sharp = build([chordBar(['F#4', 'A4', 'C#5'], ['F#3'])], 2);
+    expect(labelChords(sharp)[0]?.text).toBe('F♯m');
+    const flat = build([chordBar(['Bb4', 'D5', 'F5'], ['Bb2'])], -2);
+    expect(labelChords(flat)[0]?.text).toBe('B♭');
+  });
+
+  it('splits a bar when the bass and the chord change halfway, but not 3/4 bars', () => {
+    const bar = `${note('E', 4, 2, { staff: 1, type: 'half' })}${note('D', 4, 2, { staff: 1, type: 'half' })}<backup><duration>4</duration></backup>${note('C', 3, 2, { staff: 2, type: 'half' })}${note('E', 3, 2, { staff: 2, type: 'half', chord: true })}${note('G', 2, 2, { staff: 2, type: 'half' })}${note('B', 2, 2, { staff: 2, type: 'half', chord: true })}`;
+    const s = build([bar]);
+    expect(labelChords(s).map((l) => [l.text, l.start])).toEqual([
+      ['C', 0],
+      ['G', TPQ * 2],
+    ]);
+    const waltz = build([chordBar(['C4', 'E4', 'G4'], ['C3'])], 0, '3');
+    expect(labelChords(waltz).map((l) => l.text)).toEqual(['C']);
+  });
+
+  it('builds a practice sequence in playing order, merging repeats of the same chord', () => {
+    const s = build([
+      chordBar(['C4', 'E4', 'G4'], ['C3']),
+      chordBar(['C4', 'E4', 'G4'], ['C3']),
+      chordBar(['A4', 'C5', 'E5'], ['A2']),
+    ]);
+    const labels = labelChords(s);
+    expect(chordSequence(labels, [0, 1, 2])).toEqual(['C', 'Am']);
+    expect(chordSequence(labels, [0, 2, 0, 2])).toEqual(['C', 'Am', 'C', 'Am']);
+    expect(chordSequence(labels, [])).toEqual([]);
   });
 });

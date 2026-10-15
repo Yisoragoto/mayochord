@@ -54,6 +54,8 @@ export interface ScorePlayConfig {
   loops: number | null;
   /** 跟拍模式：预备拍之后节拍器继续响 */
   metronome: boolean;
+  /** 按反复记号展开后的演奏顺序弹 */
+  expandRepeats: boolean;
   /** 延迟校准的偏移（毫秒） */
   latencyMs: number;
 }
@@ -171,7 +173,13 @@ export class ScorePlayer {
   async start(config: ScorePlayConfig): Promise<void> {
     this.dispose();
     const gen = ++this.generation;
-    const plan = buildFollowPlan(config.score, config.hands, config.from, config.to);
+    const plan = buildFollowPlan(
+      config.score,
+      config.hands,
+      config.from,
+      config.to,
+      config.expandRepeats,
+    );
     const userNotes = plan.steps.some((s) => s.notes.length > 0);
     if (plan.steps.length === 0 || (config.mode !== 'listen' && !userNotes)) {
       this.set({ ...IDLE, status: 'error', error: 'empty', config });
@@ -201,7 +209,7 @@ export class ScorePlayer {
     }
 
     const bpm = effectiveBpm(config.score, config.speed);
-    const first = config.score.measures[plan.from];
+    const first = config.score.measures[plan.segments[0]?.measure ?? plan.from];
     const barBeats = first ? Math.max(1, Math.round((first.beats * 4) / first.beatType)) : 4;
     let metronome: MetronomeLike;
     try {

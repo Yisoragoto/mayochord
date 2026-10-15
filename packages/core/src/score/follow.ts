@@ -1,5 +1,6 @@
 import { mean, stdev } from '../timing';
 import { type Hand, type Score, type ScoreMeasure, type ScoreNote, TPQ } from './model';
+import { practiceSequence } from './repeats';
 
 /**
  * 曲谱跟弹的判定（规格第 10 节第 8 条），纯函数。逐音判定，不等和弦"弹稳"。
@@ -23,44 +24,62 @@ export interface FollowStep {
 
 export interface FollowPlan {
   steps: FollowStep[];
-  /** 这一段开始、长度（tick） */
+  /** 这一段的开头（演奏时间轴上总是 0）与长度（tick） */
   start: number;
   length: number;
+  /** 选的小节范围（谱面下标，含两端） */
   from: number;
   to: number;
+  /** 按演奏顺序弹的小节：谱面下标与在这一段里的开始 tick */
+  segments: { measure: number; start: number }[];
 }
 
 const playsHand = (hands: HandsMode, hand: Hand) => hands === 'both' || hands === hand;
 
-/** 把 from…to 小节（含）里的音按起音分组。没有音的段落返回空的 steps。 */
+/**
+ * 把 from…to 小节（含）里的音按起音分组。默认按反复记号展开后的演奏顺序（practiceSequence），
+ * 步的 tick 是这一段演奏时间轴上的位置（从 0 开始）；measure 仍是谱面上的小节下标。
+ */
 export function buildFollowPlan(
   score: Score,
   hands: HandsMode,
   from: number,
   to: number,
+  expandRepeats = true,
 ): FollowPlan {
   const last = score.measures.length - 1;
   const a = Math.max(0, Math.min(from, last));
   const b = Math.max(a, Math.min(to, last));
-  const first = score.measures[a] as ScoreMeasure;
-  const end = score.measures[b] as ScoreMeasure;
-  const start = first.start;
-  const length = end.start + end.length - start;
-  const byTick = new Map<number, FollowStep>();
+  const byMeasure = new Map<number, ScoreNote[]>();
   for (const n of score.notes) {
     if (n.measure < a || n.measure > b) continue;
-    let step = byTick.get(n.start);
-    if (!step) {
-      step = { index: 0, tick: n.start, measure: n.measure, notes: [], auto: [] };
-      byTick.set(n.start, step);
-    }
-    (playsHand(hands, n.hand) ? step.notes : step.auto).push(n);
+    const list = byMeasure.get(n.measure);
+    if (list) list.push(n);
+    else byMeasure.set(n.measure, [n]);
   }
-  const steps = [...byTick.values()].sort((x, y) => x.tick - y.tick);
+  const segments: FollowPlan['segments'] = [];
+  const steps: FollowStep[] = [];
+  let t = 0;
+  for (const m of practiceSequence(score.playback, a, b, expandRepeats, b === last)) {
+    const measure = score.measures[m] as ScoreMeasure;
+    segments.push({ measure: m, start: t });
+    const byTick = new Map<number, FollowStep>();
+    for (const n of byMeasure.get(m) ?? []) {
+      const tick = t + n.start - measure.start;
+      let step = byTick.get(tick);
+      if (!step) {
+        step = { index: 0, tick, measure: m, notes: [], auto: [] };
+        byTick.set(tick, step);
+      }
+      (playsHand(hands, n.hand) ? step.notes : step.auto).push(n);
+    }
+    steps.push(...[...byTick.values()].sort((x, y) => x.tick - y.tick));
+    t += measure.length;
+  }
   steps.forEach((s, i) => {
     s.index = i;
   });
-  return { steps, start, length, from: a, to: b };
+  return { steps, start: 0, length: t, from: a, to: b, segments };
 }
 
 /** 四分音符 BPM → 每 tick 的毫秒数 */

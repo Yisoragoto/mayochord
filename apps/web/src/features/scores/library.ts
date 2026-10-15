@@ -18,6 +18,10 @@ export const ScorePrefsSchema = z
     /** 0 = 一直循环 */
     loops: z.number().int().min(0).max(99).catch(1),
     metronome: z.boolean().catch(true),
+    /** 按反复记号展开（M8） */
+    repeats: z.boolean().catch(true),
+    /** 显示自动标出的和弦（M8） */
+    chords: z.boolean().catch(true),
     /** 键盘上标出要弹的音 */
     keyHints: z.boolean().catch(true),
   })
@@ -31,6 +35,8 @@ export const ScorePrefsSchema = z
     speed: 1,
     loops: 1,
     metronome: true,
+    repeats: true,
+    chords: true,
     keyHints: true,
   });
 export type ScorePrefs = z.infer<typeof ScorePrefsSchema>;

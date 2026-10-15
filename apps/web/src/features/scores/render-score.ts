@@ -77,6 +77,8 @@ export interface MeasureBox {
   y: number;
   w: number;
   h: number;
+  /** 音符区域开始的 x（谱号、调号之后） */
+  noteX: number;
 }
 
 export interface ScoreLayout {
@@ -86,6 +88,8 @@ export interface ScoreLayout {
   measures: MeasureBox[];
   /** 演奏音 id → 画出来的音符（SVG 组） */
   noteEls: Map<number, Element[]>;
+  /** 谱面 tick → 这个时刻的音符的 x（标和弦名用） */
+  tickX: Map<number, number>;
 }
 
 function measureMinWidth(score: Score, els: NotationElement[]): number {
@@ -210,15 +214,17 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
           .setContext(ctx)
           .draw();
       }
-      boxes.push({
+      const box: MeasureBox = {
         index: mi,
         x,
         y: top.getYForLine(0) - 14,
         w,
         h: bottom.getYForLine(4) - top.getYForLine(0) + 28,
-      });
+        noteX: x,
+      };
+      boxes.push(box);
 
-      drawMeasure(m, byMeasure.get(mi) ?? [], staveList, ctx, (e, note) =>
+      box.noteX = drawMeasure(m, byMeasure.get(mi) ?? [], staveList, ctx, (e, note) =>
         noteOf.set(e, { note, line: li }),
       );
       x += w;
@@ -228,7 +234,10 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
   drawTies(score, noteOf, ctx);
 
   const noteEls = new Map<number, Element[]>();
+  const tickX = new Map<number, number>();
   for (const [e, { note }] of noteOf) {
+    const nx = note.getAbsoluteX();
+    tickX.set(e.start, Math.min(tickX.get(e.start) ?? nx, nx));
     const g = note.getSVGElement();
     if (!g) continue;
     for (const p of e.pitches) {
@@ -243,7 +252,7 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     svg.setAttribute('aria-hidden', 'true');
   }
-  return { width, height, measures: boxes, noteEls };
+  return { width, height, measures: boxes, noteEls, tickX };
 }
 
 function drawMeasure(
@@ -252,7 +261,7 @@ function drawMeasure(
   staveList: Stave[],
   ctx: ReturnType<Renderer['getContext']>,
   register: (e: NotationElement, note: StaveNote) => void,
-) {
+): number {
   const voices: { voice: Voice; stave: Stave }[] = [];
   const beams: Beam[] = [];
   const tuplets: Tuplet[] = [];
@@ -328,8 +337,8 @@ function drawMeasure(
     });
   });
 
-  if (voices.length === 0) return;
   const startX = Math.max(...staveList.map((s) => s.getNoteStartX()));
+  if (voices.length === 0) return startX;
   for (const s of staveList) s.setNoteStartX(startX);
   const formatter = new Formatter();
   for (const stave of staveList) {
@@ -349,6 +358,7 @@ function drawMeasure(
   for (const v of voices) v.voice.draw(ctx, v.stave);
   for (const b of beams) b.setContext(ctx).draw();
   for (const t of tuplets) t.setContext(ctx).draw();
+  return startX;
 }
 
 function drawTies(

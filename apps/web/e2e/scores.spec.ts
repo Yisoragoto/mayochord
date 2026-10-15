@@ -130,3 +130,53 @@ test('导入 MIDI 文件；不认识的文件给出提示', async ({ page }) => 
   await page.getByRole('radio', { name: '瀑布流' }).click();
   await expect(page.getByTestId('waterfall-view')).toBeVisible();
 });
+
+/** 两个小节、第 2 小节末尾后反复：演奏顺序 1 2 1 2 */
+const REPEAT_XML = `<?xml version="1.0"?><score-partwise><work><work-title>Repeat test</work-title></work><part-list><score-part id="P"><part-name>Piano</part-name></score-part></part-list><part id="P"><measure number="1"><attributes><divisions>1</divisions><time><beats>4</beats><beat-type>4</beat-type></time></attributes><note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><type>whole</type></note></measure><measure number="2"><note><pitch><step>D</step><octave>4</octave></pitch><duration>4</duration><type>whole</type></note><barline location="right"><repeat direction="backward"/></barline></measure></part></score-partwise>`;
+
+test('反复记号：按演奏顺序弹，也可以关掉', async ({ page }) => {
+  await page.goto('scores');
+  await page.getByTestId('score-file').setInputFiles({
+    name: 'repeat.musicxml',
+    mimeType: 'application/xml',
+    buffer: Buffer.from(REPEAT_XML),
+  });
+  await expect(page.getByRole('heading', { name: 'Repeat test' })).toBeVisible();
+  await expect(page.getByText('展开后共 4 小节（谱面 2 小节）')).toBeVisible();
+  const connect = page.getByRole('button', { name: '连接 MIDI 设备' });
+  await connect.click();
+  await expect(connect).toBeHidden();
+  await page.getByTestId('score-start').click();
+  const status = page.getByTestId('play-status');
+  await expect(status).toHaveText('第 1 小节');
+  await tap(page, 60, 62);
+  // 反复：回到第 1 小节
+  await expect(status).toHaveText('第 1 小节');
+  await tap(page, 60, 62);
+  const summary = page.getByTestId('score-summary');
+  await expect(summary.getByRole('button', { name: '第 1 小节：0 处错误，共 2' })).toBeVisible();
+
+  // 关掉反复：只弹一遍
+  await page.getByRole('button', { name: '回到选项' }).click();
+  await page.getByRole('switch', { name: /按反复记号弹/ }).click();
+  await page.getByTestId('score-start').click();
+  await expect(status).toHaveText('第 1 小节');
+  await tap(page, 60, 62);
+  await expect(summary.getByRole('button', { name: '第 1 小节：0 处错误，共 1' })).toBeVisible();
+});
+
+test('自动标和弦：显示在五线谱上，送到进行练习器', async ({ page }) => {
+  await page.goto('scores');
+  await page.getByRole('button', { name: '添加示例：欢乐颂' }).click();
+  await expect(page.getByTestId('chord-label').first()).toHaveText('C');
+  await page.getByLabel('到', { exact: true }).selectOption({ value: '3' });
+  await expect(page.getByTestId('practice-chords')).toHaveText('用这段的和弦练跟拍（4 个）');
+  await page.getByTestId('practice-chords').click();
+  await expect(page).toHaveURL(/practice\/progression$/);
+  await expect(page.getByRole('textbox')).toHaveValue('C G C G');
+
+  // 可以关掉
+  await page.goBack();
+  await page.getByRole('switch', { name: /显示和弦/ }).click();
+  await expect(page.getByTestId('chord-label')).toHaveCount(0);
+});

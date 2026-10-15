@@ -12,7 +12,7 @@ export const ProgressionPrefsSchema = z.object({
   /** 内置进行的 ID，或 'custom' */
   progressionId: z.string().catch('c-g-am-f'),
   /** 自定义序列（和弦名，空格或短横线分隔） */
-  custom: z.string().max(200).catch('C Am F G'),
+  custom: z.string().max(600).catch('C Am F G'),
   /** 每个进行上次的 BPM（85% 规则调整后的值也存在这里） */
   bpm: z.record(z.string(), z.number().int().min(40).max(200)).catch({}),
   /** 每个和弦几拍；0 = 按进行自带的拍数 */

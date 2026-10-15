@@ -341,6 +341,7 @@ export function midiToScore(file: MidiFile, fallbackTitle = ''): Score {
     elements,
     tempo: tempos[0] ?? 120,
     tempoMarked: tempos.length > 0,
+    playback: measures.map((m) => m.index),
     warnings,
   };
 }

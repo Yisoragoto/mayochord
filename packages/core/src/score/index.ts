@@ -1,3 +1,4 @@
+export * from './chords';
 export * from './finalize';
 export * from './follow';
 export * from './import';
@@ -6,6 +7,7 @@ export {
   type Clef,
   DURATION_TYPES,
   type DurationType,
+  hasRepeats,
   measureAt,
   type NotationElement,
   type NotationPitch,
@@ -21,4 +23,5 @@ export {
   typeTicks,
 } from './model';
 export * from './musicxml';
+export * from './repeats';
 export * from './xml';

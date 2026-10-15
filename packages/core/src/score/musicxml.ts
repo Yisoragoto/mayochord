@@ -13,6 +13,13 @@ import {
   TPQ,
   ticksToType,
 } from './model';
+import {
+  EMPTY_FLOW,
+  hasFlow,
+  type MeasureFlow,
+  parseEndingNumbers,
+  playbackOrder,
+} from './repeats';
 import { child, childNumber, childrenNamed, childText, parseXml, type XmlElement } from './xml';
 
 export class ScoreImportError extends Error {
@@ -50,6 +57,7 @@ interface PartMeasure {
   fifths: number | null;
   clefs: Map<number, Clef>;
   elements: NotationElement[];
+  flow: MeasureFlow;
 }
 
 interface ParsedPart {
@@ -58,7 +66,6 @@ interface ParsedPart {
   measures: PartMeasure[];
   pitched: boolean;
   tempos: number[];
-  repeats: boolean;
   grace: boolean;
 }
 
@@ -71,9 +78,10 @@ function parsePart(part: XmlElement): ParsedPart {
     measures: [],
     pitched: false,
     tempos: [],
-    repeats: false,
     grace: false,
   };
+  /** 跳房子：还没结束的结尾编号 */
+  let ending: number[] | null = null;
   for (const m of childrenNamed(part, 'measure')) {
     const pm: PartMeasure = {
       number: m.attrs.number ?? String(out.measures.length + 1),
@@ -83,7 +91,9 @@ function parsePart(part: XmlElement): ParsedPart {
       fifths: null,
       clefs: new Map(),
       elements: [],
+      flow: { ...EMPTY_FLOW, endings: ending },
     };
+    let endingStops = false;
     let pos = 0;
     let maxPos = 0;
     let last: NotationElement | null = null;
@@ -176,30 +186,57 @@ function parsePart(part: XmlElement): ParsedPart {
           maxPos = Math.max(maxPos, pos);
           break;
         case 'direction':
-          for (const s of childrenNamed(el, 'sound')) collectTempo(s, out.tempos);
+          for (const s of childrenNamed(el, 'sound')) readSound(s, out.tempos, pm.flow);
+          for (const dt of childrenNamed(el, 'direction-type')) {
+            if (child(dt, 'segno')) pm.flow.segno = true;
+            if (child(dt, 'coda')) pm.flow.coda = true;
+          }
           break;
         case 'sound':
-          collectTempo(el, out.tempos);
+          readSound(el, out.tempos, pm.flow);
           break;
-        case 'barline':
-          if (child(el, 'repeat') || child(el, 'ending')) out.repeats = true;
+        case 'barline': {
+          const repeat = child(el, 'repeat');
+          if (repeat?.attrs.direction === 'forward') pm.flow.repeatStart = true;
+          if (repeat?.attrs.direction === 'backward') {
+            pm.flow.repeatEnd = Math.max(2, Number(repeat.attrs.times) || 2);
+          }
+          const end = child(el, 'ending');
+          if (end) {
+            const nums = parseEndingNumbers(end.attrs.number ?? '');
+            if (end.attrs.type === 'start') {
+              ending = nums.length ? nums : [1];
+              pm.flow.endings = ending;
+            } else {
+              if (!pm.flow.endings && nums.length) pm.flow.endings = nums;
+              endingStops = true;
+            }
+          }
+          if (child(el, 'segno')) pm.flow.segno = true;
+          if (child(el, 'coda')) pm.flow.coda = true;
           break;
+        }
       }
     }
     pm.length = maxPos;
+    if (endingStops) ending = null;
     out.measures.push(pm);
   }
   out.staves = staves;
   return out;
 }
 
-function collectTempo(sound: XmlElement, into: number[]) {
-  const tempo = Number(sound.attrs.tempo);
-  if (Number.isFinite(tempo) && tempo > 0) into.push(tempo);
-  if (sound.attrs.dacapo || sound.attrs.dalsegno || sound.attrs.segno || sound.attrs.coda) {
-    // 由调用方当作反复记号处理
-    into.push(Number.NaN);
-  }
+/** <sound>：速度和跳转（D.C.、D.S.、segno、coda、To Coda、Fine） */
+function readSound(sound: XmlElement, tempos: number[], flow: MeasureFlow) {
+  const a = sound.attrs;
+  const tempo = Number(a.tempo);
+  if (Number.isFinite(tempo) && tempo > 0) tempos.push(tempo);
+  if (a.dacapo === 'yes') flow.daCapo = true;
+  if (a.dalsegno) flow.dalSegno = true;
+  if (a.segno) flow.segno = true;
+  if (a.coda) flow.coda = true;
+  if (a.tocoda) flow.toCoda = true;
+  if (a.fine) flow.fine = true;
 }
 
 /** 解析未压缩的 MusicXML（score-partwise）。 */
@@ -268,6 +305,7 @@ export function parseMusicXml(text: string, fallbackTitle = ''): Score {
       beatType,
       fifths,
       clefs: [...clefs],
+      flow: first.flow,
     });
     pms.forEach((pm, partIdx) => {
       for (const el of pm?.elements ?? []) {
@@ -282,11 +320,8 @@ export function parseMusicXml(text: string, fallbackTitle = ''): Score {
   const notes = buildNotes(elements, staffHands);
   assignAccidentals(elements, measures);
 
-  const tempos = chosen.flatMap((p) => p.tempos);
-  const realTempos = tempos.filter((t) => !Number.isNaN(t));
-  if (chosen.some((p) => p.repeats) || tempos.some((t) => Number.isNaN(t))) {
-    warnings.push({ kind: 'repeats' });
-  }
+  const realTempos = chosen.flatMap((p) => p.tempos);
+  const flows = measures.map((m) => m.flow);
   if (new Set(realTempos).size > 1) warnings.push({ kind: 'tempo-changes' });
   if (chosen.some((p) => p.grace)) warnings.push({ kind: 'grace-notes' });
   if (notes.length === 0) throw new ScoreImportError('no-notes');
@@ -309,6 +344,7 @@ export function parseMusicXml(text: string, fallbackTitle = ''): Score {
     elements,
     tempo: Math.round(realTempos[0] ?? 120),
     tempoMarked: realTempos.length > 0,
+    playback: hasFlow(flows) ? playbackOrder(flows) : measures.map((m) => m.index),
     warnings,
   };
 }

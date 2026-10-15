@@ -1,6 +1,7 @@
-import type { Score } from '@mayochord/core';
+import type { ChordLabel, Score } from '@mayochord/core';
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ChordName } from '@/design/ChordName';
 import { cn } from '@/lib/utils';
 import type { ScoreLayout } from './render-score';
 import type { NoteMark } from './score-player';
@@ -15,6 +16,8 @@ export interface StaffViewProps {
   marks: ReadonlyMap<number, NoteMark>;
   /** 结束后每个小节的错误率（0–1），用来着色 */
   heat?: ReadonlyMap<number, number> | null;
+  /** 自动标出的和弦（显示在每行五线谱上方）；不显示为 null */
+  chords?: readonly ChordLabel[] | null;
   /** 保持在视野里的小节 */
   focusMeasure: number;
   /** 点击小节：设为练习范围（shift = 设为结尾） */
@@ -32,6 +35,7 @@ export function StaffView({
   current,
   marks,
   heat,
+  chords,
   focusMeasure,
   onMeasureClick,
   className,
@@ -144,6 +148,28 @@ export function StaffView({
           );
         })}
         <div ref={canvas} className="mc-score relative text-foreground" />
+        {layout &&
+          chords?.map((c, i) => {
+            const box = layout.measures.find((m) => m.index === c.measure);
+            const m = score.measures[c.measure];
+            if (!box || !m) return null;
+            // 与前一个相同、又在同一小节里的不重复标
+            const prev = chords[i - 1];
+            if (prev && prev.measure === c.measure && prev.text === c.text) return null;
+            const x =
+              layout.tickX.get(c.start) ??
+              box.noteX + ((c.start - m.start) / m.length) * (box.x + box.w - box.noteX);
+            return (
+              <span
+                key={`${c.measure}:${c.start}`}
+                className="pointer-events-none absolute -translate-y-full text-primary"
+                style={{ left: x, top: box.y - 2 }}
+                data-testid="chord-label"
+              >
+                <ChordName symbol={c.symbol} size="sm" />
+              </span>
+            );
+          })}
       </div>
       {!layout && (
         <div className="grid h-40 place-items-center text-sm text-muted-foreground">

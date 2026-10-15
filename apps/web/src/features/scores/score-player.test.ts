@@ -118,6 +118,7 @@ function config(over: Partial<ScorePlayConfig> = {}): ScorePlayConfig {
     speed: 1,
     loops: 1,
     metronome: true,
+    expandRepeats: true,
     latencyMs: 0,
     ...over,
   };

@@ -661,6 +661,12 @@ export const zhCN = {
     loops: '遍数',
     metronome: '节拍器（跟拍模式）',
     keyHints: '键盘上标出要弹的音',
+    repeats: '按反复记号弹',
+    showChords: '显示和弦（自动识别）',
+    showChordsHint: '按每小节响着的音推测，仅供参考',
+    practiceChords: '用这段的和弦练跟拍（{{n}} 个）',
+    practiceChordsHint: '把这一段小节里自动识别的和弦送到进行练习器（自定义序列），可以在那里修改',
+    repeatsHint: '反复、跳房子、D.C./D.S. 展开后共 {{n}} 小节（谱面 {{m}} 小节）',
     start: { wait: '开始（等待模式）', tempo: '开始（跟拍）', listen: '试听' },
     modeHint: {
       wait: '不计时：亮起的音都按到了才往下走，中途按错的音会记下来。适合刚开始读谱。',
@@ -672,7 +678,6 @@ export const zhCN = {
       audio: '无法启动声音，请点一下页面再试。',
     },
     warning: {
-      repeats: '谱里有反复记号：目前按谱面顺序弹一遍，不会跳回去。',
       'tempo-changes': '曲中有变速：跟拍模式按 ♩ = {{bpm}} 匀速进行。',
       'grace-notes': '装饰音没有显示，也不判定。',
       'parts-ignored': '只用了钢琴（或前两个）声部，没有导入：{{parts}}。',

@@ -7,6 +7,7 @@
  */
 
 import type { Hand } from '../voicing';
+import type { MeasureFlow } from './repeats';
 
 export type { Hand };
 
@@ -71,6 +72,8 @@ export interface ScoreMeasure {
   fifths: number;
   /** 每个谱表在这个小节的谱号 */
   clefs: Clef[];
+  /** 反复记号、跳房子、D.C./D.S. 等（只有 MusicXML 有） */
+  flow?: MeasureFlow;
 }
 
 export interface Score {
@@ -88,12 +91,13 @@ export interface Score {
   tempo: number;
   /** 谱上有速度标记 */
   tempoMarked: boolean;
+  /** 演奏顺序（小节下标，反复记号已展开）；没有反复时就是 0…n-1 */
+  playback: number[];
   /** 导入时的提示（例如反复记号没有展开、只导入了两个声部） */
   warnings: ScoreWarning[];
 }
 
 export type ScoreWarning =
-  | { kind: 'repeats' }
   | { kind: 'tempo-changes' }
   | { kind: 'grace-notes' }
   | { kind: 'parts-ignored'; parts: string[] }
@@ -178,6 +182,11 @@ export function measureAt(measures: readonly ScoreMeasure[], tick: number): numb
     else hi = mid - 1;
   }
   return Math.max(0, lo);
+}
+
+/** 有反复记号（演奏顺序与谱面顺序不同） */
+export function hasRepeats(score: Score): boolean {
+  return score.playback.length !== score.measures.length || score.playback.some((m, i) => m !== i);
 }
 
 /** 乐谱结束的 tick */

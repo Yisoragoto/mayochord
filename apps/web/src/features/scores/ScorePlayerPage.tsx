@@ -1,14 +1,28 @@
 import {
+  buildFollowPlan,
+  chordSequence,
   type FollowSummary,
   type HandsMode,
+  hasRepeats,
+  labelChords,
   type MeasureStat,
   measureErrorRate,
   parseScoreSource,
+  practiceSequence,
   type Score,
   worstMeasures,
 } from '@mayochord/core';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Gauge, Info, Play, RotateCcw, Square, TriangleAlert } from 'lucide-react';
+import {
+  ArrowLeft,
+  Gauge,
+  Info,
+  Music,
+  Play,
+  RotateCcw,
+  Square,
+  TriangleAlert,
+} from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type KeyMark, keyboardLayout } from '@/design/keyboard/Keyboard';
@@ -181,6 +195,7 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
       speed: prefs.speed,
       loops: prefs.loops === 0 ? null : prefs.loops,
       metronome: prefs.metronome,
+      expandRepeats: prefs.repeats,
       latencyMs: useSettings.getState().settings.latencyOffsetMs,
     });
   }, [record.id, score, prefs, from, to]);
@@ -262,6 +277,36 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
     setPrefs({ from: Math.max(0, a), to: Math.min(last, b), loops: 0 });
   };
 
+  // 自动标和弦（规格第 10 节第 8 条，M8）
+  const allChords = useMemo(() => labelChords(score), [score]);
+  const chords = prefs.chords ? allChords : null;
+  // 送到进行练习器的和弦序列：这一段小节按演奏顺序，相邻相同的合并
+  const chordSeq = useMemo(
+    () =>
+      chordSequence(
+        allChords,
+        practiceSequence(score.playback, from, to, prefs.repeats, to === last),
+      ),
+    [allChords, score, from, to, prefs.repeats, last],
+  );
+  const practiceChords = () => {
+    const s = useSettings.getState();
+    s.update({
+      progression: {
+        ...s.settings.progression,
+        progressionId: 'custom',
+        custom: chordSeq.join(' '),
+      },
+    });
+    void navigate({ to: '/practice/progression' });
+  };
+
+  // 还没开始时瀑布流按当前选项画出这一段
+  const displayPlan = useMemo(
+    () => buildFollowPlan(score, prefs.hands, from, to, prefs.repeats),
+    [score, prefs.hands, from, to, prefs.repeats],
+  );
+
   const measureLabel = (i: number) => score.measures[i]?.number ?? String(i + 1);
   const bpm = effectiveBpm(score, prefs.speed);
 
@@ -279,6 +324,7 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
           current={currentIds}
           marks={marks}
           heat={heat}
+          chords={chords}
           focusMeasure={focusMeasure}
           onMeasureClick={onMeasureClick}
           className={fill ? 'min-h-0 flex-1' : 'h-[55vh] min-h-[16rem] shrink-0'}
@@ -300,12 +346,11 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
           {prefs.view === 'waterfall' && (
             <WaterfallView
               score={score}
+              plan={running && plan ? plan : displayPlan}
               low={range.low}
               high={range.high}
               hands={prefs.hands}
-              from={from}
-              to={to}
-              restTick={score.measures[from]?.start ?? 0}
+              chords={chords}
               className={fill ? 'min-h-[12rem] flex-1' : 'h-[45vh] min-h-[14rem]'}
             />
           )}
@@ -383,6 +428,8 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
           latencyCalibrated={latencyCalibrated}
           worst={worst}
           onPractice={practiceMeasures}
+          chordCount={chordSeq.length}
+          onPracticeChords={practiceChords}
           onStart={start}
           error={status === 'error' ? error : null}
         />
@@ -477,6 +524,8 @@ function SetupPanel({
   latencyCalibrated,
   worst,
   onPractice,
+  chordCount,
+  onPracticeChords,
   onStart,
   error,
 }: {
@@ -490,6 +539,9 @@ function SetupPanel({
   latencyCalibrated: boolean;
   worst: (MeasureStat & { rate: number })[];
   onPractice: (a: number, b: number) => void;
+  /** 这一段里自动标出的和弦数（相邻相同的合并后） */
+  chordCount: number;
+  onPracticeChords: () => void;
   onStart: () => void;
   error: 'empty' | 'audio' | null;
 }) {
@@ -600,6 +652,22 @@ function SetupPanel({
             checked={prefs.keyHints}
             onChange={(keyHints) => setPrefs({ keyHints })}
           />
+          <SwitchRow
+            id="score-chords"
+            label={t('scores.showChords')}
+            hint={t('scores.showChordsHint')}
+            checked={prefs.chords}
+            onChange={(chords) => setPrefs({ chords })}
+          />
+          {hasRepeats(score) && (
+            <SwitchRow
+              id="score-repeats"
+              label={t('scores.repeats')}
+              hint={t('scores.repeatsHint', { n: score.playback.length, m: score.measures.length })}
+              checked={prefs.repeats}
+              onChange={(repeats) => setPrefs({ repeats })}
+            />
+          )}
         </div>
       </div>
 
@@ -607,6 +675,16 @@ function SetupPanel({
         <Button size="lg" onClick={onStart} data-testid="score-start">
           <Play />
           {t(`scores.start.${prefs.mode}`)}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onPracticeChords}
+          disabled={chordCount < 2}
+          title={t('scores.practiceChordsHint')}
+          data-testid="practice-chords"
+        >
+          <Music />
+          {t('scores.practiceChords', { n: chordCount })}
         </Button>
         <p className="flex min-w-0 flex-1 items-start gap-2 text-sm text-muted-foreground">
           <Info className="mt-0.5 size-4 shrink-0" aria-hidden />

@@ -1,6 +1,7 @@
 import {
   formatChordSymbol,
   handMidi,
+  labelChords,
   midiToName,
   nearestBass,
   parseMusicXml,
@@ -375,5 +376,30 @@ describe('example score', () => {
     expect(
       score.notes.filter((n) => n.hand === 'right').every((n) => n.pitch >= 55 && n.pitch <= 67),
     ).toBe(true);
+    // 自动标和弦：与编配一致（第 4、8、9、10、12、16 小节在第 3 拍换和弦）
+    expect(labelChords(score).map((l) => `${l.measure + 1}:${l.text}`)).toEqual([
+      '1:C',
+      '2:G',
+      '3:C',
+      '4:C',
+      '4:G',
+      '5:C',
+      '6:G',
+      '7:C',
+      '8:G',
+      '8:C',
+      '9:G',
+      '9:C',
+      '10:G',
+      '10:C',
+      '11:G',
+      '12:C',
+      '12:G',
+      '13:C',
+      '14:G',
+      '15:C',
+      '16:G',
+      '16:C',
+    ]);
   });
 });

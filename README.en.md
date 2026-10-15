@@ -10,7 +10,7 @@ Every answer is measured over MIDI — right or wrong, reaction time, whether th
 
 ![Today: daily tasks, XP and streak](docs/screenshots/today.png)
 
-> M0–M7 are done. See the roadmap below for what comes next.
+> M0–M8 are done. See the roadmap below for what comes next.
 
 ## What you need
 
@@ -60,6 +60,8 @@ All data stays in your browser (IndexedDB) and is never uploaded. Export a backu
 - Import your own sheet music (MusicXML or MIDI — MuseScore and other notation apps export it) and play along with the **staff** or **falling notes**, to learn reading and whole pieces.
 - **Wait mode** moves on only when you play the right notes; **tempo mode** follows the metronome (slow it down if you like) and records how early or late each note is, plus misses and extra notes. You can **listen** first.
 - Practise one hand while the app plays or mutes the other; loop a range of bars.
+- Repeats, first/second endings and D.C. / D.S. are played in order.
+- **Chord detection**: chord names are guessed from the notes in each bar and shown on the score; send a section's chords to the progression trainer to practise the changes.
 - Afterwards each bar shows its errors; click one to loop just that bar.
 - Scores stay in your browser and are never uploaded.
 
@@ -86,6 +88,7 @@ All data stays in your browser (IndexedDB) and is never uploaded. Export a backu
 | M5 | Ear training, contrast pairs, 12-key building, reading the staff | Done |
 | M6 | Stats, quizzes and placement test, data export/import, offline (PWA), English UI | Done |
 | M7 | Import sheet music (MusicXML / MIDI) to play along, staff and falling-notes views | Done |
+| M8 | Repeat signs and automatic chord labels for imported scores | Done |
 
 ## Development
 
