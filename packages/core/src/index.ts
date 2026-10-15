@@ -5,6 +5,7 @@ export * from './input';
 export * from './log';
 export * from './recognition';
 export * from './scheduler';
+export * from './score';
 export * from './stats';
 export * from './strategy';
 export * from './theory';

@@ -4,6 +4,8 @@ import { createDexieRepositories, type Repositories } from './repositories';
 export type {
   CalibrationRecord,
   DailyPlanRecord,
+  ScoreRecord,
+  ScoreRunRecord,
   SessionRecord,
   StoredTask,
   TaskStatus,

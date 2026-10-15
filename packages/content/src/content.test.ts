@@ -3,6 +3,7 @@ import {
   handMidi,
   midiToName,
   nearestBass,
+  parseMusicXml,
   rankRightHandVoicings,
   semitoneFormula,
 } from '@mayochord/core';
@@ -12,6 +13,7 @@ import {
   BUILTIN_PACK,
   CONTENT_SCHEMA_VERSION,
   DeviceProfileSchema,
+  EXAMPLE_SCORE_XML,
   formatIssues,
   JUNO_D7,
   loadContentPack,
@@ -358,5 +360,20 @@ describe('键盘设备配置', () => {
     const bad = { ...JUNO_D7, highestNote: 104 };
     expect(DeviceProfileSchema.safeParse(bad).success).toBe(false);
     expect(DeviceProfileSchema.safeParse({ ...JUNO_D7, lowestNote: null }).success).toBe(true);
+  });
+});
+
+describe('example score', () => {
+  it('parses: 16 bars of Ode to Joy, melody in the right hand', () => {
+    const score = parseMusicXml(EXAMPLE_SCORE_XML);
+    expect(score.title).toBe('Ode to Joy');
+    expect(score.measures).toHaveLength(16);
+    expect(score.tempo).toBe(96);
+    expect(score.warnings).toEqual([]);
+    expect(score.notes.filter((n) => n.hand === 'right')).toHaveLength(62);
+    expect(score.notes.filter((n) => n.hand === 'left')).toHaveLength(44);
+    expect(
+      score.notes.filter((n) => n.hand === 'right').every((n) => n.pitch >= 55 && n.pitch <= 67),
+    ).toBe(true);
   });
 });

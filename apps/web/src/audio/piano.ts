@@ -8,6 +8,8 @@ import { loadTone } from './tone';
 export interface AudioOutput {
   /** 同时或分解地弹一组音 */
   playNotes(notes: readonly number[], opts?: PlayOptions): void;
+  /** 在音频时钟的某个时刻（AudioContext 时间，秒）弹一组音 */
+  playAt(notes: readonly number[], time: number, duration: number, velocity?: number): void;
   noteOn(note: number, velocity?: number): void;
   noteOff(note: number): void;
   releaseAll(): void;
@@ -64,6 +66,12 @@ class SamplerPiano implements AudioOutput {
           velocity / 127,
         );
       });
+  }
+
+  playAt(notes: readonly number[], time: number, duration: number, velocity = 80) {
+    const at = Math.max(time, this.tone.now());
+    for (const n of notes)
+      this.sampler.triggerAttackRelease(this.name(n), duration, at, velocity / 127);
   }
 
   noteOn(note: number, velocity = 80) {

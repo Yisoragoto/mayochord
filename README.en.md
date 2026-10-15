@@ -10,7 +10,7 @@ Every answer is measured over MIDI — right or wrong, reaction time, whether th
 
 ![Today: daily tasks, XP and streak](docs/screenshots/today.png)
 
-> Work in progress. M0–M6 are done; M7 (import sheet music and play along) is in development. See the roadmap below.
+> M0–M7 are done. See the roadmap below for what comes next.
 
 ## What you need
 
@@ -55,6 +55,16 @@ All data stays in your browser (IndexedDB) and is never uploaded. Export a backu
 
 ![Play along](docs/screenshots/progression.png)
 
+**Play from scores**
+
+- Import your own sheet music (MusicXML or MIDI — MuseScore and other notation apps export it) and play along with the **staff** or **falling notes**, to learn reading and whole pieces.
+- **Wait mode** moves on only when you play the right notes; **tempo mode** follows the metronome (slow it down if you like) and records how early or late each note is, plus misses and extra notes. You can **listen** first.
+- Practise one hand while the app plays or mutes the other; loop a range of bars.
+- Afterwards each bar shows its errors; click one to loop just that bar.
+- Scores stay in your browser and are never uploaded.
+
+![Play from scores](docs/screenshots/scores.png)
+
 **Tools**
 
 - **Stats**: reaction-time curves, a chord-change heatmap, daily practice, beat-offset distribution and topic mastery.
@@ -75,7 +85,7 @@ All data stays in your browser (IndexedDB) and is never uploaded. Export a backu
 | M4 | Metronome, latency calibration, play-along, voice-leading visualisation | Done |
 | M5 | Ear training, contrast pairs, 12-key building, reading the staff | Done |
 | M6 | Stats, quizzes and placement test, data export/import, offline (PWA), English UI | Done |
-| M7 | Import sheet music (MusicXML / MIDI) to play along, staff and falling-notes views | In progress |
+| M7 | Import sheet music (MusicXML / MIDI) to play along, staff and falling-notes views | Done |
 
 ## Development
 

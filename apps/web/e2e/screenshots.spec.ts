@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
-import { installFakeMidi } from './fake-midi';
+import { installFakeMidi, sendMidi } from './fake-midi';
 
 /**
  * README 用的截图（docs/screenshots/）。平时跳过；需要更新截图时运行：
@@ -46,6 +46,19 @@ test('README 截图', async ({ page }) => {
   await page.getByRole('link', { name: '开始' }).click();
   await expect(page.getByTestId('run-step')).toBeVisible({ timeout: 15_000 });
   await shot('progression');
+  await page.keyboard.press('Escape');
+
+  await page.goto('scores');
+  await page.getByRole('button', { name: '添加示例：欢乐颂' }).click();
+  await page.getByRole('radio', { name: '右手' }).click();
+  await page.getByRole('button', { name: '连接 MIDI 设备' }).click();
+  await page.getByTestId('score-start').click();
+  await expect(page.getByTestId('play-status')).toHaveText('第 1 小节');
+  for (const n of [64, 64, 65, 67, 67, 66, 65]) {
+    await sendMidi(page, [0x90, n, 90], [0x80, n, 0]);
+    await page.waitForTimeout(120);
+  }
+  await shot('scores');
   await page.keyboard.press('Escape');
 
   await page.goto('stats');

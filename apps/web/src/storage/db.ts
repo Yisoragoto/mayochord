@@ -1,4 +1,13 @@
-import type { CardProgress, PlannedTask, ReviewLog, SessionSummary } from '@mayochord/core';
+import type {
+  CardProgress,
+  FollowSummary,
+  HandsMode,
+  PlannedTask,
+  ReviewLog,
+  ScoreFileFormat,
+  ScoreSource,
+  SessionSummary,
+} from '@mayochord/core';
 import Dexie, { type Table } from 'dexie';
 
 /**
@@ -81,6 +90,40 @@ export interface UserPackRecord {
   data: unknown;
 }
 
+/** 本地乐谱库里的一首曲子（M7）。只存在本地，不上传 */
+export interface ScoreRecord {
+  id: string;
+  title: string;
+  fileName: string;
+  format: ScoreFileFormat;
+  importedAt: number;
+  /** 原文（MusicXML 文本或 MIDI 文件的 base64）；打开时重新解析 */
+  source: ScoreSource;
+  /** 列表显示用 */
+  measureCount: number;
+  noteCount: number;
+  /** 上次练习的选项（由曲谱页面校验） */
+  prefs: unknown;
+  lastPlayedAt: number | null;
+}
+
+/** 一次曲谱跟弹的结果（M7） */
+export interface ScoreRunRecord {
+  id: string;
+  scoreId: string;
+  startedAt: number;
+  endedAt: number;
+  mode: 'wait' | 'tempo';
+  hands: HandsMode;
+  /** 练习的小节范围（下标，含两端） */
+  from: number;
+  to: number;
+  /** 跟拍模式的速度 */
+  bpm: number | null;
+  summary: FollowSummary;
+  xp: number;
+}
+
 export class MayoChordDB extends Dexie {
   declare reviewLogs: Table<StoredReviewLog, number>;
   declare settings: Table<SettingRecord, string>;
@@ -89,6 +132,8 @@ export class MayoChordDB extends Dexie {
   declare sessions: Table<SessionRecord, string>;
   declare userPacks: Table<UserPackRecord, string>;
   declare dailyPlans: Table<DailyPlanRecord, string>;
+  declare scores: Table<ScoreRecord, string>;
+  declare scoreRuns: Table<ScoreRunRecord, string>;
 
   constructor(name = DB_NAME) {
     super(name);
@@ -102,5 +147,7 @@ export class MayoChordDB extends Dexie {
     });
     // v2（M3）：每日任务清单
     this.version(2).stores({ dailyPlans: 'date' });
+    // v3（M7）：本地乐谱库与跟弹记录
+    this.version(3).stores({ scores: 'id, importedAt', scoreRuns: 'id, scoreId, startedAt' });
   }
 }

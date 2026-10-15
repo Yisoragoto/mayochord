@@ -22,6 +22,8 @@ import { Route as LearnTopicIdRouteImport } from './routes/learn/$topicId'
 import { Route as PracticeIndexRouteImport } from './routes/practice/index'
 import { Route as PracticeSessionRouteImport } from './routes/practice/session'
 import { Route as ReviewTopicIdRouteImport } from './routes/review/$topicId'
+import { Route as ScoresIndexRouteImport } from './routes/scores/index'
+import { Route as ScoresScoreIdRouteImport } from './routes/scores/$scoreId'
 import { Route as PracticeProgressionIndexRouteImport } from './routes/practice/progression/index'
 import { Route as PracticeProgressionRunRouteImport } from './routes/practice/progression/run'
 import { Route as TodayTaskTaskIdRouteImport } from './routes/today/task/$taskId'
@@ -91,6 +93,16 @@ const ReviewTopicIdRoute = ReviewTopicIdRouteImport.update({
   path: '/review/$topicId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScoresIndexRoute = ScoresIndexRouteImport.update({
+  id: '/scores/',
+  path: '/scores/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScoresScoreIdRoute = ScoresScoreIdRouteImport.update({
+  id: '/scores/$scoreId',
+  path: '/scores/$scoreId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PracticeProgressionIndexRoute =
   PracticeProgressionIndexRouteImport.update({
     id: '/practice/progression/',
@@ -120,8 +132,10 @@ export interface FileRoutesByFullPath {
   '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
   '/review/$topicId': typeof ReviewTopicIdRoute
+  '/scores/$scoreId': typeof ScoresScoreIdRoute
   '/chords/': typeof ChordsIndexRoute
   '/practice/': typeof PracticeIndexRoute
+  '/scores/': typeof ScoresIndexRoute
   '/practice/progression/run': typeof PracticeProgressionRunRoute
   '/today/task/$taskId': typeof TodayTaskTaskIdRoute
   '/practice/progression/': typeof PracticeProgressionIndexRoute
@@ -138,8 +152,10 @@ export interface FileRoutesByTo {
   '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
   '/review/$topicId': typeof ReviewTopicIdRoute
+  '/scores/$scoreId': typeof ScoresScoreIdRoute
   '/chords': typeof ChordsIndexRoute
   '/practice': typeof PracticeIndexRoute
+  '/scores': typeof ScoresIndexRoute
   '/practice/progression/run': typeof PracticeProgressionRunRoute
   '/today/task/$taskId': typeof TodayTaskTaskIdRoute
   '/practice/progression': typeof PracticeProgressionIndexRoute
@@ -157,8 +173,10 @@ export interface FileRoutesById {
   '/learn/$topicId': typeof LearnTopicIdRoute
   '/practice/session': typeof PracticeSessionRoute
   '/review/$topicId': typeof ReviewTopicIdRoute
+  '/scores/$scoreId': typeof ScoresScoreIdRoute
   '/chords/': typeof ChordsIndexRoute
   '/practice/': typeof PracticeIndexRoute
+  '/scores/': typeof ScoresIndexRoute
   '/practice/progression/run': typeof PracticeProgressionRunRoute
   '/today/task/$taskId': typeof TodayTaskTaskIdRoute
   '/practice/progression/': typeof PracticeProgressionIndexRoute
@@ -177,8 +195,10 @@ export interface FileRouteTypes {
     | '/learn/$topicId'
     | '/practice/session'
     | '/review/$topicId'
+    | '/scores/$scoreId'
     | '/chords/'
     | '/practice/'
+    | '/scores/'
     | '/practice/progression/run'
     | '/today/task/$taskId'
     | '/practice/progression/'
@@ -195,8 +215,10 @@ export interface FileRouteTypes {
     | '/learn/$topicId'
     | '/practice/session'
     | '/review/$topicId'
+    | '/scores/$scoreId'
     | '/chords'
     | '/practice'
+    | '/scores'
     | '/practice/progression/run'
     | '/today/task/$taskId'
     | '/practice/progression'
@@ -213,8 +235,10 @@ export interface FileRouteTypes {
     | '/learn/$topicId'
     | '/practice/session'
     | '/review/$topicId'
+    | '/scores/$scoreId'
     | '/chords/'
     | '/practice/'
+    | '/scores/'
     | '/practice/progression/run'
     | '/today/task/$taskId'
     | '/practice/progression/'
@@ -232,8 +256,10 @@ export interface RootRouteChildren {
   LearnTopicIdRoute: typeof LearnTopicIdRoute
   PracticeSessionRoute: typeof PracticeSessionRoute
   ReviewTopicIdRoute: typeof ReviewTopicIdRoute
+  ScoresScoreIdRoute: typeof ScoresScoreIdRoute
   ChordsIndexRoute: typeof ChordsIndexRoute
   PracticeIndexRoute: typeof PracticeIndexRoute
+  ScoresIndexRoute: typeof ScoresIndexRoute
   PracticeProgressionRunRoute: typeof PracticeProgressionRunRoute
   TodayTaskTaskIdRoute: typeof TodayTaskTaskIdRoute
   PracticeProgressionIndexRoute: typeof PracticeProgressionIndexRoute
@@ -332,6 +358,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewTopicIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scores/': {
+      id: '/scores/'
+      path: '/scores'
+      fullPath: '/scores/'
+      preLoaderRoute: typeof ScoresIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scores/$scoreId': {
+      id: '/scores/$scoreId'
+      path: '/scores/$scoreId'
+      fullPath: '/scores/$scoreId'
+      preLoaderRoute: typeof ScoresScoreIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/practice/progression/': {
       id: '/practice/progression/'
       path: '/practice/progression'
@@ -368,8 +408,10 @@ const rootRouteChildren: RootRouteChildren = {
   LearnTopicIdRoute: LearnTopicIdRoute,
   PracticeSessionRoute: PracticeSessionRoute,
   ReviewTopicIdRoute: ReviewTopicIdRoute,
+  ScoresScoreIdRoute: ScoresScoreIdRoute,
   ChordsIndexRoute: ChordsIndexRoute,
   PracticeIndexRoute: PracticeIndexRoute,
+  ScoresIndexRoute: ScoresIndexRoute,
   PracticeProgressionRunRoute: PracticeProgressionRunRoute,
   TodayTaskTaskIdRoute: TodayTaskTaskIdRoute,
   PracticeProgressionIndexRoute: PracticeProgressionIndexRoute,

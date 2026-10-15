@@ -398,7 +398,7 @@ function VoiceLeadingPreview({ source }: { source: RunSource }) {
   );
 }
 
-function Option({
+export function Option({
   label,
   value,
   children,
@@ -418,7 +418,7 @@ function Option({
   );
 }
 
-function SwitchRow({
+export function SwitchRow({
   id,
   label,
   hint,

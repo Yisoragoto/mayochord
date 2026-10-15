@@ -1,0 +1,29 @@
+/* 曲谱跟弹：五线谱上的当前音、弹对、弹错。颜色之外当前音还加粗描边。 */
+.mc-score svg {
+  overflow: visible;
+}
+/* VexFlow 的符干写死了 stroke="black"：跟随主题颜色 */
+.mc-score [stroke="black"] {
+  stroke: currentColor;
+}
+.mc-score [fill="black"] {
+  fill: currentColor;
+}
+.mc-score .mc-now,
+.mc-score .mc-now * {
+  fill: var(--primary);
+  stroke: var(--primary);
+}
+.mc-score .mc-now {
+  stroke-width: 0.6px;
+}
+.mc-score .mc-ok,
+.mc-score .mc-ok * {
+  fill: var(--mark-correct);
+  stroke: var(--mark-correct);
+}
+.mc-score .mc-bad,
+.mc-score .mc-bad * {
+  fill: var(--mark-extra);
+  stroke: var(--mark-extra);
+}

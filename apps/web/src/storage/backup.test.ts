@@ -62,6 +62,18 @@ describe('备份与迁移', () => {
       dueTopics: [],
       spareLessons: [],
     });
+    await a.repos.scores.put({
+      id: 'sc1',
+      title: 'Song',
+      fileName: 'song.mid',
+      format: 'midi',
+      importedAt: 5,
+      source: { kind: 'midi', base64: 'TVRoZA==' },
+      measureCount: 2,
+      noteCount: 3,
+      prefs: null,
+      lastPlayedAt: null,
+    });
     const backup = await a.repos.backup.export(1234, '0.5.0');
     expect(backup).toMatchObject({ kind: 'mayochord-backup', formatVersion: 1, exportedAt: 1234 });
     expect(backup.tables.reviewLogs[0]).not.toHaveProperty('seq');
@@ -75,9 +87,22 @@ describe('备份与迁移', () => {
     expect(await b.repos.settings.get('app')).toEqual({ dailyMinutes: 45 });
     expect((await b.repos.sessions.recent(5))[0]).toMatchObject({ id: 's1', xp: 1.5 });
     expect(await b.repos.dailyPlans.get('2026-10-15')).toBeDefined();
+    expect((await b.repos.scores.get('sc1'))?.source).toEqual({ kind: 'midi', base64: 'TVRoZA==' });
     // 导入后日志仍然只追加
     await b.repos.reviewLogs.append(log('l3', 300));
     expect(await b.repos.reviewLogs.count()).toBe(3);
+  });
+
+  it('M6 的旧备份（没有乐谱表）也能导入', () => {
+    const old = {
+      kind: 'mayochord-backup',
+      formatVersion: 1,
+      exportedAt: 1,
+      dbVersion: 2,
+      tables: { reviewLogs: [] },
+    };
+    const parsed = parseBackup(JSON.stringify(old));
+    expect(parsed.ok && parsed.backup.tables.scores).toEqual([]);
   });
 
   it('解析失败：不是 JSON / 不是备份文件 / 格式不对', () => {

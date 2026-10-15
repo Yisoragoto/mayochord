@@ -3,7 +3,7 @@
 MayoChord 是一个纯前端应用：所有逻辑在浏览器里运行，数据存在 IndexedDB，部署在 GitHub Pages 上。仓库是 pnpm monorepo，分三个包。
 
 ```
-packages/core      纯 TypeScript：乐理、识别与判定、评分、调度、知识图谱、节奏。不依赖 React 和浏览器 API
+packages/core      纯 TypeScript：乐理、识别与判定、评分、调度、知识图谱、节奏、乐谱导入与跟弹判定。不依赖 React 和浏览器 API
 packages/content   内容包格式（Zod）、内置内容包、设备配置；把内容包加载成 LoadedPack
 apps/web           React 应用：输入、音频、存储、页面
 ```
@@ -53,8 +53,23 @@ Web MIDI ──(八度校准)──► InputHub ◄── 屏幕键盘 / 电脑�
 5. **一天**（`scheduler/daily.ts`）：热身、针对性补救、到期复习（优先能顺带覆盖其他主题的）、测验、新课（同一干扰组一天只引入一个）。
 6. **起点**（`graph/diagnostic.ts`）：诊断测试在图谱上二分，通过推断先修已掌握，没通过推断后继还要学。
 
+## 曲谱跟弹
+
+```
+文件 ──► detectScoreFormat ──► MusicXML（自写 XML 解析）/ .mxl（fflate 解压）/ MIDI（自写 SMF 解析）
+                                   │
+                                   ▼
+                     Score：notes（演奏）+ elements（记谱）+ measures
+                       │                     │
+                       ▼                     ▼
+       buildFollowPlan → 等待 / 跟拍判定      render-score（VexFlow 排版）/ 瀑布流（canvas）
+       （score/follow.ts，纯函数）
+```
+
+本地乐谱库存的是原文（MusicXML 文本或 MIDI 的 base64），每次打开重新解析，解析器改进后旧的谱子也受益。
+
 ## 页面
 
-TanStack Router 的文件路由在 `apps/web/src/routes/`。练习类页面（`staticData: { focus: true }`）是专注模式，不显示导航。大文件按需加载：Tone.js 与钢琴采样（第一次发声）、VexFlow（第一次显示五线谱）、ECharts（统计页）。
+TanStack Router 的文件路由在 `apps/web/src/routes/`。练习类页面（`staticData: { focus: true }`）是专注模式，不显示导航。大文件按需加载：Tone.js 与钢琴采样（第一次发声）、VexFlow（第一次显示五线谱）、ECharts（统计页）、乐谱排版（曲谱页面）。
 
 PWA：`vite-plugin-pwa` 预缓存应用本体，字体子集和钢琴采样第一次用到时缓存，之后离线可用。

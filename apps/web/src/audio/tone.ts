@@ -1,4 +1,4 @@
-import { fallbackStamp, type OutputStamp } from '@mayochord/core';
+import { fallbackStamp, type OutputStamp, perfToAudio } from '@mayochord/core';
 
 type ToneModule = typeof import('tone');
 
@@ -35,6 +35,11 @@ export function outputStamp(ctx: AudioContext): OutputStamp {
   }
   const latency = (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
   return fallbackStamp(ctx.currentTime, performance.now(), latency);
+}
+
+/** performance.now() 域的时刻 → 在这个时刻出声要安排的 AudioContext 时间；音频还没启动时为 null */
+export function perfToContextTime(perf: number): number | null {
+  return native ? perfToAudio(perf, outputStamp(native)) : null;
 }
 
 export function nativeAudioContext(): AudioContext | null {

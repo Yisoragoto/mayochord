@@ -18,6 +18,8 @@ const TABLES = [
   'sessions',
   'dailyPlans',
   'userPacks',
+  'scores',
+  'scoreRuns',
 ] as const;
 export type BackupTable = (typeof TABLES)[number];
 
@@ -37,6 +39,9 @@ export const BackupSchema = z.object({
     sessions: rows.default([]),
     dailyPlans: rows.default([]),
     userPacks: rows.default([]),
+    // M7（数据库 v3）新增；旧备份没有这两项
+    scores: rows.default([]),
+    scoreRuns: rows.default([]),
   }),
 });
 export type Backup = z.infer<typeof BackupSchema>;
@@ -46,16 +51,27 @@ export async function exportBackup(
   now: number,
   appVersion?: string,
 ): Promise<Backup> {
-  const [reviewLogs, settings, calibrations, cardStates, sessions, dailyPlans, userPacks] =
-    await Promise.all([
-      db.reviewLogs.orderBy('seq').toArray(),
-      db.settings.toArray(),
-      db.calibrations.toArray(),
-      db.cardStates.toArray(),
-      db.sessions.toArray(),
-      db.dailyPlans.toArray(),
-      db.userPacks.toArray(),
-    ]);
+  const [
+    reviewLogs,
+    settings,
+    calibrations,
+    cardStates,
+    sessions,
+    dailyPlans,
+    userPacks,
+    scores,
+    scoreRuns,
+  ] = await Promise.all([
+    db.reviewLogs.orderBy('seq').toArray(),
+    db.settings.toArray(),
+    db.calibrations.toArray(),
+    db.cardStates.toArray(),
+    db.sessions.toArray(),
+    db.dailyPlans.toArray(),
+    db.userPacks.toArray(),
+    db.scores.toArray(),
+    db.scoreRuns.toArray(),
+  ]);
   return {
     kind: BACKUP_KIND,
     formatVersion: BACKUP_FORMAT_VERSION,
@@ -71,6 +87,8 @@ export async function exportBackup(
       sessions: sessions as never,
       dailyPlans: dailyPlans as never,
       userPacks: userPacks as never,
+      scores: scores as never,
+      scoreRuns: scoreRuns as never,
     },
   };
 }
@@ -107,6 +125,8 @@ export async function importBackup(db: MayoChordDB, backup: Backup): Promise<voi
       db.sessions,
       db.dailyPlans,
       db.userPacks,
+      db.scores,
+      db.scoreRuns,
     ],
     async () => {
       await Promise.all(TABLES.map((name) => db.table(name).clear()));
@@ -118,6 +138,8 @@ export async function importBackup(db: MayoChordDB, backup: Backup): Promise<voi
       await db.sessions.bulkPut(t.sessions as never[]);
       await db.dailyPlans.bulkPut(t.dailyPlans as never[]);
       await db.userPacks.bulkPut(t.userPacks as never[]);
+      await db.scores.bulkPut(t.scores as never[]);
+      await db.scoreRuns.bulkPut(t.scoreRuns as never[]);
     },
   );
 }

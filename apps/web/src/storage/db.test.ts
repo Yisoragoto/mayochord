@@ -143,7 +143,7 @@ describe('数据库版本与迁移', () => {
     const db = new MayoChordDB(name);
     opened.push(db);
     await db.open();
-    expect(db.verno).toBe(2);
+    expect(db.verno).toBe(3);
     const repos = createDexieRepositories(db);
     expect((await repos.reviewLogs.byCard('card-c')).map((l) => l.id)).toEqual(['legacy']);
     // v2 新增的 dailyPlans 表可用
@@ -155,5 +155,86 @@ describe('数据库版本与迁移', () => {
       spareLessons: [],
     });
     expect((await repos.dailyPlans.get('2026-10-14'))?.createdAt).toBe(1);
+  });
+
+  it('v2 的数据升级到 v3 后仍然存在，乐谱库可用', async () => {
+    const name = `migration-v2-${Date.now()}`;
+    const old = new Dexie(name);
+    old.version(2).stores({
+      reviewLogs: '++seq, &id, ts, cardId, sessionId, [cardId+ts]',
+      settings: 'key',
+      calibrations: 'deviceKey',
+      cardStates: 'cardId, due',
+      sessions: 'id, startedAt',
+      userPacks: 'id',
+      dailyPlans: 'date',
+    });
+    await old.table('reviewLogs').add(log('v2-log', 'card-d', 1));
+    await old.table('dailyPlans').put({ date: '2026-10-15', createdAt: 2, tasks: [] });
+    old.close();
+
+    const db = new MayoChordDB(name);
+    opened.push(db);
+    await db.open();
+    const repos = createDexieRepositories(db);
+    expect((await repos.reviewLogs.byCard('card-d')).map((l) => l.id)).toEqual(['v2-log']);
+    expect((await repos.dailyPlans.get('2026-10-15'))?.createdAt).toBe(2);
+    expect(await repos.scores.list()).toEqual([]);
+  });
+});
+
+describe('乐谱库', () => {
+  const score = (id: string, importedAt: number) => ({
+    id,
+    title: id,
+    fileName: `${id}.mid`,
+    format: 'midi' as const,
+    importedAt,
+    source: { kind: 'midi' as const, base64: '' },
+    measureCount: 4,
+    noteCount: 10,
+    prefs: null,
+    lastPlayedAt: null,
+  });
+  const run = (id: string, scoreId: string, startedAt: number) => ({
+    id,
+    scoreId,
+    startedAt,
+    endedAt: startedAt + 1,
+    mode: 'wait' as const,
+    hands: 'both' as const,
+    from: 0,
+    to: 3,
+    bpm: null,
+    summary: {
+      mode: 'wait' as const,
+      total: 1,
+      correct: 1,
+      missed: 0,
+      extra: 0,
+      onBeatRate: null,
+      meanOffsetMs: null,
+      stdevOffsetMs: null,
+      measures: [],
+    },
+    xp: 0.1,
+  });
+
+  it('列表按最近练习/导入排序；更新；删除时连同跟弹记录', async () => {
+    const repos = createDexieRepositories(freshDb());
+    await repos.scores.put(score('a', 1));
+    await repos.scores.put(score('b', 2));
+    await repos.scores.put(score('c', 3));
+    await repos.scores.update('a', { lastPlayedAt: 10, title: 'A!' });
+    expect((await repos.scores.list()).map((s) => s.id)).toEqual(['a', 'c', 'b']);
+    expect((await repos.scores.get('a'))?.title).toBe('A!');
+    await repos.scores.addRun(run('r2', 'a', 20));
+    await repos.scores.addRun(run('r1', 'a', 10));
+    await repos.scores.addRun(run('r3', 'b', 5));
+    expect((await repos.scores.runs('a')).map((r) => r.id)).toEqual(['r1', 'r2']);
+    await repos.scores.delete('a');
+    expect(await repos.scores.get('a')).toBeUndefined();
+    expect(await repos.scores.runs('a')).toEqual([]);
+    expect((await repos.scores.runs('b')).map((r) => r.id)).toEqual(['r3']);
   });
 });

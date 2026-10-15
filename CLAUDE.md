@@ -13,8 +13,8 @@
 | M3 知识图谱与每日任务 | 完成（用户 2026-10-15 测试通过） |
 | M4 节奏与进行 | 完成（用户 2026-10-15 测试通过） |
 | M5 听觉与读谱 | 完成（用户 2026-10-15 确认） |
-| M6 统计与发布 | 完成（用户 2026-10-15 确认） |
-| M7 导入乐谱跟弹 | 进行中 |
+| M6 统计与发布 | 完成（commit fe043f8，用户 2026-10-15 确认） |
+| M7 导入乐谱跟弹 | 完成（用户 2026-10-15 确认） |
 
 ## 常用命令（仓库根目录）
 
@@ -71,11 +71,13 @@ packages/core/src/
   strategy/     调度策略对象：各项参数集中在这里（createDefaultStrategy）
   graph/        主题图谱（校验、拓扑、包含权重）、分层布局、主题进度与状态（topic-progress.ts）、诊断测试（diagnostic.ts）
   stats/        统计页的纯函数：反应时间趋势、切换热力图、节拍偏差、总体
+  score/        乐谱导入（MusicXML/.mxl/MIDI → Score）、XML 解析、临时记号、跟弹判定（等待/跟拍）与按小节统计
   timing/       音频时钟↔performance.now() 换算（clock.ts）、节拍网格与"在拍上"容差（beat-grid.ts）、
                 延迟校准（latency.ts）、统计（平均、标准差、直方图）
   drill/progression-run.ts  跟拍弹进行的判定（纯函数状态机）、证据、评分、总结、BPM 的 85% 规则
 packages/content/src/
   schema/       Zod：内容包（含跨字段校验）、设备配置
+  scores/       示例曲谱（欢乐颂，自编简易版）
   packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦（共 72 个）+ 30 个主题）
   devices/      设备配置 JSON（JUNO-D7、通用 88 键）
   load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
@@ -84,11 +86,11 @@ apps/web/src/
   routes/       /（今天）、/graph、/learn/$topicId（课程，专注模式）、/practice/progression、
                 /practice/progression/run（专注模式）、/today/task/$taskId（热身/复习，专注模式）、
                 /review/$topicId（从图谱进入的复习）、/practice、/practice/session（专注模式）、
-                /chords、/chords/$chordId、/monitor、/settings、/design
+                /chords、/chords/$chordId、/scores、/scores/$scoreId（专注模式）、/stats、/diagnostic、/monitor、/settings、/design
   features/     shell、today（每日任务）、graph（知识图谱）、learn（LearningService、课程、每日任务运行）、
                 practice（PracticeController、SessionRunner、ChordCues 题面、自由练习、轮次总结）、stats（统计页）、
                 progression（进行练习器：ProgressionRunController、ProgressionRunner、总结、声部进行图 VoiceLeading）、
-                chords（和弦库、详情、试弹）、midi（设备面板）、monitor、settings、design-gallery
+                chords（和弦库、详情、试弹）、scores（乐谱库、跟弹页面、五线谱排版、瀑布流）、midi（设备面板）、monitor、settings、design-gallery
   input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
                 computer-keyboard.ts、PlayableKeyboard.tsx（屏幕键盘）
   audio/        tone.ts（懒加载 Tone.js，钢琴与节拍器共用一个原生 AudioContext；outputStamp 时钟换算）、
@@ -146,7 +148,7 @@ docs/           architecture.md、content-pack.md、learning-science.md、screen
 - 进行的每一步可以有 `anticipation`（0–3，提前几个 16 分音符换和弦，默认 0；M4）。内置 `c-g-am-f-push` 每步提前 1 个 16 分音符。
 - 内置图谱 21 个主题（M4 新增跟拍主题：跟着节拍器弹 C–G–Am–F → 16 分音符先行切分；跟拍弹丸サ進行）。M3 的 18 个：认识键盘与音名 → 半音与全音 → 大三度/小三度 → 大三/小三和弦公式（干扰组 triad-quality）→ C 调三和弦 → C–G–Am–F → 转位 → 就近转位与声部进行 → 王道进行；12 调三和弦；M7/7/m7/m7♭5 公式（干扰组 seventh-quality）→ C 调七和弦 → II–V–I → 丸サ進行。规格里的"16 分音符切分"在 M4 加入（sixteenth-anticipation）。
 
-### 本地数据库（Dexie，`MayoChordDB`，当前 version 2）
+### 本地数据库（Dexie，`MayoChordDB`，当前 version 3）
 
 | 表 | 主键 / 索引 | 说明 |
 |---|---|---|
@@ -156,6 +158,8 @@ docs/           architecture.md、content-pack.md、learning-science.md、screen
 | cardStates | `cardId, due` | `{ cardId, due, progress: CardProgress }`。**缓存**，可由 reviewLogs 重放重建（`replayProgress`）。新卡 due = `Number.MAX_SAFE_INTEGER` |
 | sessions | `id, startedAt` | 每轮练习：`{ id, startedAt, endedAt, kind: 'practice', config, summary }` |
 | userPacks | `id` | 用户导入的内容包（M6） |
+| scores（v3） | `id, importedAt` | 本地乐谱库：`{ id, title, fileName, format, importedAt, source: { kind: 'musicxml', text } \| { kind: 'midi', base64 }, measureCount, noteCount, prefs, lastPlayedAt }`。存原文，打开时重新解析 |
+| scoreRuns（v3） | `id, scoreId, startedAt` | 跟弹记录：模式、手、小节范围、速度、`FollowSummary`（含每个小节的统计）、XP |
 | dailyPlans（v2） | `date` | 每日任务：`{ date, createdAt, tasks: [{ id, kind, topicIds, cardIds, minutes, covers, status: pending/done/skipped, completedAt, xp, result }], dueTopics, spareLessons }` |
 
 - 主题进度**不入库**：每次从主题日志（`cardId` 以 `topic:` 开头）重放得到（`replayTopicProgress`），日志不多，保证与日志一致。
@@ -163,7 +167,7 @@ docs/           architecture.md、content-pack.md、learning-science.md、screen
 
 AppSettings 新增（M4）：`latencyOffsetMs`、`latencyCalibrated`、`metronomeVolume`、`progression`（进行练习器上次的选项与每条进行的 BPM，`ProgressionPrefsSchema`）。
 settings 表另有键 `'adaptive'`：`{ 'name-to-chord' | 'transition': { timeLimitMs, sinceAdjust } }`（85% 规则的当前时限）。
-M3 新增 version 2（dailyPlans 表），`db.test.ts` 有 v1 数据升级测试。
+M3 新增 version 2（dailyPlans 表），M7 新增 version 3（scores、scoreRuns），`db.test.ts` 有 v1、v2 数据升级测试。备份格式仍是 formatVersion 1：新增的 `scores`、`scoreRuns` 两项可以省略（M6 的备份照样能导入）。
 
 改表结构：新增 `this.version(n)`，保留旧版本声明，需要时写 `.upgrade()`，并在 `storage/db.test.ts` 加"旧数据升级后不丢失"的测试。
 
@@ -436,6 +440,39 @@ M3 新增 version 2（dailyPlans 表），`db.test.ts` 有 v1 数据升级测试
 - 桌面预设：今天 92 / 100 / 100 / 100（性能 / 无障碍 / 最佳实践 / SEO），统计 89 / 100 / 100 / 100，图谱 97 / 100 / 100 / 100。
 - 移动预设（慢速 4G 模拟）性能只有约 44：中文字体子集（约 850 KB）和路由 chunk 的串行加载。应用面向电脑上的 Chrome + USB 键盘，暂不优化；以后可以考虑减少首屏字体、预加载首页路由。
 - 为此修过的无障碍问题：`--subtle-foreground` 加深/提亮到对比度 ≥ 4.5:1，"今天"右侧统计改成列表、任务标题改为 h2。
+
+## 曲谱跟弹（M7）
+
+### 导入与乐谱模型（`packages/core/src/score/`，纯函数）
+
+- 格式按文件内容判断（`detectScoreFormat`）：`MThd` → MIDI，`PK` → .mxl（fflate 0.8.3 解压，读 `META-INF/container.xml` 的 rootfile），否则当作 MusicXML 文本（UTF-8，或带 BOM 的 UTF-16）。
+- XML 解析自己写（`xml.ts`）：core 不能用 DOMParser。只支持 score-partwise；timewise 给出提示。
+- 统一模型 `Score`（tick，四分音符 = `TPQ` = 960）：
+  - `notes`：演奏用的音（连音线已合并），`hand` 由谱表决定（谱表 1 右手、2 左手；只有一行低音谱表时是左手）；
+  - `elements`：记谱用的音符/和弦/休止符（时值类型、附点、连音、连音线、临时记号），五线谱用；
+  - `measures`：拍号、调号、每行的谱号；`tempo` 取谱上第一个速度标记（没有时 120）。
+- MusicXML 选声部：第一个有两行谱表的声部（钢琴）；否则前两个有音的声部当作右手、左手，其余写进 `warnings`（parts-ignored）。第 3 行以后的谱表并到第 2 行。装饰音（grace）、cue 音不要。弱起小节按实际长度。
+- 临时记号自己算（`assignAccidentals`）：小节开始按调号，同一小节、同一谱表、同一八度的同一字母沿用；连音线延续过来的音不画。
+- MIDI：格式 0/1，按四分音符计时（SMPTE 不支持）；打击乐（通道 10）不要；恰好两条有音的轨道时平均音高高的是右手，否则以中央 C 为界。按 16 分音符对齐；记谱时每只手一个声部，同时开始的音合成和弦，时值到下一个起音为止（演奏用的音保留原长），跨小节用连音线。音名按调号拼写（升号调用升号，降号调用降号，C 调用默认写法）。
+- 第一版的限制（规格已写）：反复记号、D.C./D.S. 不展开（`warnings: repeats`）；跟拍模式按一个固定速度（曲中变速时 `tempo-changes`）。
+- 示例曲谱：`packages/content/src/scores/example.ts`，贝多芬《欢乐颂》主题（旋律公有领域）的自编简易版，16 小节，C 大调，♩ = 96。
+
+### 跟弹判定（`score/follow.ts`）
+
+- `buildFollowPlan(score, hands, from, to)`：按起音分组，每组 `notes`（自己弹）和 `auto`（另一只手：网页弹或静音）。
+- **等待模式**（`startWait` / `waitNoteOn`）：逐音判定（直接用 noteOn，不等和弦"弹稳"），这一组的音都按到了（可以一个一个按，不要求同时按住）才往下走；不在这一组里的音记为按错，这一组记"有错"（重复按同一个错音只记一次）。只有另一只手的组由控制器按谱上时值等一会儿自动跳过（`waitSkipAuto`），不记成绩。
+- **跟拍模式**（`startTempo` / `tempoNoteOn` / `tempoTick`）：第 k 组的时刻 = 段落开始 + 跨循环的 tick × 每 tick 毫秒。按下的音（扣除延迟校准）与时间最近、音高相同、还没配对、距离在配对窗口内的谱上音配对，记偏差；配不上的算多按，记在时间最近的组上。窗口过了（+30 ms 余量）还没配上的算漏弹。配对窗口 = 半拍，限制在 120–250 ms；"在拍上"的容差与跟拍弹进行相同（`onBeatToleranceMs`）。预备拍里按的不算。手动结束时，窗口还没关但已经全部弹到的组也算上。
+- 总结 `summarizeWait` / `summarizeTempo`，按小节 `MeasureStat { total, errors, offBeat }`（等待模式按组计，跟拍模式按音计；错误 = 漏弹 + 多按）。错误率 `measureErrorRate` = (错误 + 0.5 × 不在拍上) / 总数。`worstMeasures` 把多次练习合起来，至少练过 3 次、有错误的小节按错误率排序。
+
+### 网页（`features/scores/`）
+
+- `/scores`：本地乐谱库（导入文件、拖放、添加示例、删除）。桌面导航有"曲谱"；手机从"自由练习"的第三个标签进入。文件最大 10 MB。
+- `/scores/$scoreId`（专注模式）：选项（视图、模式、手、另一只手、小节范围、速度 25–150%、遍数、节拍器、键盘提示）存在这首曲子的 `prefs`（Zod 校验，每个字段损坏时单独回退默认值）。点五线谱上的小节设为起点，Shift 点设为终点。
+- 三种模式：等待、跟拍（预备一小节，节拍器可关）、试听（网页弹出两只手，不判定）。另一只手"网页弹"时开始前先加载钢琴音源（加载期间显示"准备中…"，不接收输入）。跟拍、试听时网页的音用音频时钟提前 400 ms 安排（`AudioOutput.playAt` + `perfToContextTime`），与节拍器对齐。
+- 五线谱视图（`render-score.ts`，VexFlow 5，懒加载）：小节宽度按音符数估计后拉伸填满一行；连音、附点、符杠（`Beam.generateBeams` 按拍号分组）、多声部（第一个声部符干向上）、跨行连音线。**排版前要等 Bravura 字体加载完**（`fontsReady()`），否则量出来的符头宽度不对，符头和符干错开。VexFlow 的符干写死 `stroke="black"`，用 CSS 改成 currentColor。当前组高亮、弹对/弹错着色（只改 class），当前小节不在视野里时自动滚动。
+- 瀑布流（`WaterfallView`，canvas）：与下方同音域的键盘对齐，一屏 8 拍；每帧直接读控制器状态。另一只手的音画淡，范围外的更淡。
+- 点击切换模式的屏幕键盘：每到下一组自动松开。
+- 结果：每个小节一格（颜色 + 文字说明），点一格就只循环练这个小节；"以前最容易出错的小节"来自所有跟弹记录。练习记录写进 sessions（`config.kind: 'score'`，XP：等待模式每组最多算 20 秒，跟拍模式按弹奏时长），所以计入今天的 XP 和连续天数；不写作答日志（没有卡片）。
 
 ## 设计系统
 

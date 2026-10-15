@@ -26,3 +26,5 @@ function loadBuiltin(): LoadedPack {
 
 /** 内置内容包（第 11 节的和弦、键位与进行）。 */
 export const BUILTIN_PACK: LoadedPack = loadBuiltin();
+
+export * from './scores/example';

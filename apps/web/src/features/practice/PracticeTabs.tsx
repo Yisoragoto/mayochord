@@ -2,8 +2,8 @@ import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
-/** 自由练习的两种入口：和弦练习（看名弹和弦、切换）与跟拍弹进行 */
-export function PracticeTabs({ current }: { current: 'chords' | 'progression' }) {
+/** 自由练习的入口：和弦练习（看名弹和弦、切换）、跟拍弹进行、曲谱跟弹（M7） */
+export function PracticeTabs({ current }: { current: 'chords' | 'progression' | 'scores' }) {
   const { t } = useTranslation();
   const item = (active: boolean) =>
     cn(
@@ -30,6 +30,13 @@ export function PracticeTabs({ current }: { current: 'chords' | 'progression' })
         aria-current={current === 'progression' ? 'page' : undefined}
       >
         {t('practice.tabProgression')}
+      </Link>
+      <Link
+        to="/scores"
+        className={item(current === 'scores')}
+        aria-current={current === 'scores' ? 'page' : undefined}
+      >
+        {t('practice.tabScores')}
       </Link>
     </nav>
   );
