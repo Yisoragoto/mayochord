@@ -13,6 +13,7 @@ export {
   type NotationPitch,
   notatedTicks,
   type Score,
+  type ScoreDirection,
   type ScoreMeasure,
   type ScoreNote,
   type ScoreWarning,

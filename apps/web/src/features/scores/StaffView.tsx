@@ -163,7 +163,7 @@ export function StaffView({
               <span
                 key={`${c.measure}:${c.start}`}
                 className="pointer-events-none absolute -translate-y-full text-primary"
-                style={{ left: x, top: box.y - 2 }}
+                style={{ left: x, top: box.labelY }}
                 data-testid="chord-label"
               >
                 <ChordName symbol={c.symbol} size="sm" />

@@ -963,3 +963,86 @@ describe('labelChords', () => {
     expect(chordSequence(labels, [])).toEqual([]);
   });
 });
+
+describe('parseMusicXml：记谱细节（表情记号、连线、奏法、8va）', () => {
+  const n = (step: string, octave: number, extra = '', chord = false, staff = 1) =>
+    `<note>${chord ? '<chord/>' : ''}<pitch><step>${step}</step><octave>${octave}</octave></pitch><duration>1</duration><voice>1</voice><type>quarter</type>${extra}<staff>${staff}</staff></note>`;
+  const dir = (inner: string, attrs = '', staff = 1) =>
+    `<direction${attrs}><direction-type>${inner}</direction-type><staff>${staff}</staff></direction>`;
+  const xml = xmlScore(
+    `<part id="P1"><measure number="1">${ATTR(2, 1)}` +
+      dir('<rehearsal>A</rehearsal>', ' placement="above"') +
+      dir('<dynamics><mf/></dynamics>', ' placement="below"') +
+      dir('<octave-shift type="down" size="8"/>') +
+      n(
+        'C',
+        6,
+        '<stem>down</stem><beam number="1">begin</beam><notations><articulations><accent/></articulations><slur type="start" number="1" placement="above"/></notations>',
+      ) +
+      n('E', 6, '<notations><arpeggiate/><fermata/></notations>', true) +
+      n(
+        'D',
+        6,
+        '<beam number="1">end</beam><notations><articulations><staccato/></articulations></notations>',
+      ) +
+      dir('<octave-shift type="stop" size="8"/>') +
+      dir('<words>cresc.</words>') +
+      dir('<wedge type="crescendo"/>', ' placement="below"') +
+      n('E', 5, '<notations><slur type="stop" number="1"/></notations>') +
+      dir('<wedge type="stop"/>') +
+      n('F', 5) +
+      `<backup><duration>4</duration></backup>` +
+      dir('<pedal type="start"/>', '', 2) +
+      n('C', 3, '', false, 2) +
+      n('C', 3, '', false, 2) +
+      dir('<pedal type="stop"/>', '', 2) +
+      n('C', 3, '', false, 2) +
+      n('C', 3, '', false, 2) +
+      `</measure></part>`,
+    '<score-part id="P1"><part-name>Piano</part-name></score-part>',
+  );
+  const s = parseMusicXml(xml);
+
+  it('音符上的符干、符杠、奏法、琶音、连线（和弦里的音合并）', () => {
+    const top = s.elements.filter((e) => e.staff === 1);
+    expect(top[0]).toMatchObject({
+      stem: 'down',
+      beam: 'begin',
+      arpeggio: true,
+      articulations: ['accent', 'fermata'],
+      slurs: [{ type: 'start', number: 1, placement: 'above' }],
+    });
+    expect(top[0]?.pitches.map((p) => p.spelled)).toEqual(['C6', 'E6']);
+    expect(top[1]).toMatchObject({ beam: 'end', articulations: ['staccato'] });
+    expect(top[2]?.slurs).toEqual([{ type: 'stop', number: 1 }]);
+  });
+
+  it('8va 范围里的音显示低一个八度；范围外不变', () => {
+    const top = s.elements.filter((e) => e.staff === 1);
+    expect(top.map((e) => e.octaveShift ?? 0)).toEqual([-1, -1, 0, 0]);
+    // 演奏用的音不变（MusicXML 的 pitch 是实际音高）
+    expect(s.notes.find((x) => x.start === 0 && x.hand === 'right')?.pitch).toBe(84);
+  });
+
+  it('表情记号：排练号、力度、文字、渐强、踏板、8va（按时间排序）', () => {
+    expect(
+      (s.directions ?? []).map((d) => [
+        d.kind,
+        'text' in d ? d.text : 'type' in d ? d.type : '',
+        d.tick / TPQ,
+        d.staff,
+        d.placement,
+      ]),
+    ).toEqual([
+      ['rehearsal', 'A', 0, 1, 'above'],
+      ['dynamic', 'mf', 0, 1, 'below'],
+      ['octave', 'down', 0, 1, 'above'],
+      ['pedal', 'start', 0, 2, 'below'],
+      ['octave', 'stop', 2, 1, 'above'],
+      ['words', 'cresc.', 2, 1, 'above'],
+      ['wedge', 'crescendo', 2, 1, 'below'],
+      ['pedal', 'stop', 2, 2, 'below'],
+      ['wedge', 'stop', 3, 1, 'below'],
+    ]);
+  });
+});

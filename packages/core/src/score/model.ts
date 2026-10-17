@@ -58,7 +58,36 @@ export interface NotationElement {
   tuplet: { actual: number; normal: number } | null;
   /** 低到高；休止符为空 */
   pitches: NotationPitch[];
+  /** 以下只有 MusicXML 有（MIDI 没有这些记谱信息） */
+  /** 谱上写的符干方向 */
+  stem?: 'up' | 'down';
+  /** 第一层符杠：begin / continue / end（按谱上的连法画符杠） */
+  beam?: 'begin' | 'continue' | 'end';
+  /** 奏法记号：accent、staccato、tenuto、strong-accent、staccatissimo、fermata */
+  articulations?: string[];
+  /** 琶音记号 */
+  arpeggio?: boolean;
+  /** 连线（圆滑线）的开始、结束 */
+  slurs?: { type: 'start' | 'stop'; number: number; placement?: 'above' | 'below' }[];
+  /** 显示时移动几个八度（8va 记号下的音写低一个八度 = -1；8vb = +1） */
+  octaveShift?: number;
 }
+
+/** 谱上的表情记号、文字等（只有 MusicXML 有），画在某个谱表某个时刻的上方或下方 */
+export type ScoreDirection = {
+  measure: number;
+  /** 谱表，1 起 */
+  staff: number;
+  tick: number;
+  placement: 'above' | 'below';
+} & (
+  | { kind: 'dynamic'; text: string }
+  | { kind: 'words'; text: string }
+  | { kind: 'rehearsal'; text: string }
+  | { kind: 'wedge'; type: 'crescendo' | 'diminuendo' | 'stop' }
+  | { kind: 'pedal'; type: 'start' | 'stop' | 'change' }
+  | { kind: 'octave'; type: 'up' | 'down' | 'stop'; size: number }
+);
 
 export interface ScoreMeasure {
   index: number;
@@ -95,6 +124,8 @@ export interface Score {
   playback: number[];
   /** 导入时的提示（例如反复记号没有展开、只导入了两个声部） */
   warnings: ScoreWarning[];
+  /** 表情记号、文字、8va 等（MusicXML；按时间排序） */
+  directions?: ScoreDirection[];
 }
 
 export type ScoreWarning =
