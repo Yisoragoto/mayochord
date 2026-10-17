@@ -10,7 +10,11 @@ import {
   type Hand,
   intervalCard,
   nameToMidi,
+  nameToPitchClass,
+  nearestBass,
   noteCard,
+  parseNoteName,
+  rankRightHandVoicings,
   symbolFromNames,
   type TopicGraph,
   type TopicNode,
@@ -95,6 +99,62 @@ function toVoicing(v: ContentPackData['voicings'][number]): Voicing {
   return { id: v.id, chordId: v.chordId, notes, status: v.status };
 }
 
+/** MIDI 号按给定的音名拼写写出带八度的名字：('Bb', 70) → 'Bb4'，('Cb', 59) → 'Cb4' */
+function nameAt(name: string, midi: number): string {
+  const n = parseNoteName(name);
+  const letterPc = nameToPitchClass(n?.letter ?? 'C') ?? 0;
+  const octave = Math.round((midi - letterPc - (n?.alter ?? 0)) / 12) - 1;
+  return `${name}${octave}`;
+}
+
+/**
+ * 进行里没有给键位的步：按就近转位从上一个和弦推出（右手在 G3–G5 内移动最少、左手低音就近），
+ * 第一个和弦用密集排列。和 Dm7 – G7 – CM7 等内置键位的推导方法相同（content.test.ts）。
+ */
+export function voiceLeadProgression(
+  id: string,
+  steps: readonly { chord: ChordEntry; voicing: Voicing | null }[],
+): Voicing[] {
+  const out: Voicing[] = [];
+  let prev: Voicing | null = null;
+  steps.forEach(({ chord, voicing }, i) => {
+    let v = voicing;
+    if (!v) {
+      if (!prev) {
+        v = { ...chord.reference, id: `${id}-${i + 1}`, status: 'generated' };
+      } else {
+        const prevRight = prev.notes.filter((n) => n.hand === 'right').map((n) => n.midi);
+        const prevBass = Math.min(
+          ...prev.notes.filter((n) => n.hand === 'left').map((n) => n.midi),
+        );
+        const ranked =
+          rankRightHandVoicings(prevRight, chord.rootName, chord.quality)[0] ??
+          rankRightHandVoicings(prevRight, chord.rootName, chord.quality, { size: 4 })[0];
+        const right =
+          ranked?.notes ??
+          chord.reference.notes.filter((n) => n.hand === 'right').map((n) => n.midi);
+        const tones = chord.tones;
+        const nameOf = (midi: number) =>
+          nameAt(tones.find((t) => nameToPitchClass(t) === midi % 12) ?? tones[0] ?? 'C', midi);
+        const bassName = chord.bassName ?? chord.rootName;
+        const bass = nearestBass(prevBass, bassName);
+        v = {
+          id: `${id}-${i + 1}`,
+          chordId: chord.id,
+          status: 'generated',
+          notes: [
+            { name: nameAt(bassName, bass), midi: bass, hand: 'left', finger: 5 },
+            ...right.map((m): VoicedNote => ({ name: nameOf(m), midi: m, hand: 'right' })),
+          ],
+        };
+      }
+    }
+    out.push(v);
+    prev = v;
+  });
+  return out;
+}
+
 /** 校验并加载内容包。校验失败时返回 Zod 的问题列表（含路径与中文说明）。 */
 export function loadContentPack(input: unknown): LoadResult {
   const parsed = ContentPackSchema.safeParse(input);
@@ -139,13 +199,20 @@ export function loadContentPack(input: unknown): LoadResult {
   const chordById = new Map(chords.map((c) => [c.id, c]));
 
   const progressions: ProgressionEntry[] = data.progressions.map((p) => {
+    const voiced = voiceLeadProgression(
+      p.id,
+      p.steps.map((s) => ({
+        chord: chordById.get(s.chordId) as ChordEntry,
+        voicing: s.voicingId === undefined ? null : (voicingById.get(s.voicingId) as Voicing),
+      })),
+    );
     const entry: ProgressionEntry = {
       id: p.id,
       name: p.name,
       key: p.key,
-      steps: p.steps.map((s) => ({
+      steps: p.steps.map((s, i) => ({
         chord: chordById.get(s.chordId) as ChordEntry,
-        voicing: voicingById.get(s.voicingId) as Voicing,
+        voicing: voiced[i] as Voicing,
         beats: s.beats,
         anticipation: s.anticipation,
       })),

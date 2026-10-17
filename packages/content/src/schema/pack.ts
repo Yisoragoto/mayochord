@@ -54,7 +54,8 @@ export const VoicingSchema = z.object({
 
 export const ProgressionStepSchema = z.object({
   chordId: ID,
-  voicingId: ID,
+  /** 省略时加载时按就近转位从上一个和弦推出（第一个和弦用密集排列） */
+  voicingId: ID.optional(),
   beats: z.number().positive(),
   /** 先行切分：提前几个 16 分音符换到这个和弦（0–3，跟拍练习用） */
   anticipation: z.number().int().min(0).max(3).default(0),
@@ -313,6 +314,7 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
       if (!chords.has(s.chordId)) {
         issue(['progressions', i, 'steps', j, 'chordId'], `不存在的和弦：${s.chordId}`);
       }
+      if (s.voicingId === undefined) return;
       const v = voicings.get(s.voicingId);
       if (!v) issue(['progressions', i, 'steps', j, 'voicingId'], `不存在的键位：${s.voicingId}`);
       else if (v.chordId !== s.chordId) {

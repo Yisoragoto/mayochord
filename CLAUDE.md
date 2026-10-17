@@ -15,7 +15,11 @@
 | M5 听觉与读谱 | 完成（用户 2026-10-15 确认） |
 | M6 统计与发布 | 完成（commit fe043f8，用户 2026-10-15 确认） |
 | M7 导入乐谱跟弹 | 完成（commit e125bbb，用户 2026-10-15 确认） |
-| M8 反复记号与自动标和弦 | 完成（用户 2026-10-15 确认） |
+| M8 反复记号与自动标和弦 | 完成（commit 90053a8，用户 2026-10-15 确认） |
+| M9 课程扩展：和弦词汇、调性与进行 | 完成（用户 2026-10-17 确认） |
+| M10 五线谱教程 | 进行中 |
+| M11 曲谱练习优化 | 计划中 |
+| M12 左手伴奏型与节奏、M13 听觉进阶、电吉他 | 之后 |
 
 ## 常用命令（仓库根目录）
 
@@ -80,7 +84,7 @@ packages/core/src/
 packages/content/src/
   schema/       Zod：内容包（含跨字段校验）、设备配置
   scores/       示例曲谱（欢乐颂，自编简易版）
-  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦（共 72 个）+ 30 个主题）
+  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦（共 108 个）+ 23 条进行 + 48 个主题）
   devices/      设备配置 JSON（JUNO-D7、通用 88 键）
   load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
 apps/web/src/
@@ -136,7 +140,7 @@ docs/           architecture.md、content-pack.md、learning-science.md、screen
 
 ### 内容包（`packages/content`，`schemaVersion: 1`）
 
-`{ id, version(semver), schemaVersion, name, chords: [{ id, root, quality, bass? }], voicings: [{ id, chordId, reference, status, notes: [{ pitch, hand, finger? }], note? }], progressions: [{ id, name, key, steps: [{ chordId, voicingId, beats }], description? }], topics: [...] }`
+`{ id, version(semver), schemaVersion, name, chords: [{ id, root, quality, bass? }], voicings: [{ id, chordId, reference, status, notes: [{ pitch, hand, finger? }], note? }], progressions: [{ id, name, key, steps: [{ chordId, voicingId?, beats }], description? }], topics: [...] }`
 校验规则：ID 唯一且符合 chordSlug；键位的音必须是和弦音且拼写正确；除可省略的五音外不能缺和弦音；给了键位的和弦恰好一个参考键位；进行引用的和弦、键位存在且对应。
 
 - **没有给键位的和弦**：加载时用 `closeVoicing` 自动生成参考键位（`status: 'generated'`，ID `<chord>-ref`）：左手根音（斜杠和弦为低音）C3–B3，右手从根音（斜杠和弦从低音）开始密集排列，最低音在 C4–B4，九和弦省略五音。和弦库里单独分组并标"自动排列"。
@@ -428,7 +432,7 @@ M3 新增 version 2（dailyPlans 表），M7 新增 version 3（scores、scoreRu
 
 ### 英文界面
 
-- 设置 → 外观里切换（每种语言用自己的名字显示）。内容包 30 个主题的标题、简介、讲解都有英文；进行名称、说明也有英文。
+- 设置 → 外观里切换（每种语言用自己的名字显示）。内容包全部主题的标题、简介、讲解都有英文；进行名称、说明也有英文。
 - 12 调构建的文字题在英文下是"E♭ minor"这样的说法。
 
 ### PWA
@@ -492,6 +496,12 @@ M3 新增 version 2（dailyPlans 表），M7 新增 version 3（scores、scoreRu
 - 候选：maj、m、7、M7、m7、m7♭5、dim、dim7、aug、sus4、sus2、add9、7(9)、M7(9)、m7(9)、6、m6。根音按调号拼写（调内音按音阶，调外音按调号方向）。
 - 示例《欢乐颂》的结果与编配完全一致（`content.test.ts`）。真实乐谱的准确度待用户测试。
 - 网页：五线谱上方、瀑布流右边显示（同一小节里相同的不重复标），可以关掉（`prefs.chords`）。"用这段的和弦练跟拍"把这一段（按演奏顺序，相邻相同的合并）的和弦写进进行练习器的自定义序列（上限放宽到 600 字）并跳过去；每个和弦的拍数用进行练习器自己的设置，不保留原曲的时值。
+
+## 课程扩展：和弦词汇、调性与进行（M9）
+
+- 内容包 0.6.0：和弦 108 个（新增 sus4/sus2、add9、6/m6、dim/aug、dim7、九和弦，以及七和弦转位的斜杠和弦）、进行 23 条、主题 48 个（新增 18 个）。内容由 `scratchpad` 里的脚本生成后手工核对，不在仓库里。
+- 新主题：sus、add9、六和弦、九和弦（干扰组 color-tones）；减与增三和弦（triad-quality）；减七（seventh-quality）；七和弦转位；对比配对 sus4/大三、dim/aug、add9/M7(9)；降号调与升号调的 II–V–I、1625、小室进行、卡农进行、副属和弦、借用和弦、经过减七（切换练习，宽松判定）。
+- **进行的步可以不写键位**（`voicingId` 可选）：`voiceLeadProgression()` 在加载时推出——第一个和弦用参考键位（复制一份，ID `<进行>-<序号>`，status generated），之后右手取 `rankRightHandVoicings` 的第一名（三音组合找不到时用 4 个音），左手 `nearestBass`。生成的键位不进 `voicingById`。`content.test.ts` 检查：只用和弦音、最低音是低音/根音、右手最高音每步不超过 5 个半音。
 
 ## 设计系统
 

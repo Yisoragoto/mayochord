@@ -3,6 +3,7 @@ import {
   handMidi,
   labelChords,
   midiToName,
+  nameToPitchClass,
   nearestBass,
   parseMusicXml,
   rankRightHandVoicings,
@@ -55,7 +56,7 @@ describe('内置内容包', () => {
   it('通过校验，格式版本正确', () => {
     expect(builtin.schemaVersion).toBe(CONTENT_SCHEMA_VERSION);
     expect(BUILTIN_PACK.id).toBe('mayochord-core');
-    expect(BUILTIN_PACK.chords).toHaveLength(72);
+    expect(BUILTIN_PACK.chords).toHaveLength(108);
     // 第 11 节的 11 个和弦 + 5 个就近转位推导的键位是写好的，其余自动生成
     const written = BUILTIN_PACK.chords.filter((c) => c.reference.status !== 'generated');
     expect(written).toHaveLength(16);
@@ -73,9 +74,9 @@ describe('内置内容包', () => {
     ]);
   });
 
-  it('知识图谱：30 个主题，先修关系无环，卡片由练习内容生成', () => {
+  it('知识图谱：48 个主题，先修关系无环，卡片由练习内容生成', () => {
     const { graph, topicById, cardById, topicsOfCard } = BUILTIN_PACK;
-    expect(BUILTIN_PACK.topics).toHaveLength(30);
+    expect(BUILTIN_PACK.topics).toHaveLength(48);
     expect(graph.order[0]).toBe('keyboard-names');
     expect(graph.order.indexOf('c-major-triads')).toBeGreaterThan(
       graph.order.indexOf('minor-triad-formula'),
@@ -223,6 +224,23 @@ describe('内置内容包', () => {
       ['marusa', 'FM7 E7 Am7 Gm7 C7(9)'],
       ['ii-v-i-c', 'Dm7 G7 CM7'],
       ['c-g-am-f-push', 'C G Am F'],
+      ['ii-v-i-f', 'Gm7 C7 FM7'],
+      ['ii-v-i-bb', 'Cm7 F7 B♭M7'],
+      ['ii-v-i-eb', 'Fm7 B♭7 E♭M7'],
+      ['ii-v-i-ab', 'B♭m7 E♭7 A♭M7'],
+      ['ii-v-i-db', 'E♭m7 A♭7 D♭M7'],
+      ['ii-v-i-g', 'Am7 D7 GM7'],
+      ['ii-v-i-d', 'Em7 A7 DM7'],
+      ['ii-v-i-a', 'Bm7 E7 AM7'],
+      ['ii-v-i-e', 'F♯m7 B7 EM7'],
+      ['ii-v-i-b', 'C♯m7 F♯7 BM7'],
+      ['ii-v-i-fs', 'G♯m7 C♯7 F♯M7'],
+      ['one-six-two-five', 'C Am Dm G'],
+      ['komuro', 'Am F G C'],
+      ['canon', 'C G/B Am Em/G F C/E Dm G'],
+      ['secondary-dominants', 'C E7 Am A7 Dm G7 C'],
+      ['borrowed-chords', 'C F Fm C A♭ B♭ C'],
+      ['passing-diminished', 'C C♯dim7 Dm7 D♯dim7 Em7'],
     ]);
     expect(
       BUILTIN_PACK.progressionById.get('c-g-am-f-push')?.steps.map((s) => s.anticipation),
@@ -231,7 +249,30 @@ describe('内置内容包', () => {
     expect(BUILTIN_PACK.progressionById.get('marusa')?.steps.map((s) => s.beats)).toEqual([
       4, 4, 4, 2, 2,
     ]);
-    expect(BUILTIN_PACK.voicingById.size).toBe(72);
+    expect(BUILTIN_PACK.voicingById.size).toBe(108);
+  });
+
+  it('没有给键位的进行：按就近转位推出，只用和弦音、低音正确、右手移动小', () => {
+    for (const p of BUILTIN_PACK.progressions) {
+      let prevRight: number[] | null = null;
+      for (const s of p.steps) {
+        const pcs = new Set<number | null>(s.chord.tones.map((t) => nameToPitchClass(t)));
+        const notes = s.voicing.notes;
+        for (const n of notes) expect(pcs.has(n.midi % 12), `${p.id} ${n.name}`).toBe(true);
+        const bass = Math.min(...notes.map((n) => n.midi));
+        expect(bass % 12, `${p.id} ${s.chord.id} 低音`).toBe(
+          nameToPitchClass(s.chord.bassName ?? s.chord.rootName),
+        );
+        const right = notes.filter((n) => n.hand === 'right').map((n) => n.midi);
+        if (prevRight && s.voicing.status === 'generated') {
+          // 右手最高音一步不跳超过 5 个半音
+          const top = Math.max(...right);
+          const prevTop = Math.max(...prevRight);
+          expect(Math.abs(top - prevTop), `${p.id} ${s.chord.id}`).toBeLessThanOrEqual(5);
+        }
+        prevRight = right;
+      }
+    }
   });
 });
 
@@ -276,12 +317,16 @@ describe('内容包校验', () => {
       variant((p) => ((p.voicings[1] as { reference: boolean }).reference = false)).join(),
     ).toContain('和弦 g 应恰好有一个参考键位，现有 0 个');
     const badStep = variant((p) => {
-      const step = p.progressions[0]?.steps[0];
+      const step = p.progressions[0]?.steps[0] as
+        | { chordId: string; voicingId?: string }
+        | undefined;
       if (step) step.voicingId = 'g-ref';
     });
     expect(badStep.join()).toContain('键位 g-ref 不属于 c');
     const missing = variant((p) => {
-      const step = p.progressions[0]?.steps[0];
+      const step = p.progressions[0]?.steps[0] as
+        | { chordId: string; voicingId?: string }
+        | undefined;
       if (step) {
         step.voicingId = 'zz';
         step.chordId = 'zz';

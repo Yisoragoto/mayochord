@@ -1,6 +1,6 @@
 {
   "id": "mayochord-core",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "schemaVersion": 1,
   "name": {
     "zh-CN": "MayoChord 内置内容",
@@ -374,6 +374,191 @@
       "id": "bm7",
       "root": "B",
       "quality": "m7"
+    },
+    {
+      "id": "csus4",
+      "root": "C",
+      "quality": "sus4"
+    },
+    {
+      "id": "gsus4",
+      "root": "G",
+      "quality": "sus4"
+    },
+    {
+      "id": "dsus4",
+      "root": "D",
+      "quality": "sus4"
+    },
+    {
+      "id": "csus2",
+      "root": "C",
+      "quality": "sus2"
+    },
+    {
+      "id": "dsus2",
+      "root": "D",
+      "quality": "sus2"
+    },
+    {
+      "id": "gsus2",
+      "root": "G",
+      "quality": "sus2"
+    },
+    {
+      "id": "cadd9",
+      "root": "C",
+      "quality": "add9"
+    },
+    {
+      "id": "fadd9",
+      "root": "F",
+      "quality": "add9"
+    },
+    {
+      "id": "gadd9",
+      "root": "G",
+      "quality": "add9"
+    },
+    {
+      "id": "c6",
+      "root": "C",
+      "quality": "6"
+    },
+    {
+      "id": "f6",
+      "root": "F",
+      "quality": "6"
+    },
+    {
+      "id": "dm6",
+      "root": "D",
+      "quality": "m6"
+    },
+    {
+      "id": "am6",
+      "root": "A",
+      "quality": "m6"
+    },
+    {
+      "id": "bdim",
+      "root": "B",
+      "quality": "dim"
+    },
+    {
+      "id": "csdim",
+      "root": "C#",
+      "quality": "dim"
+    },
+    {
+      "id": "fsdim",
+      "root": "F#",
+      "quality": "dim"
+    },
+    {
+      "id": "caug",
+      "root": "C",
+      "quality": "aug"
+    },
+    {
+      "id": "eaug",
+      "root": "E",
+      "quality": "aug"
+    },
+    {
+      "id": "gaug",
+      "root": "G",
+      "quality": "aug"
+    },
+    {
+      "id": "bdim7",
+      "root": "B",
+      "quality": "dim7"
+    },
+    {
+      "id": "csdim7",
+      "root": "C#",
+      "quality": "dim7"
+    },
+    {
+      "id": "dsdim7",
+      "root": "D#",
+      "quality": "dim7"
+    },
+    {
+      "id": "gsdim7",
+      "root": "G#",
+      "quality": "dim7"
+    },
+    {
+      "id": "cmaj7-9",
+      "root": "C",
+      "quality": "M7(9)"
+    },
+    {
+      "id": "fmaj7-9",
+      "root": "F",
+      "quality": "M7(9)"
+    },
+    {
+      "id": "g7-9",
+      "root": "G",
+      "quality": "7(9)"
+    },
+    {
+      "id": "dm7-9",
+      "root": "D",
+      "quality": "m7(9)"
+    },
+    {
+      "id": "am7-9",
+      "root": "A",
+      "quality": "m7(9)"
+    },
+    {
+      "id": "csm7",
+      "root": "C#",
+      "quality": "m7"
+    },
+    {
+      "id": "gsm7",
+      "root": "G#",
+      "quality": "m7"
+    },
+    {
+      "id": "cs7",
+      "root": "C#",
+      "quality": "7"
+    },
+    {
+      "id": "g7-on-b",
+      "root": "G",
+      "quality": "7",
+      "bass": "B"
+    },
+    {
+      "id": "g7-on-f",
+      "root": "G",
+      "quality": "7",
+      "bass": "F"
+    },
+    {
+      "id": "cmaj7-on-e",
+      "root": "C",
+      "quality": "M7",
+      "bass": "E"
+    },
+    {
+      "id": "am7-on-g",
+      "root": "A",
+      "quality": "m7",
+      "bass": "G"
+    },
+    {
+      "id": "em-on-g",
+      "root": "E",
+      "quality": "m",
+      "bass": "G"
     }
   ],
   "voicings": [
@@ -1047,6 +1232,472 @@
       "description": {
         "zh-CN": "每个和弦提前一个 16 分音符换（第一遍的第一个和弦仍在第 1 拍）。",
         "en": "Each chord changes one 16th note early (the very first chord still lands on beat 1)."
+      }
+    },
+    {
+      "id": "ii-v-i-f",
+      "name": {
+        "zh-CN": "II – V – I（F 调）",
+        "en": "ii – V – I (F)"
+      },
+      "key": "F",
+      "steps": [
+        {
+          "chordId": "gm7",
+          "beats": 4
+        },
+        {
+          "chordId": "c7",
+          "beats": 4
+        },
+        {
+          "chordId": "fmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-bb",
+      "name": {
+        "zh-CN": "II – V – I（B♭ 调）",
+        "en": "ii – V – I (B♭)"
+      },
+      "key": "Bb",
+      "steps": [
+        {
+          "chordId": "cm7",
+          "beats": 4
+        },
+        {
+          "chordId": "f7",
+          "beats": 4
+        },
+        {
+          "chordId": "bbmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-eb",
+      "name": {
+        "zh-CN": "II – V – I（E♭ 调）",
+        "en": "ii – V – I (E♭)"
+      },
+      "key": "Eb",
+      "steps": [
+        {
+          "chordId": "fm7",
+          "beats": 4
+        },
+        {
+          "chordId": "bb7",
+          "beats": 4
+        },
+        {
+          "chordId": "ebmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-ab",
+      "name": {
+        "zh-CN": "II – V – I（A♭ 调）",
+        "en": "ii – V – I (A♭)"
+      },
+      "key": "Ab",
+      "steps": [
+        {
+          "chordId": "bbm7",
+          "beats": 4
+        },
+        {
+          "chordId": "eb7",
+          "beats": 4
+        },
+        {
+          "chordId": "abmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-db",
+      "name": {
+        "zh-CN": "II – V – I（D♭ 调）",
+        "en": "ii – V – I (D♭)"
+      },
+      "key": "Db",
+      "steps": [
+        {
+          "chordId": "ebm7",
+          "beats": 4
+        },
+        {
+          "chordId": "ab7",
+          "beats": 4
+        },
+        {
+          "chordId": "dbmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-g",
+      "name": {
+        "zh-CN": "II – V – I（G 调）",
+        "en": "ii – V – I (G)"
+      },
+      "key": "G",
+      "steps": [
+        {
+          "chordId": "am7",
+          "beats": 4
+        },
+        {
+          "chordId": "d7",
+          "beats": 4
+        },
+        {
+          "chordId": "gmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-d",
+      "name": {
+        "zh-CN": "II – V – I（D 调）",
+        "en": "ii – V – I (D)"
+      },
+      "key": "D",
+      "steps": [
+        {
+          "chordId": "em7",
+          "beats": 4
+        },
+        {
+          "chordId": "a7",
+          "beats": 4
+        },
+        {
+          "chordId": "dmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-a",
+      "name": {
+        "zh-CN": "II – V – I（A 调）",
+        "en": "ii – V – I (A)"
+      },
+      "key": "A",
+      "steps": [
+        {
+          "chordId": "bm7",
+          "beats": 4
+        },
+        {
+          "chordId": "e7",
+          "beats": 4
+        },
+        {
+          "chordId": "amaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-e",
+      "name": {
+        "zh-CN": "II – V – I（E 调）",
+        "en": "ii – V – I (E)"
+      },
+      "key": "E",
+      "steps": [
+        {
+          "chordId": "fsm7",
+          "beats": 4
+        },
+        {
+          "chordId": "b7",
+          "beats": 4
+        },
+        {
+          "chordId": "emaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-b",
+      "name": {
+        "zh-CN": "II – V – I（B 调）",
+        "en": "ii – V – I (B)"
+      },
+      "key": "B",
+      "steps": [
+        {
+          "chordId": "csm7",
+          "beats": 4
+        },
+        {
+          "chordId": "fs7",
+          "beats": 4
+        },
+        {
+          "chordId": "bmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "ii-v-i-fs",
+      "name": {
+        "zh-CN": "II – V – I（F♯ 调）",
+        "en": "ii – V – I (F♯)"
+      },
+      "key": "F#",
+      "steps": [
+        {
+          "chordId": "gsm7",
+          "beats": 4
+        },
+        {
+          "chordId": "cs7",
+          "beats": 4
+        },
+        {
+          "chordId": "fsmaj7",
+          "beats": 8
+        }
+      ]
+    },
+    {
+      "id": "one-six-two-five",
+      "name": {
+        "zh-CN": "C – Am – Dm – G（1625）",
+        "en": "C – Am – Dm – G (I–vi–ii–V)"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "c",
+          "beats": 4
+        },
+        {
+          "chordId": "am",
+          "beats": 4
+        },
+        {
+          "chordId": "dm",
+          "beats": 4
+        },
+        {
+          "chordId": "g",
+          "beats": 4
+        }
+      ],
+      "description": {
+        "zh-CN": "I – VIm – IIm – V，五六十年代流行歌和动画歌曲里最常见的循环之一。",
+        "en": "I – vi – ii – V, one of the most common loops in oldies and anime songs."
+      }
+    },
+    {
+      "id": "komuro",
+      "name": {
+        "zh-CN": "Am – F – G – C（小室进行）",
+        "en": "Am – F – G – C (Komuro progression)"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "am",
+          "beats": 4
+        },
+        {
+          "chordId": "f",
+          "beats": 4
+        },
+        {
+          "chordId": "g",
+          "beats": 4
+        },
+        {
+          "chordId": "c",
+          "beats": 4
+        }
+      ],
+      "description": {
+        "zh-CN": "VIm – IV – V – I，九十年代日本流行乐的代表进行。",
+        "en": "vi – IV – V – I, the signature progression of 90s J-pop."
+      }
+    },
+    {
+      "id": "canon",
+      "name": {
+        "zh-CN": "C – G/B – Am – Em/G – F – C/E – Dm – G（卡农进行）",
+        "en": "C – G/B – Am – Em/G – F – C/E – Dm – G (Canon progression)"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "c",
+          "beats": 4
+        },
+        {
+          "chordId": "g-on-b",
+          "beats": 4
+        },
+        {
+          "chordId": "am",
+          "beats": 4
+        },
+        {
+          "chordId": "em-on-g",
+          "beats": 4
+        },
+        {
+          "chordId": "f",
+          "beats": 4
+        },
+        {
+          "chordId": "c-on-e",
+          "beats": 4
+        },
+        {
+          "chordId": "dm",
+          "beats": 4
+        },
+        {
+          "chordId": "g",
+          "beats": 4
+        }
+      ],
+      "description": {
+        "zh-CN": "低音一步一步往下走：C B A G F E D G。斜杠后面的音就是低音。",
+        "en": "The bass walks down step by step: C B A G F E D G. The note after the slash is the bass."
+      }
+    },
+    {
+      "id": "secondary-dominants",
+      "name": {
+        "zh-CN": "C – E7 – Am – A7 – Dm – G7 – C（副属和弦）",
+        "en": "C – E7 – Am – A7 – Dm – G7 – C (secondary dominants)"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "c",
+          "beats": 4
+        },
+        {
+          "chordId": "e7",
+          "beats": 4
+        },
+        {
+          "chordId": "am",
+          "beats": 4
+        },
+        {
+          "chordId": "a7",
+          "beats": 4
+        },
+        {
+          "chordId": "dm",
+          "beats": 4
+        },
+        {
+          "chordId": "g7",
+          "beats": 4
+        },
+        {
+          "chordId": "c",
+          "beats": 4
+        }
+      ],
+      "description": {
+        "zh-CN": "E7 → Am、A7 → Dm、G7 → C：每个七和弦都像\"临时的 V7\"，把耳朵拉向下一个和弦。",
+        "en": "E7 → Am, A7 → Dm, G7 → C: each seventh chord acts as a temporary V7 pulling to the next chord."
+      }
+    },
+    {
+      "id": "borrowed-chords",
+      "name": {
+        "zh-CN": "C – F – Fm – C – A♭ – B♭ – C（借用和弦）",
+        "en": "C – F – Fm – C – A♭ – B♭ – C (borrowed chords)"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "c",
+          "beats": 4
+        },
+        {
+          "chordId": "f",
+          "beats": 4
+        },
+        {
+          "chordId": "fm",
+          "beats": 4
+        },
+        {
+          "chordId": "c",
+          "beats": 4
+        },
+        {
+          "chordId": "ab",
+          "beats": 4
+        },
+        {
+          "chordId": "bb",
+          "beats": 4
+        },
+        {
+          "chordId": "c",
+          "beats": 4
+        }
+      ],
+      "description": {
+        "zh-CN": "Fm、A♭、B♭ 是从 C 小调借来的和弦，给大调带来一点忧伤或壮阔的色彩。",
+        "en": "Fm, A♭ and B♭ are borrowed from C minor, adding a touch of melancholy or grandeur to the major key."
+      }
+    },
+    {
+      "id": "passing-diminished",
+      "name": {
+        "zh-CN": "C – C♯dim7 – Dm7 – D♯dim7 – Em7（经过减七和弦）",
+        "en": "C – C♯dim7 – Dm7 – D♯dim7 – Em7 (passing diminished)"
+      },
+      "key": "C",
+      "steps": [
+        {
+          "chordId": "c",
+          "beats": 4
+        },
+        {
+          "chordId": "csdim7",
+          "beats": 4
+        },
+        {
+          "chordId": "dm7",
+          "beats": 4
+        },
+        {
+          "chordId": "dsdim7",
+          "beats": 4
+        },
+        {
+          "chordId": "em7",
+          "beats": 4
+        }
+      ],
+      "description": {
+        "zh-CN": "减七和弦夹在两个和弦中间，低音半音上行：C C♯ D D♯ E。",
+        "en": "Diminished sevenths fill the gaps so the bass rises by semitones: C C♯ D D♯ E."
       }
     }
   ],
@@ -3227,6 +3878,1131 @@
           "timeLimitMs": 12000
         },
         "minutes": 10
+      }
+    },
+    {
+      "id": "sus-chords",
+      "title": {
+        "zh-CN": "sus4 与 sus2 和弦",
+        "en": "sus4 and sus2 chords"
+      },
+      "summary": {
+        "zh-CN": "sus = 把三音换成四音（sus4）或二音（sus2），听起来悬而未决。",
+        "en": "sus replaces the third with the fourth (sus4) or second (sus2) — it sounds unresolved."
+      },
+      "prerequisites": ["c-major-triads"],
+      "encompasses": [
+        {
+          "topicId": "major-triad-formula",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["csus4", "gsus4", "dsus4", "csus2", "dsus2", "gsus2"]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "Csus4 = C F G：把 C 和弦的三音 E 换成四音 F。没有三音，就分不出大小调，听起来\"悬着\"。",
+              "en": "Csus4 = C F G: the third E of C is replaced by the fourth F. With no third it is neither major nor minor and sounds suspended."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "csus4"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "sus4 常常回到大三和弦：Csus4 → C，F 下行半音到 E。",
+              "en": "sus4 usually resolves to the major chord: Csus4 → C, F falls a semitone to E."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "c"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "Csus2 = C D G：三音换成二音 D，更开阔、透明。",
+              "en": "Csus2 = C D G: the third becomes the second D — open and transparent."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "csus2"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "color-tones"
+    },
+    {
+      "id": "add9-chords",
+      "title": {
+        "zh-CN": "add9 和弦",
+        "en": "add9 chords"
+      },
+      "summary": {
+        "zh-CN": "add9 = 大三和弦再加九音（高八度的二音），流行乐里很常见的明亮色彩。",
+        "en": "add9 = a major triad plus the ninth (the second an octave up) — a bright colour common in pop."
+      },
+      "prerequisites": ["c-major-triads"],
+      "encompasses": [
+        {
+          "topicId": "major-triad-formula",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["cadd9", "fadd9", "gadd9"]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "Cadd9 = C E G + D。和 sus2 不同：三音 E 还在，所以仍是大三和弦的声音。",
+              "en": "Cadd9 = C E G + D. Unlike sus2 the third E is still there, so it still sounds major."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "cadd9"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "键盘上常把 D 放在 E 旁边（D E G），手很舒服。",
+              "en": "On keyboard the D often sits right next to E (D E G), which is comfortable for the hand."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "gadd9"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 6
+        },
+        "mastery": {
+          "questions": 6,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "color-tones"
+    },
+    {
+      "id": "sixth-chords",
+      "title": {
+        "zh-CN": "六和弦 6 与 m6",
+        "en": "Sixth chords (6 and m6)"
+      },
+      "summary": {
+        "zh-CN": "6 = 三和弦加六音：C6 = C E G A，Dm6 = D F A B。",
+        "en": "6 = a triad plus the sixth: C6 = C E G A, Dm6 = D F A B."
+      },
+      "prerequisites": ["c-major-triads"],
+      "encompasses": [
+        {
+          "topicId": "major-triad-formula",
+          "weight": 0.2
+        },
+        {
+          "topicId": "minor-triad-formula",
+          "weight": 0.2
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["c6", "f6", "dm6", "am6"]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "C6 = C E G A：和 Am7（A C E G）是同样的四个音，低音是 C 时叫 C6。",
+              "en": "C6 = C E G A: the same four notes as Am7 (A C E G); with C in the bass it is called C6."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "c6"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "m6 是小三和弦加大六度：Dm6 = D F A B，带一点神秘的爵士味。",
+              "en": "m6 adds a major sixth to a minor triad: Dm6 = D F A B, a slightly mysterious jazzy sound."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "dm6"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "color-tones"
+    },
+    {
+      "id": "dim-aug",
+      "title": {
+        "zh-CN": "减三和弦与增三和弦",
+        "en": "Diminished and augmented triads"
+      },
+      "summary": {
+        "zh-CN": "dim = 小三度 + 小三度；aug = 大三度 + 大三度。",
+        "en": "dim = minor third + minor third; aug = major third + major third."
+      },
+      "prerequisites": ["major-triad-formula", "minor-triad-formula"],
+      "encompasses": [
+        {
+          "topicId": "thirds",
+          "weight": 0.4
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["bdim", "csdim", "fsdim", "caug", "eaug", "gaug"]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "Bdim = B D F：小三度叠小三度，五音比纯五度低半音。紧张、想往外走。",
+              "en": "Bdim = B D F: two minor thirds, so the fifth is a semitone below a perfect fifth. Tense, wants to move."
+            },
+            "demo": {
+              "labels": "semitones",
+              "play": "together",
+              "chord": "bdim"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "Caug = C E G♯：大三度叠大三度，五音高半音。像悬在半空。",
+              "en": "Caug = C E G♯: two major thirds, so the fifth is raised a semitone. It floats in mid-air."
+            },
+            "demo": {
+              "labels": "semitones",
+              "play": "together",
+              "chord": "caug"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "增三和弦把八度平均分成三份：Caug、Eaug、G♯aug 是同样的三个音。",
+              "en": "An augmented triad splits the octave into three equal parts: Caug, Eaug and G♯aug share the same notes."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "eaug"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "triad-quality"
+    },
+    {
+      "id": "dim7-chords",
+      "title": {
+        "zh-CN": "减七和弦 dim7",
+        "en": "Diminished seventh chords (dim7)"
+      },
+      "summary": {
+        "zh-CN": "dim7 = 三个小三度叠起来，把八度平均分成四份。",
+        "en": "dim7 = three stacked minor thirds, splitting the octave into four equal parts."
+      },
+      "prerequisites": ["dim-aug", "c-major-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "dim-aug",
+          "weight": 0.4
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["bdim7", "csdim7", "dsdim7", "gsdim7"]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "Bdim7 = B D F A♭：每两个音之间都是 3 个半音。",
+              "en": "Bdim7 = B D F A♭: every neighbouring pair is 3 semitones apart."
+            },
+            "demo": {
+              "labels": "semitones",
+              "play": "together",
+              "chord": "bdim7"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "因为对称，只有三组不同的减七和弦。它常常夹在两个和弦中间，让低音半音移动。",
+              "en": "Because it is symmetrical there are only three different dim7 chords. It often sits between two chords so the bass moves by semitones."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "csdim7"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "seventh-quality"
+    },
+    {
+      "id": "ninth-chords",
+      "title": {
+        "zh-CN": "九和弦 M7(9)、7(9)、m7(9)",
+        "en": "Ninth chords: M7(9), 7(9), m7(9)"
+      },
+      "summary": {
+        "zh-CN": "七和弦再加九音。键盘上通常省略五音，右手弹 3、7、9 音。",
+        "en": "A seventh chord plus the ninth. On keyboard the fifth is usually left out; the right hand plays the 3rd, 7th and 9th."
+      },
+      "prerequisites": ["c-major-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "c-major-sevenths",
+          "weight": 0.4
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["cmaj7-9", "fmaj7-9", "g7-9", "dm7-9", "am7-9"]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "CM7(9) = C E G B + D。省略五音 G 后右手是 E B D 或 B D E，左手弹根音 C。",
+              "en": "CM7(9) = C E G B + D. Without the fifth the right hand plays E B D or B D E over a C in the left hand."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "cmaj7-9"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "Dm7(9) = D F A C + E：丸サ進行、City Pop 里非常常见。",
+              "en": "Dm7(9) = D F A C + E: very common in City Pop and the Marusa progression."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "dm7-9"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "G7(9) = G B D F + A：比 G7 更柔和、更\"时髦\"。",
+              "en": "G7(9) = G B D F + A: softer and more stylish than plain G7."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "g7-9"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 8
+      },
+      "interferenceGroup": "color-tones"
+    },
+    {
+      "id": "seventh-inversions",
+      "title": {
+        "zh-CN": "七和弦的转位",
+        "en": "Seventh-chord inversions"
+      },
+      "summary": {
+        "zh-CN": "七和弦也可以把三音、五音或七音放在低音：G7/B、G7/F、CM7/E、Am7/G。",
+        "en": "Seventh chords can have the 3rd, 5th or 7th in the bass: G7/B, G7/F, CM7/E, Am7/G."
+      },
+      "prerequisites": ["inversions", "c-major-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "inversions",
+          "weight": 0.4
+        },
+        {
+          "topicId": "c-major-sevenths",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "chords",
+        "chords": ["g7-on-b", "g7-on-f", "cmaj7-on-e", "am7-on-g"]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "G7/B：低音是三音 B。B 往上半音就到 C，所以 G7/B → C 非常顺。",
+              "en": "G7/B: the third B is in the bass. B rises a semitone to C, so G7/B → C is very smooth."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "g7-on-b"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "Am7/G：低音是七音 G，常用在 Am → Am/G → F 这样的下行低音里。",
+              "en": "Am7/G: the seventh G is in the bass, common in descending bass lines like Am → Am/G → F."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "am7-on-g"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      }
+    },
+    {
+      "id": "contrast-sus-major",
+      "title": {
+        "zh-CN": "对比：sus4 与大三和弦",
+        "en": "Contrast: sus4 vs major"
+      },
+      "summary": {
+        "zh-CN": "Csus4 和 C 只差一个音：F 和 E。",
+        "en": "Csus4 and C differ by one note: F vs E."
+      },
+      "prerequisites": ["sus-chords"],
+      "encompasses": [],
+      "practice": {
+        "kind": "contrast",
+        "pairs": [["csus4", "c"], ["gsus4", "g"], ["dsus4", "d"]]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "先听 Csus4：没有三音，悬着。",
+              "en": "First Csus4: no third, suspended."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "csus4",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "再听 C：E 落下来，安定了。",
+              "en": "Now C: the E settles it."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "c",
+              "show": "keyboard"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 10000
+        },
+        "minutes": 7
+      }
+    },
+    {
+      "id": "contrast-dim-aug",
+      "title": {
+        "zh-CN": "对比：减三、增三与相近的三和弦",
+        "en": "Contrast: dim and aug vs nearby triads"
+      },
+      "summary": {
+        "zh-CN": "Bdim 与 Bm 只差五音；Caug 与 C 只差五音。",
+        "en": "Bdim and Bm differ only in the fifth; so do Caug and C."
+      },
+      "prerequisites": ["dim-aug"],
+      "encompasses": [],
+      "practice": {
+        "kind": "contrast",
+        "pairs": [["bdim", "bm"], ["csdim", "csm"], ["caug", "c"], ["eaug", "e"]]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "Bm = B D F♯，Bdim = B D F：五音降半音，更紧。",
+              "en": "Bm = B D F♯, Bdim = B D F: the fifth drops a semitone and tightens."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "bdim",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "C = C E G，Caug = C E G♯：五音升半音，更\"飘\"。",
+              "en": "C = C E G, Caug = C E G♯: the fifth rises a semitone and floats."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "caug",
+              "show": "keyboard"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 10000
+        },
+        "minutes": 7
+      }
+    },
+    {
+      "id": "contrast-add9-maj9",
+      "title": {
+        "zh-CN": "对比：add9 与 M7(9)",
+        "en": "Contrast: add9 vs M7(9)"
+      },
+      "summary": {
+        "zh-CN": "Cadd9 有五音没有七音；CM7(9) 有七音 B。",
+        "en": "Cadd9 has the fifth but no seventh; CM7(9) has the seventh B."
+      },
+      "prerequisites": ["add9-chords", "ninth-chords"],
+      "encompasses": [],
+      "practice": {
+        "kind": "contrast",
+        "pairs": [["cadd9", "cmaj7-9"], ["fadd9", "fmaj7-9"]]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "Cadd9：明亮、简单。",
+              "en": "Cadd9: bright and simple."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "cadd9",
+              "show": "keyboard"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "CM7(9)：多了七音 B，更柔、更都市。",
+              "en": "CM7(9): the added seventh B makes it softer and more urban."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "cmaj7-9",
+              "show": "keyboard"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 10000
+        },
+        "minutes": 7
+      },
+      "interferenceGroup": "color-tones"
+    },
+    {
+      "id": "ii-v-i-flat-keys",
+      "title": {
+        "zh-CN": "II – V – I：降号调",
+        "en": "ii – V – I in flat keys"
+      },
+      "summary": {
+        "zh-CN": "F、B♭、E♭、A♭、D♭ 调的 II – V – I。按五度圈往下走，每个调多一个降号。",
+        "en": "ii – V – I in F, B♭, E♭, A♭ and D♭. Each step down the circle of fifths adds a flat."
+      },
+      "prerequisites": ["ii-v-i", "build-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "ii-v-i",
+          "weight": 0.4
+        },
+        {
+          "topicId": "build-sevenths",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["ii-v-i-f", "ii-v-i-bb", "ii-v-i-eb", "ii-v-i-ab", "ii-v-i-db"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "F 调：Gm7 – C7 – FM7。和 C 调的形状完全一样，只是整体移到 F。",
+              "en": "In F: Gm7 – C7 – FM7. Exactly the same shape as in C, moved to F."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "gm7"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "下一个调的 II 级 = 这个调 V 级的根音往下纯五度……其实只要记住：II 是小七，V 是属七，I 是大七。",
+              "en": "Just remember: ii is a minor seventh, V is a dominant seventh, I is a major seventh."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "c7"
+            }
+          }
+        ],
+        "guided": {
+          "count": 5
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 5000
+        },
+        "minutes": 10
+      }
+    },
+    {
+      "id": "ii-v-i-sharp-keys",
+      "title": {
+        "zh-CN": "II – V – I：升号调",
+        "en": "ii – V – I in sharp keys"
+      },
+      "summary": {
+        "zh-CN": "G、D、A、E、B、F♯ 调的 II – V – I。",
+        "en": "ii – V – I in G, D, A, E, B and F♯."
+      },
+      "prerequisites": ["ii-v-i", "build-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "ii-v-i",
+          "weight": 0.4
+        },
+        {
+          "topicId": "build-sevenths",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["ii-v-i-g", "ii-v-i-d", "ii-v-i-a", "ii-v-i-e", "ii-v-i-b", "ii-v-i-fs"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "G 调：Am7 – D7 – GM7。",
+              "en": "In G: Am7 – D7 – GM7."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "am7"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "E 调：F♯m7 – B7 – EM7。升号多起来以后，先想形状再想音名。",
+              "en": "In E: F♯m7 – B7 – EM7. With more sharps, think of the shape first and the note names second."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "fsm7"
+            }
+          }
+        ],
+        "guided": {
+          "count": 5
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 5000
+        },
+        "minutes": 10
+      }
+    },
+    {
+      "id": "one-six-two-five",
+      "title": {
+        "zh-CN": "1625 进行",
+        "en": "The 1625 progression"
+      },
+      "summary": {
+        "zh-CN": "C – Am – Dm – G（I – VIm – IIm – V）。",
+        "en": "C – Am – Dm – G (I – vi – ii – V)."
+      },
+      "prerequisites": ["prog-c-g-am-f"],
+      "encompasses": [
+        {
+          "topicId": "c-major-triads",
+          "weight": 0.6
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["one-six-two-five"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "I – VIm – IIm – V：根音按 C → A → D → G 走，后三步都是\"往下五度\"。",
+              "en": "I – vi – ii – V: the roots go C → A → D → G; the last three moves all fall a fifth."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "am"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "把 Dm 换成 Dm7、G 换成 G7 就是爵士里的\"turnaround\"。",
+              "en": "Turn Dm into Dm7 and G into G7 and it becomes the jazz turnaround."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "dm"
+            }
+          }
+        ],
+        "guided": {
+          "count": 4
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 4500
+        },
+        "minutes": 7
+      }
+    },
+    {
+      "id": "komuro",
+      "title": {
+        "zh-CN": "小室进行",
+        "en": "The Komuro progression"
+      },
+      "summary": {
+        "zh-CN": "Am – F – G – C（VIm – IV – V – I），九十年代 J-pop 的代表进行。",
+        "en": "Am – F – G – C (vi – IV – V – I), the signature progression of 90s J-pop."
+      },
+      "prerequisites": ["prog-c-g-am-f"],
+      "encompasses": [
+        {
+          "topicId": "prog-c-g-am-f",
+          "weight": 0.5
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["komuro"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "和 C – G – Am – F 用的是同样四个和弦，只是从 Am 开始，听起来更有力、更带劲。",
+              "en": "The same four chords as C – G – Am – F, but starting on Am — it sounds more driving."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "am"
+            }
+          }
+        ],
+        "guided": {
+          "count": 4
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 4500
+        },
+        "minutes": 7
+      }
+    },
+    {
+      "id": "canon",
+      "title": {
+        "zh-CN": "卡农进行",
+        "en": "The Canon progression"
+      },
+      "summary": {
+        "zh-CN": "C – G/B – Am – Em/G – F – C/E – Dm – G：低音一步步下行。",
+        "en": "C – G/B – Am – Em/G – F – C/E – Dm – G: the bass walks down step by step."
+      },
+      "prerequisites": ["inversions", "prog-c-g-am-f"],
+      "encompasses": [
+        {
+          "topicId": "inversions",
+          "weight": 0.5
+        },
+        {
+          "topicId": "prog-c-g-am-f",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["canon"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "左手低音：C B A G F E D G。斜杠和弦就是为了让低音这样一步一步走。",
+              "en": "Left-hand bass: C B A G F E D G. The slash chords exist so the bass can walk like this."
+            },
+            "demo": {
+              "labels": "none",
+              "play": "arpeggio",
+              "notes": ["C3", "B2", "A2", "G2", "F2", "E2", "D2", "G2"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "G/B：G 和弦，低音 B。这一课的斜杠和弦要求最低的音正确。",
+              "en": "G/B: a G chord with B in the bass. In this lesson the lowest note of a slash chord must be right."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "g-on-b"
+            }
+          }
+        ],
+        "guided": {
+          "count": 8
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 5000
+        },
+        "minutes": 10
+      }
+    },
+    {
+      "id": "secondary-dominants",
+      "title": {
+        "zh-CN": "副属和弦",
+        "en": "Secondary dominants"
+      },
+      "summary": {
+        "zh-CN": "E7 → Am、A7 → Dm：用属七和弦\"临时\"导向调内的其他和弦。",
+        "en": "E7 → Am, A7 → Dm: dominant sevenths that temporarily lead to other chords of the key."
+      },
+      "prerequisites": ["dom7-formula", "c-major-triads"],
+      "encompasses": [
+        {
+          "topicId": "dom7-formula",
+          "weight": 0.5
+        },
+        {
+          "topicId": "c-major-triads",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["secondary-dominants"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "E7 是 Am 的\"V7\"：E7 里的 G♯ 往上半音到 A。C 调里没有 G♯，所以一听就有\"要去 Am\"的感觉。",
+              "en": "E7 is the V7 of Am: its G♯ rises a semitone to A. There is no G♯ in C major, so you hear it heading to Am."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "e7"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "A7 → Dm 同理：C♯ 往上到 D。",
+              "en": "A7 → Dm works the same way: C♯ rises to D."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "a7"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 5000
+        },
+        "minutes": 9
+      }
+    },
+    {
+      "id": "borrowed-chords",
+      "title": {
+        "zh-CN": "借用和弦",
+        "en": "Borrowed chords"
+      },
+      "summary": {
+        "zh-CN": "Fm、A♭、B♭：从同主音小调借来的和弦（IVm、♭VI、♭VII）。",
+        "en": "Fm, A♭ and B♭: chords borrowed from the parallel minor (iv, ♭VI, ♭VII)."
+      },
+      "prerequisites": ["c-major-triads", "triads-12-keys"],
+      "encompasses": [
+        {
+          "topicId": "triads-12-keys",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["borrowed-chords"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "F → Fm：A 降到 A♭，一下子变得伤感。这是 J-pop 副歌里很常见的一招。",
+              "en": "F → Fm: A drops to A♭ and it turns bittersweet — a favourite move in J-pop choruses."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "fm"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "A♭ – B♭ – C（♭VI – ♭VII – I）：壮阔的结尾，游戏和动画音乐里常见。",
+              "en": "A♭ – B♭ – C (♭VI – ♭VII – I): a grand ending, common in game and anime music."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "bb"
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 5000
+        },
+        "minutes": 9
+      }
+    },
+    {
+      "id": "passing-diminished",
+      "title": {
+        "zh-CN": "经过减七和弦",
+        "en": "Passing diminished chords"
+      },
+      "summary": {
+        "zh-CN": "C – C♯dim7 – Dm7：减七和弦夹在中间，低音半音上行。",
+        "en": "C – C♯dim7 – Dm7: a diminished seventh in between makes the bass rise by semitones."
+      },
+      "prerequisites": ["dim7-chords", "c-major-sevenths"],
+      "encompasses": [
+        {
+          "topicId": "dim7-chords",
+          "weight": 0.5
+        },
+        {
+          "topicId": "c-major-sevenths",
+          "weight": 0.3
+        }
+      ],
+      "practice": {
+        "kind": "transitions",
+        "progressions": ["passing-diminished"],
+        "voicingMode": "any"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "C → C♯dim7 → Dm7：低音 C C♯ D。C♯dim7 的音都往近处的 Dm7 走半音或全音。",
+              "en": "C → C♯dim7 → Dm7: bass C C♯ D. Every note of C♯dim7 moves a semitone or tone into Dm7."
+            },
+            "demo": {
+              "labels": "fingers",
+              "play": "together",
+              "chord": "csdim7"
+            }
+          }
+        ],
+        "guided": {
+          "count": 5
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 5000
+        },
+        "minutes": 8
       }
     }
   ]
