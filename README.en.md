@@ -35,6 +35,7 @@ All data stays in your browser (IndexedDB) and is never uploaded. Export a backu
 **The system plans what to practise**
 
 - **Today**: warm-up, targeted fixes, due reviews, quizzes and new lessons, fitted to your daily time. Skip tasks or swap a new lesson.
+- **Two courses**: Chords and Reading music; switch the current course (new lessons come from it, everything learned keeps being reviewed).
 - **Knowledge map**: 59 topics from finding the keys to the Marunouchi Sadistic progression, sus/add9/ninth chords, II–V–I in all 12 keys, the Canon progression and secondary dominants, with prerequisites and each topic's status. Skip ahead when you already know a topic.
 - **Lessons**: explanation and demo → guided practice → independent practice → mastery check.
 - **Placement test**: find your starting point in a few minutes.

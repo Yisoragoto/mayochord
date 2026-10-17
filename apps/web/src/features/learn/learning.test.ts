@@ -17,6 +17,7 @@ let db: MayoChordDB;
 let repos: Repositories;
 let ids = 0;
 
+let course = 'chords';
 const service = (params = {}) =>
   new LearningService({
     pack: BUILTIN_PACK,
@@ -25,6 +26,7 @@ const service = (params = {}) =>
     uuid: () => `u${ids++}`,
     day: () => ({ dayStartHour: 4, tzOffsetMinutes: -480 }),
     planParams: () => params,
+    activeCourse: () => course,
   });
 
 const SUMMARY: SessionSummary = {
@@ -211,8 +213,8 @@ describe('LearningService', () => {
     expect(plan.dueTopics.length).toBeGreaterThan(0);
     // 大三、小三和弦公式同属一个干扰组：只排一个，另一个在备选里
     const lessons = plan.tasks.filter((t) => t.kind === 'lesson').map((t) => t.topicIds[0]);
-    // 认识键盘之后，三和弦公式与认识五线谱（M10）都解锁了；每天最多两节
-    expect(lessons).toEqual(['major-triad-formula', 'staff-basics']);
+    // 当前课程是和弦课程（默认第一门）：认识五线谱虽然也解锁了，但不在这门课里
+    expect(lessons).toEqual(['major-triad-formula']);
     expect(plan.spareLessons).toContain('minor-triad-formula');
     const lessonTask = plan.tasks.find((t) => t.kind === 'lesson');
     const replaced = await s.replaceLesson(plan.date, lessonTask?.id as string);
@@ -221,6 +223,43 @@ describe('LearningService', () => {
     ]);
     expect(replaced?.spareLessons).toContain('major-triad-formula');
     expect(await s.replaceLesson(plan.date, 'nope')).toBeNull();
+  });
+
+  it('换课程：今天还没开始的新课换成新课程的；做完的任务和复习不动', async () => {
+    course = 'chords';
+    const s = service({ newPerDay: 2, minutes: 60 });
+    await s.recordMastery(
+      'keyboard-names',
+      result(keyboardCards, () => true),
+    );
+    now = T0 + 20 * DAY;
+    const { plan } = await s.plan();
+    const before = plan.tasks.filter((t) => t.kind === 'lesson').map((t) => t.topicIds[0]);
+    expect(before).toEqual(['half-whole-steps']);
+    expect(s.lessonTopicsFor('reading').has('keyboard-names')).toBe(true);
+    expect(s.lessonTopicsFor('reading').has('marusa')).toBe(false);
+    course = 'reading';
+    expect(s.currentCourse()).toBe('reading');
+    const after = await s.applyCourseChange();
+    const lessons = after?.tasks.filter((t) => t.kind === 'lesson') ?? [];
+    expect(lessons.map((t) => t.topicIds[0])).toEqual(['staff-basics']);
+    expect(lessons[0]?.id).toBe(`${plan.date}:lesson:reading-1`);
+    expect(after?.tasks.filter((t) => t.kind !== 'lesson').map((t) => t.id)).toEqual(
+      plan.tasks.filter((t) => t.kind !== 'lesson').map((t) => t.id),
+    );
+    // 不存在的课程 → 第一门
+    course = 'nope';
+    expect(s.currentCourse()).toBe('chords');
+    course = 'chords';
+  });
+
+  it('五线谱课程一开始没有能学的主题：先安排它需要的和弦课程先修', async () => {
+    course = 'reading';
+    const { plan } = await service().plan(true);
+    expect(plan.tasks.filter((t) => t.kind === 'lesson').map((t) => t.topicIds[0])).toEqual([
+      'keyboard-names',
+    ]);
+    course = 'chords';
   });
 
   it('跟拍主题的掌握检查：没有漏弹、干净率达标才通过；≥95% 记 Good', async () => {

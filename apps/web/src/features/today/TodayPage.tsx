@@ -21,6 +21,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design/ui/button';
+import { CourseSwitcher, useCurrentCourse } from '@/features/learn/CourseSwitcher';
 import { learning, refreshLearning, useLearning } from '@/features/learn/service';
 import { dayParams, wallNow } from '@/lib/clock';
 import { clauseSep, listSep, locale, localize } from '@/lib/localize';
@@ -73,6 +74,9 @@ export function TodayPage() {
   const goal = useSettings((s) => s.settings.dailyXpGoal);
   const settingsLoaded = useSettings((s) => s.loaded);
   const week = useWeekXp(plan);
+  const course = useCurrentCourse();
+  const courseTopics = BUILTIN_PACK.courseById.get(course)?.topicIds ?? [];
+  const lessonTopics = learning.lessonTopicsFor(course, snapshot?.statuses);
 
   useEffect(() => {
     if (settingsLoaded) void refreshLearning();
@@ -83,8 +87,12 @@ export function TodayPage() {
     new Map(week.map((d) => [d.day, d.xp])),
     dayKey(wallNow(), dayParams()),
   );
+  // 当前课程的进度
   const masteredCount = snapshot
-    ? [...snapshot.statuses.values()].filter((s) => s === 'mastered' || s === 'review').length
+    ? courseTopics.filter((id) => {
+        const s = snapshot.statuses.get(id);
+        return s === 'mastered' || s === 'review';
+      }).length
     : 0;
 
   const date = new Intl.DateTimeFormat(locale(), {
@@ -99,7 +107,7 @@ export function TodayPage() {
     ? BUILTIN_PACK.graph.order
         .filter((id) => {
           const s = snapshot.statuses.get(id);
-          return s === 'available' || s === 'learning';
+          return lessonTopics.has(id) && (s === 'available' || s === 'learning');
         })
         .slice(0, 3)
     : [];
@@ -127,6 +135,7 @@ export function TodayPage() {
           </h1>
           <p className="mt-2 max-w-xl text-muted-foreground">{t('today.subtitle')}</p>
         </header>
+        <CourseSwitcher />
 
         {error && <p className="text-sm text-warning">{t('today.error')}</p>}
         {fresh && (
@@ -221,7 +230,7 @@ export function TodayPage() {
               : t('today.noDue')}
           </Stat>
           <Stat icon={<Check className="size-4 text-mark-correct" aria-hidden />}>
-            {t('today.mastered', { n: masteredCount, total: BUILTIN_PACK.topics.length })}
+            {t('today.mastered', { n: masteredCount, total: courseTopics.length })}
           </Stat>
         </ul>
         <WeekBars days={week} goal={goal} />

@@ -47,6 +47,14 @@ export interface ChordEntry {
   voicings: Voicing[];
 }
 
+/** 课程：一组主题（按图谱顺序） */
+export interface CourseEntry {
+  id: string;
+  title: I18nText;
+  summary: I18nText;
+  topicIds: string[];
+}
+
 /** 节奏型（已解析） */
 export interface RhythmEntry {
   id: string;
@@ -87,6 +95,10 @@ export interface LoadedPack {
   progressionById: ReadonlyMap<string, ProgressionEntry>;
   rhythms: RhythmEntry[];
   rhythmById: ReadonlyMap<string, RhythmEntry>;
+  /** 课程；内容包没给时整个图谱是一门课程（id 'all'） */
+  courses: CourseEntry[];
+  courseById: ReadonlyMap<string, CourseEntry>;
+  courseOfTopic: ReadonlyMap<string, string>;
   /** 每个键位的设计说明（例如"待确认"的原因） */
   voicingNotes: ReadonlyMap<string, I18nText>;
   topics: TopicEntry[];
@@ -326,6 +338,26 @@ export function loadContentPack(input: unknown): LoadResult {
     if (t.interferenceGroup !== undefined) entry.interferenceGroup = t.interferenceGroup;
     return entry;
   });
+  const graph = buildTopicGraph(topics);
+  const rank = new Map(graph.order.map((id, i) => [id, i]));
+  const byOrder = (ids: readonly string[]) =>
+    [...ids].sort((a, b) => (rank.get(a) ?? 0) - (rank.get(b) ?? 0));
+  const courses: CourseEntry[] =
+    data.courses.length > 0
+      ? data.courses.map((c) => ({
+          id: c.id,
+          title: c.title,
+          summary: c.summary,
+          topicIds: byOrder(c.topics),
+        }))
+      : [
+          {
+            id: 'all',
+            title: data.name,
+            summary: data.name,
+            topicIds: [...graph.order],
+          },
+        ];
   const cardById = new Map<string, AnyCard>();
   const topicsOfCard = new Map<string, string[]>();
   for (const t of topics) {
@@ -348,10 +380,13 @@ export function loadContentPack(input: unknown): LoadResult {
       progressionById,
       rhythms,
       rhythmById: new Map(rhythms.map((r) => [r.id, r])),
+      courses,
+      courseById: new Map(courses.map((c) => [c.id, c])),
+      courseOfTopic: new Map(courses.flatMap((c) => c.topicIds.map((t) => [t, c.id] as const))),
       voicingNotes,
       topics,
       topicById: new Map(topics.map((t) => [t.id, t])),
-      graph: buildTopicGraph(topics),
+      graph,
       cardById,
       topicsOfCard,
       choicesByCard,

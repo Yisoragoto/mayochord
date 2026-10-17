@@ -214,6 +214,14 @@ export const TopicSchema = z.object({
   lesson: LessonSchema,
 });
 
+/** 课程（像 Math Academy 那样分开选择）：一组主题。每个主题属于一门课程 */
+export const CourseSchema = z.object({
+  id: ID,
+  title: I18nTextSchema,
+  summary: I18nTextSchema,
+  topics: z.array(ID).min(1),
+});
+
 const ContentPackBase = z.object({
   id: ID,
   version: z.string().regex(/^\d+\.\d+\.\d+$/, '版本号应为 semver，例如 1.0.0'),
@@ -226,6 +234,8 @@ const ContentPackBase = z.object({
   topics: z.array(TopicSchema).default([]),
   /** 节奏型（M10，可省略） */
   rhythms: z.array(RhythmSchema).default([]),
+  /** 课程（可省略；给了就要覆盖所有主题，每个主题恰好属于一门） */
+  courses: z.array(CourseSchema).default([]),
 });
 
 type PackInput = z.infer<typeof ContentPackBase>;
@@ -315,6 +325,24 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
     }
   });
   const rhythmIds = new Set(pack.rhythms.map((r) => r.id));
+  if (pack.courses.length > 0) {
+    for (const id of duplicates(pack.courses.map((c) => c.id)))
+      issue(['courses'], `重复的 ID：${id}`);
+    const topicIds = new Set(pack.topics.map((t) => t.id));
+    const owner = new Map<string, string>();
+    pack.courses.forEach((c, i) => {
+      c.topics.forEach((t, j) => {
+        if (!topicIds.has(t)) issue(['courses', i, 'topics', j], `不存在的主题：${t}`);
+        const prev = owner.get(t);
+        if (prev !== undefined)
+          issue(['courses', i, 'topics', j], `主题 ${t} 已经在课程 ${prev} 里`);
+        owner.set(t, c.id);
+      });
+    });
+    for (const t of pack.topics) {
+      if (!owner.has(t.id)) issue(['courses'], `主题 ${t.id} 不属于任何课程`);
+    }
+  }
   const progressionIds = new Set(pack.progressions.map((p) => p.id));
   for (const id of duplicates(pack.topics.map((t) => t.id))) issue(['topics'], `重复的 ID：${id}`);
   const nodes = pack.topics.map((t) => ({
@@ -403,3 +431,4 @@ export type LessonData = z.infer<typeof LessonSchema>;
 export type ExplainStep = z.infer<typeof ExplainStepSchema>;
 export type TopicPractice = z.infer<typeof TopicPracticeSchema>;
 export type RhythmData = z.infer<typeof RhythmSchema>;
+export type CourseData = z.infer<typeof CourseSchema>;

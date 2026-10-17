@@ -271,6 +271,27 @@ describe('内置内容包', () => {
     expect(rhythmTopic?.cards.every((c) => c.kind === 'rhythm')).toBe(true);
   });
 
+  it('课程：和弦课程与五线谱课程覆盖全部主题，每个主题只属于一门', () => {
+    expect(BUILTIN_PACK.courses.map((c) => [c.id, c.topicIds.length])).toEqual([
+      ['chords', 48],
+      ['reading', 11],
+    ]);
+    expect(BUILTIN_PACK.courseOfTopic.get('staff-basics')).toBe('reading');
+    expect(BUILTIN_PACK.courseOfTopic.get('keyboard-names')).toBe('chords');
+    // 课程里的主题按图谱顺序
+    expect(BUILTIN_PACK.courseById.get('reading')?.topicIds[0]).toBe('staff-basics');
+    expect(
+      variant((p) => {
+        (p.courses[1] as { topics: string[] }).topics.push('keyboard-names');
+      }).join(),
+    ).toContain('已经在课程 chords 里');
+    expect(
+      variant((p) => {
+        (p.courses[1] as { topics: string[] }).topics.pop();
+      }).join(),
+    ).toContain('不属于任何课程');
+  });
+
   it('不存在的节奏型、写错的节奏型会被发现', () => {
     expect(
       variant((p) => {

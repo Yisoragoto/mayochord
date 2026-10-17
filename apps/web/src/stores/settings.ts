@@ -49,6 +49,8 @@ export const SettingsSchema = z.object({
   dailyXpGoal: z.number().int().min(1).max(200).catch(20),
   /** 每天最多开始几节新课 */
   newTopicsPerDay: z.number().int().min(0).max(5).catch(2),
+  /** 当前课程：每日任务的新课从这门课程里安排 */
+  activeCourse: z.string().catch('chords'),
   /** 开发用：模拟时间前进的天数（只在开发服务器里生效） */
   devClockOffsetDays: z.number().int().min(0).max(3650).catch(0),
   /** 延迟校准得到的偏移（毫秒）：节拍偏差都扣除它（规格 9） */

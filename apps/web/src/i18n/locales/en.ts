@@ -120,6 +120,11 @@ export const en: Strings<TranslationShape> = {
       'Press any key where each note starts (MIDI keyboard, the keys below or your computer keyboard). Skip rests and tied notes.',
     tapPad: 'Tap here',
   },
+  course: {
+    label: 'Current course',
+    progress: '{{n}}/{{total}}',
+    external: 'Prerequisite · {{course}}',
+  },
   learn: {
     lesson: 'Lesson',
     notFound: 'Topic not found.',

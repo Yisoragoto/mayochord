@@ -106,6 +106,11 @@ export const zhCN = {
       '在每个音开始的地方按一下任意键（MIDI 键盘、下面的键盘或电脑键盘都可以），休止符和连音线后面的音不按',
     tapPad: '按这里打拍子',
   },
+  course: {
+    label: '当前课程',
+    progress: '{{n}}/{{total}}',
+    external: '先修 · {{course}}',
+  },
   learn: {
     lesson: '课程',
     notFound: '找不到这个主题。',

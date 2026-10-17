@@ -504,6 +504,14 @@ M3 新增 version 2（dailyPlans 表），M7 新增 version 3（scores、scoreRu
 - 新主题：sus、add9、六和弦、九和弦（干扰组 color-tones）；减与增三和弦（triad-quality）；减七（seventh-quality）；七和弦转位；对比配对 sus4/大三、dim/aug、add9/M7(9)；降号调与升号调的 II–V–I、1625、小室进行、卡农进行、副属和弦、借用和弦、经过减七（切换练习，宽松判定）。
 - **进行的步可以不写键位**（`voicingId` 可选）：`voiceLeadProgression()` 在加载时推出——第一个和弦用参考键位（复制一份，ID `<进行>-<序号>`，status generated），之后右手取 `rankRightHandVoicings` 的第一名（三音组合找不到时用 4 个音），左手 `nearestBass`。生成的键位不进 `voicingById`。`content.test.ts` 检查：只用和弦音、最低音是低音/根音、右手最高音每步不超过 5 个半音。
 
+## 课程（2026-10-17 用户要求：像 Math Academy 那样分开、可以选择）
+
+- 内容包 `courses`（0.8.0）：和弦课程 `chords`（48 个主题）、五线谱课程 `reading`（11 个）。校验：给了课程就要覆盖全部主题，每个主题恰好一门。加载后 `courses`（主题按图谱顺序）、`courseById`、`courseOfTopic`；内容包没给课程时整个图谱是一门（id `all`）。
+- 设置 `activeCourse`（默认 chords）。`LearningService.currentCourse()`（设置的课程不存在时用第一门）、`lessonTopicsFor(course, statuses?)`：课程主题 + 递归的别的课程里的先修；**给了状态且课程里已有能学的主题时，不加别的课程的先修**（需要时才补，例如五线谱课程一开始先学"认识键盘与音名"）。
+- `planDay` 新参数 `lessonTopics`：新课只从这里安排；复习、测验、热身照常覆盖所有学过的主题。
+- `switchCourse()`（`service.ts`）：保存设置后 `applyCourseChange()`——今天还没开始的新课换成新课程的（ID `<日期>:lesson:<课程>-<n>`），做完、跳过的任务和复习、测验不动。
+- 界面：`CourseSwitcher`（"今天"和图谱页顶部，每门显示已掌握 / 全部和进度条）。图谱只画当前课程（`lessonTopicsFor` 不带状态，别的课程的先修淡显，标"先修 · 和弦课程"）；"今天"右侧的已掌握数、"继续学"列表也按当前课程。
+
 ## 五线谱显示改进（2026-10-17，用户导入官方 .mxl 后反馈"少了很多信息、重叠了"）
 
 - MusicXML 现在还读：`<stem>`、第一层 `<beam>`、`<notations>` 里的奏法（accent、staccato、tenuto、strong-accent、staccatissimo）、`<fermata>`、`<arpeggiate>`、`<slur>`；`<direction>` 里的力度、文字、排练号、`<wedge>`、`<pedal>`、`<octave-shift>`（存在 `Score.directions`，tick 含 `<offset>`）。和弦里每个音的记号合并到这个音符上。

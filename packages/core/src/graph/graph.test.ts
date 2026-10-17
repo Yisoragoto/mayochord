@@ -316,6 +316,17 @@ describe('每日任务编排', () => {
     expect(plan.tasks).toHaveLength(1);
   });
 
+  it('当前课程：新课只从 lessonTopics 里安排', () => {
+    const plan = planDay({ ...base, topicProgress: new Map(), lessonTopics: new Set(['steps']) });
+    expect(plan.tasks.filter((t) => t.kind === 'lesson')).toEqual([]);
+    const plan2 = planDay({
+      ...base,
+      topicProgress: new Map(),
+      lessonTopics: new Set(['keys', 'steps']),
+    });
+    expect(plan2.tasks.map((t) => t.topicIds[0])).toEqual(['keys']);
+  });
+
   it('单独界面的主题（节奏读谱）：复习单独成为任务，不进热身、测验', () => {
     const sep = new Map(topics);
     sep.set('thirds', { ...info('thirds'), separate: true });

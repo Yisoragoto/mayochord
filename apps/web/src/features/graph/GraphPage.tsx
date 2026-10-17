@@ -1,5 +1,11 @@
 import { BUILTIN_PACK, type TopicEntry } from '@mayochord/content';
-import { type GraphLayout, layoutTopicGraph, type TopicStatus } from '@mayochord/core';
+import {
+  buildTopicGraph,
+  type GraphLayout,
+  layoutTopicGraph,
+  type TopicGraph,
+  type TopicStatus,
+} from '@mayochord/core';
 import { Link } from '@tanstack/react-router';
 import {
   ArrowRight,
@@ -27,6 +33,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design/ui/button';
 import { Switch } from '@/design/ui/switch';
+import { CourseSwitcher, useCurrentCourse } from '@/features/learn/CourseSwitcher';
 import { learning, refreshLearning, useLearning } from '@/features/learn/service';
 import { phaseCounts } from '@/features/practice/controller';
 import { listSep, locale, localize } from '@/lib/localize';
@@ -145,23 +152,45 @@ export function GraphPage() {
     void refreshLearning();
   }, []);
 
+  // 只显示当前课程（它需要的别的课程的先修淡显）
+  const course = useCurrentCourse();
+  const { graph, external } = useMemo(() => {
+    const ids = learning.lessonTopicsFor(course);
+    const own = new Set(BUILTIN_PACK.courseById.get(course)?.topicIds ?? []);
+    const nodes = BUILTIN_PACK.topics
+      .filter((t) => ids.has(t.id))
+      .map((t) => ({
+        id: t.id,
+        prerequisites: t.prerequisites.filter((p) => ids.has(p)),
+        encompasses: t.encompasses.filter((e) => ids.has(e.topicId)),
+      }));
+    return {
+      graph: buildTopicGraph(nodes),
+      external: new Set([...ids].filter((id) => !own.has(id))),
+    };
+  }, [course]);
+
   const orientation = size.w > 0 && size.w < 720 ? 'TB' : 'LR';
   const layout = useMemo(
     () =>
-      layoutTopicGraph(BUILTIN_PACK.graph, {
+      layoutTopicGraph(graph, {
         orientation,
         nodeWidth: NODE_W,
         nodeHeight: NODE_H,
         rankGap: orientation === 'LR' ? 64 : 48,
         nodeGap: 20,
       }),
-    [orientation],
+    [orientation, graph],
   );
 
   const statuses = snapshot?.statuses;
-  const total = BUILTIN_PACK.topics.length;
+  const own = graph.order.filter((id) => !external.has(id));
+  const total = own.length;
   const masteredCount = statuses
-    ? [...statuses.values()].filter((s) => s === 'mastered' || s === 'review').length
+    ? own.filter((id) => {
+        const s = statuses.get(id);
+        return s === 'mastered' || s === 'review';
+      }).length
     : 0;
 
   return (
@@ -194,6 +223,8 @@ export function GraphPage() {
         </div>
       </header>
 
+      <CourseSwitcher />
+
       <ul className="flex flex-wrap gap-2" aria-label={t('graph.legend')}>
         {(['locked', 'available', 'learning', 'mastered', 'review'] as const).map((s) => (
           <li key={s}>
@@ -210,6 +241,8 @@ export function GraphPage() {
       >
         {size.w > 0 && (
           <GraphCanvas
+            graph={graph}
+            external={external}
             layout={layout}
             orientation={orientation}
             width={size.w}
@@ -241,6 +274,8 @@ export function GraphPage() {
 }
 
 function GraphCanvas({
+  graph,
+  external,
   layout,
   orientation,
   width,
@@ -250,6 +285,8 @@ function GraphCanvas({
   onSelect,
   showEncompass,
 }: {
+  graph: TopicGraph;
+  external: ReadonlySet<string>;
   layout: GraphLayout;
   orientation: 'LR' | 'TB';
   width: number;
@@ -261,7 +298,7 @@ function GraphCanvas({
 }) {
   const { t } = useTranslation();
   const focusId =
-    BUILTIN_PACK.graph.order.find((id) => {
+    graph.order.find((id) => {
       const s = statuses?.get(id);
       return s === 'learning' || s === 'available' || s === 'review';
     }) ?? null;
@@ -433,38 +470,44 @@ function GraphCanvas({
           })}
           {/* 包含关系（隐式重复） */}
           {showEncompass &&
-            BUILTIN_PACK.topics.flatMap((topic) =>
-              topic.encompasses.map((enc) => {
-                const a = layout.nodes.get(topic.id);
-                const b = layout.nodes.get(enc.topicId);
-                if (!a || !b) return null;
-                const x1 = a.x + NODE_W / 2;
-                const y1 = a.y + NODE_H / 2;
-                const x2 = b.x + NODE_W / 2;
-                const y2 = b.y + NODE_H / 2;
-                return (
-                  <g key={`enc-${topic.id}-${enc.topicId}`}>
-                    <path
-                      d={`M${x1},${y1} Q${(x1 + x2) / 2},${Math.min(y1, y2) - 40} ${x2},${y2}`}
-                      className="fill-none stroke-hand-left/70"
-                      strokeWidth={1 + enc.weight * 2}
-                      strokeDasharray="5 5"
-                    />
-                    <text
-                      x={(x1 + x2) / 2}
-                      y={Math.min(y1, y2) - 22}
-                      textAnchor="middle"
-                      className="fill-hand-left font-mono text-[11px]"
-                    >
-                      {enc.weight}
-                    </text>
-                  </g>
-                );
-              }),
-            )}
+            BUILTIN_PACK.topics
+              .filter((topic) => layout.nodes.has(topic.id))
+              .flatMap((topic) =>
+                topic.encompasses.map((enc) => {
+                  const a = layout.nodes.get(topic.id);
+                  const b = layout.nodes.get(enc.topicId);
+                  if (!a || !b) return null;
+                  const x1 = a.x + NODE_W / 2;
+                  const y1 = a.y + NODE_H / 2;
+                  const x2 = b.x + NODE_W / 2;
+                  const y2 = b.y + NODE_H / 2;
+                  return (
+                    <g key={`enc-${topic.id}-${enc.topicId}`}>
+                      <path
+                        d={`M${x1},${y1} Q${(x1 + x2) / 2},${Math.min(y1, y2) - 40} ${x2},${y2}`}
+                        className="fill-none stroke-hand-left/70"
+                        strokeWidth={1 + enc.weight * 2}
+                        strokeDasharray="5 5"
+                      />
+                      <text
+                        x={(x1 + x2) / 2}
+                        y={Math.min(y1, y2) - 22}
+                        textAnchor="middle"
+                        className="fill-hand-left font-mono text-[11px]"
+                      >
+                        {enc.weight}
+                      </text>
+                    </g>
+                  );
+                }),
+              )}
           {/* 节点 */}
-          {BUILTIN_PACK.graph.order.map((id) => {
+          {graph.order.map((id) => {
             const n = layout.nodes.get(id);
+            const ext = external.has(id);
+            const extCourse = ext
+              ? BUILTIN_PACK.courseById.get(BUILTIN_PACK.courseOfTopic.get(id) ?? '')
+              : undefined;
             const topic = BUILTIN_PACK.topicById.get(id) as TopicEntry;
             if (!n) return null;
             const status = statuses?.get(id) ?? 'locked';
@@ -481,7 +524,10 @@ function GraphCanvas({
                 aria-label={`${pick(topic.title)}，${t(`graph.status.${status}`)}`}
                 aria-pressed={isSel}
                 onKeyDown={(e) => onKey(e, id)}
-                className="cursor-pointer outline-none [&:focus-visible>rect:first-child]:stroke-ring [&:focus-visible>rect:first-child]:stroke-[3]"
+                className={cn(
+                  'cursor-pointer outline-none [&:focus-visible>rect:first-child]:stroke-ring [&:focus-visible>rect:first-child]:stroke-[3]',
+                  ext && 'opacity-55',
+                )}
               >
                 <rect
                   width={NODE_W}
@@ -506,7 +552,9 @@ function GraphCanvas({
                   {pick(topic.title)}
                 </text>
                 <text x={34} y={45} className="fill-muted-foreground text-[11px]">
-                  {t(`graph.status.${status}`)} · {t('graph.cards', { n: topic.cards.length })}
+                  {extCourse
+                    ? t('course.external', { course: pick(extCourse.title) })
+                    : `${t(`graph.status.${status}`)} · ${t('graph.cards', { n: topic.cards.length })}`}
                 </text>
               </g>
             );

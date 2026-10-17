@@ -1,6 +1,6 @@
 {
   "id": "mayochord-core",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "schemaVersion": 1,
   "name": {
     "zh-CN": "MayoChord 内置内容",
@@ -6234,6 +6234,93 @@
       "time": [4, 4],
       "bpm": 66,
       "notes": "8t 8t 8t q 8t 8t 8t q"
+    }
+  ],
+  "courses": [
+    {
+      "id": "chords",
+      "title": {
+        "zh-CN": "和弦课程",
+        "en": "Chords"
+      },
+      "summary": {
+        "zh-CN": "从认识键盘到七和弦、转位、常见进行和听辨：看到和弦名就能弹出来，并跟着节拍换和弦。",
+        "en": "From finding the keys to sevenths, inversions, common progressions and ear training: see a chord name, play it, and change chords in time."
+      },
+      "topics": [
+        "keyboard-names",
+        "half-whole-steps",
+        "thirds",
+        "major-triad-formula",
+        "minor-triad-formula",
+        "c-major-triads",
+        "prog-c-g-am-f",
+        "triads-12-keys",
+        "inversions",
+        "voice-leading",
+        "royal-road",
+        "maj7-formula",
+        "dom7-formula",
+        "m7-formula",
+        "m7b5-formula",
+        "c-major-sevenths",
+        "ii-v-i",
+        "marusa",
+        "steady-c-g-am-f",
+        "sixteenth-anticipation",
+        "marusa-tempo",
+        "build-triads",
+        "build-sevenths",
+        "roman-c",
+        "ear-c-triads",
+        "contrast-major-minor",
+        "contrast-7-maj7",
+        "contrast-m7-m7b5",
+        "staff-c-triads",
+        "staff-sevenths",
+        "sus-chords",
+        "add9-chords",
+        "sixth-chords",
+        "dim-aug",
+        "dim7-chords",
+        "ninth-chords",
+        "seventh-inversions",
+        "contrast-sus-major",
+        "contrast-dim-aug",
+        "contrast-add9-maj9",
+        "ii-v-i-flat-keys",
+        "ii-v-i-sharp-keys",
+        "one-six-two-five",
+        "komuro",
+        "canon",
+        "secondary-dominants",
+        "borrowed-chords",
+        "passing-diminished"
+      ]
+    },
+    {
+      "id": "reading",
+      "title": {
+        "zh-CN": "五线谱课程",
+        "en": "Reading music"
+      },
+      "summary": {
+        "zh-CN": "看懂钢琴谱：两种谱表认音、加线、升降号与调号、音符时值、拍号、切分和三连音。",
+        "en": "Read piano music: both clefs, ledger lines, accidentals and key signatures, note values, time signatures, syncopation and triplets."
+      },
+      "topics": [
+        "staff-basics",
+        "treble-notes",
+        "bass-notes",
+        "ledger-notes",
+        "accidentals-reading",
+        "key-signatures",
+        "note-values",
+        "counting-beats",
+        "syncopation-reading",
+        "score-symbols",
+        "staff-more-keys"
+      ]
     }
   ]
 }

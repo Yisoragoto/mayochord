@@ -98,6 +98,8 @@ export interface PlanInput {
   lastQuizAt?: number | null;
   /** 上次测验答错、之后还没答对过的卡片（针对性补救） */
   remediationCardIds?: readonly string[];
+  /** 新课只从这些主题里安排（当前课程 + 它需要的别的课程的先修）；省略 = 全部 */
+  lessonTopics?: ReadonlySet<string>;
   params?: Partial<PlanParams>;
 }
 
@@ -286,8 +288,9 @@ export function planDay(input: PlanInput): DailyPlanDraft {
 
   // 3. 新课
   const status = (id: string) => topicStatus(graph, topicProgress, id, now);
-  const learning = graph.order.filter((id) => status(id) === 'learning' && topics.has(id));
-  const available = graph.order.filter((id) => status(id) === 'available' && topics.has(id));
+  const allowed = (id: string) => topics.has(id) && (input.lessonTopics?.has(id) ?? true);
+  const learning = graph.order.filter((id) => status(id) === 'learning' && allowed(id));
+  const available = graph.order.filter((id) => status(id) === 'available' && allowed(id));
   const groups = new Set<string>();
   const lessons: string[] = [];
   const spare: string[] = [];

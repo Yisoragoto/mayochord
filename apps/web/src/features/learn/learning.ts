@@ -36,6 +36,8 @@ export interface LearningDeps {
   uuid: () => string;
   day: () => DayParams;
   planParams: () => Partial<PlanParams>;
+  /** 当前课程（新课从这门课程里安排）；内容包里没有这门课程时用第一门 */
+  activeCourse?: () => string;
 }
 
 export interface LearningSnapshot {
@@ -143,29 +145,7 @@ export class LearningService {
       return { plan, snapshot };
     }
 
-    const topics = new Map<string, TopicPlanInfo>(
-      this.deps.pack.topics.map((t) => [
-        t.id,
-        {
-          id: t.id,
-          cardIds: t.cards.map((c) => c.id),
-          lessonMinutes: t.lesson.minutes,
-          separate: t.practice.kind === 'rhythms',
-        },
-      ]),
-    );
-    const draft = planDay({
-      now: snapshot.now,
-      day: this.deps.day(),
-      graph: this.deps.pack.graph,
-      topics,
-      topicProgress: snapshot.topicProgress,
-      cardProgress: snapshot.cardProgress,
-      recentCardIds: await this.lastPracticeDayCards(snapshot.now),
-      lastQuizAt: snapshot.lastQuizAt,
-      remediationCardIds: await this.remediationCards(),
-      params: this.deps.planParams(),
-    });
+    const draft = await this.draft(snapshot);
     const plan: DailyPlanRecord = {
       date: draft.date,
       createdAt: snapshot.now,
@@ -181,6 +161,100 @@ export class LearningService {
     };
     await repos?.dailyPlans.put(plan);
     return { plan, snapshot };
+  }
+
+  /** 当前课程的 ID（内容包里没有时用第一门课程） */
+  currentCourse(): string {
+    const { courses, courseById } = this.deps.pack;
+    const id = this.deps.activeCourse?.();
+    return id && courseById.has(id) ? id : (courses[0]?.id ?? 'all');
+  }
+
+  /**
+   * 这门课程可以安排的新课：课程里的主题 + 它们（递归）需要的、在别的课程里的先修。
+   * 给了主题状态时：课程里已经有能学的主题，就先不安排别的课程的先修（需要时再补）。
+   */
+  lessonTopicsFor(courseId: string, statuses?: ReadonlyMap<string, TopicStatus>): Set<string> {
+    const { courseById, graph } = this.deps.pack;
+    const own = courseById.get(courseId)?.topicIds ?? [];
+    const out = new Set(own);
+    if (
+      statuses &&
+      own.some((id) => statuses.get(id) === 'available' || statuses.get(id) === 'learning')
+    ) {
+      return out;
+    }
+    const stack = [...out];
+    while (stack.length > 0) {
+      const id = stack.pop() as string;
+      for (const p of graph.byId.get(id)?.prerequisites ?? []) {
+        if (!out.has(p)) {
+          out.add(p);
+          stack.push(p);
+        }
+      }
+    }
+    return out;
+  }
+
+  /** 按当前进度和当前课程编排今天的任务（不保存） */
+  private async draft(snapshot: LearningSnapshot) {
+    const topics = new Map<string, TopicPlanInfo>(
+      this.deps.pack.topics.map((t) => [
+        t.id,
+        {
+          id: t.id,
+          cardIds: t.cards.map((c) => c.id),
+          lessonMinutes: t.lesson.minutes,
+          separate: t.practice.kind === 'rhythms',
+        },
+      ]),
+    );
+    return planDay({
+      now: snapshot.now,
+      day: this.deps.day(),
+      graph: this.deps.pack.graph,
+      topics,
+      topicProgress: snapshot.topicProgress,
+      cardProgress: snapshot.cardProgress,
+      recentCardIds: await this.lastPracticeDayCards(snapshot.now),
+      lastQuizAt: snapshot.lastQuizAt,
+      remediationCardIds: await this.remediationCards(),
+      lessonTopics: this.lessonTopicsFor(this.currentCourse(), snapshot.statuses),
+      params: this.deps.planParams(),
+    });
+  }
+
+  /**
+   * 换了当前课程之后：今天还没开始的新课换成新课程的；做完的、跳过的任务和复习、测验都不动。
+   * （调用前先把设置里的当前课程改好）
+   */
+  async applyCourseChange(): Promise<DailyPlanRecord | null> {
+    const repos = this.repos();
+    const snapshot = await this.snapshot();
+    const existing = await repos?.dailyPlans.get(snapshot.date);
+    if (!repos || !existing) return null;
+    const draft = await this.draft(snapshot);
+    const kept = existing.tasks.filter((t) => t.kind !== 'lesson' || t.status !== 'pending');
+    const keptTopics = new Set(kept.filter((t) => t.kind === 'lesson').flatMap((t) => t.topicIds));
+    const course = this.currentCourse();
+    const lessons = draft.tasks
+      .filter((t) => t.kind === 'lesson' && !keptTopics.has(t.topicIds[0] as string))
+      .map((t, i) => ({
+        ...t,
+        id: `${snapshot.date}:lesson:${course}-${i + 1}`,
+        status: 'pending' as const,
+        completedAt: null,
+        xp: 0,
+        result: null,
+      }));
+    const plan: DailyPlanRecord = {
+      ...existing,
+      tasks: [...kept, ...lessons],
+      spareLessons: draft.spareLessons,
+    };
+    await repos.dailyPlans.put(plan);
+    return plan;
   }
 
   /** 上一个练习日（今天之前最近一个有作答的日子）练过的卡片 */
