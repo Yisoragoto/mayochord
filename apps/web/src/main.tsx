@@ -34,7 +34,22 @@ bootstrap();
 
 // PWA：正式版本注册 Service Worker（开发服务器不注册，避免缓存干扰调试）
 if (import.meta.env.PROD) {
-  void import('virtual:pwa-register').then(({ registerSW }) => registerSW({ immediate: true }));
+  // 浏览器只在打开页面时检查更新；平板上一直开着的页面也要能更新：回到页面时、每 30 分钟检查一次
+  void import('virtual:pwa-register').then(({ registerSW }) =>
+    registerSW({
+      immediate: true,
+      onRegisteredSW(_url, reg) {
+        if (!reg) return;
+        const check = () => {
+          if (navigator.onLine) void reg.update().catch(() => {});
+        };
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') check();
+        });
+        setInterval(check, 30 * 60 * 1000);
+      },
+    }),
+  );
 }
 
 const rootEl = document.getElementById('root');
