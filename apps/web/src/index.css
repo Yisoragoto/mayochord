@@ -3,6 +3,10 @@
 @import "./design/tokens.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* 横屏且不高（平板横放、笔记本）：专注模式改为左右两栏（左边键盘、右边题目） */
+@custom-variant split (
+  @media (orientation: landscape) and (min-width: 900px) and (max-height: 899px)
+);
 
 /* 令牌 → Tailwind 工具类（bg-background、text-muted-foreground、border-border …） */
 @theme inline {

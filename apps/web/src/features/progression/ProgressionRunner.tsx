@@ -10,7 +10,8 @@ import { Check, CircleDashed, Square, X } from 'lucide-react';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChordName } from '@/design/ChordName';
-import type { KeyMark } from '@/design/keyboard/Keyboard';
+import { FOCUS_BODY, FOCUS_CUE, FOCUS_KEYS, FOCUS_PAGE } from '@/design/focus-layout';
+import { type KeyMark, keyboardMaxWidth } from '@/design/keyboard/Keyboard';
 import { Button } from '@/design/ui/button';
 import { judgeMarks, keyboardRange, referenceMarks } from '@/features/chords/voicing-view';
 import { MidiConnectButton } from '@/features/midi/MidiDevicePanel';
@@ -118,7 +119,7 @@ export function ProgressionRunner({ source, title }: { source: RunSource; title?
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+    <div className={FOCUS_PAGE}>
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -139,69 +140,71 @@ export function ProgressionRunner({ source, title }: { source: RunSource; title?
         <MidiConnectButton />
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
-        <BeatDots beatsPerBar={spec.beatsPerBar} inBar={pos.inBar} beat={pos.beat} />
+      <div className={FOCUS_BODY}>
+        <div className={cn(FOCUS_CUE, 'gap-6')}>
+          <BeatDots beatsPerBar={spec.beatsPerBar} inBar={pos.inBar} beat={pos.beat} />
 
-        {countIn ? (
-          <div className="flex flex-col items-center gap-3" data-testid="count-in">
-            <span className="text-sm text-muted-foreground">{t('progression.countIn')}</span>
-            <span className="font-display-chord text-[length:var(--text-chord-lg)] leading-none tabular-nums text-primary">
-              {Math.max(1, -pos.beat)}
-            </span>
-            <span className="flex items-baseline gap-2 text-muted-foreground">
-              {t('progression.firstChord')}
-              <ChordName symbol={(source.steps[0] ?? step).chord.symbol} size="md" />
-            </span>
-          </div>
-        ) : (
-          <div
-            className="flex items-end gap-8 sm:gap-14"
-            data-testid="run-step"
-            data-k={k}
-            data-step-t={scheduleStep(spec, grid, k).t}
-            data-status={result?.status ?? 'pending'}
-          >
-            <div className="flex flex-col items-center gap-3">
-              <ChordName symbol={step.chord.symbol} size="stage" />
-              <StepChip result={result} partial={partial !== null && !result} />
+          {countIn ? (
+            <div className="flex flex-col items-center gap-3" data-testid="count-in">
+              <span className="text-sm text-muted-foreground">{t('progression.countIn')}</span>
+              <span className="font-display-chord text-[length:var(--text-chord-lg)] leading-none tabular-nums text-primary">
+                {Math.max(1, -pos.beat)}
+              </span>
+              <span className="flex items-baseline gap-2 text-muted-foreground">
+                {t('progression.firstChord')}
+                <ChordName symbol={(source.steps[0] ?? step).chord.symbol} size="md" />
+              </span>
             </div>
-            {!isLast && (
-              <div className="flex flex-col items-center gap-2 pb-12 text-muted-foreground">
-                <span className="text-xs tracking-wide">{t('progression.next')}</span>
-                <ChordName symbol={next.chord.symbol} size="md" />
+          ) : (
+            <div
+              className="flex items-end gap-8 sm:gap-14"
+              data-testid="run-step"
+              data-k={k}
+              data-step-t={scheduleStep(spec, grid, k).t}
+              data-status={result?.status ?? 'pending'}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <ChordName symbol={step.chord.symbol} size="stage" />
+                <StepChip result={result} partial={partial !== null && !result} />
               </div>
+              {!isLast && (
+                <div className="flex flex-col items-center gap-2 pb-12 text-muted-foreground">
+                  <span className="text-xs tracking-wide">{t('progression.next')}</span>
+                  <ChordName symbol={next.chord.symbol} size="md" />
+                </div>
+              )}
+            </div>
+          )}
+
+          <LoopStrip n={n} loop={countIn ? 0 : loop} results={results} current={countIn ? -1 : k} />
+          {prevResult && !countIn && (
+            <span className="sr-only" aria-live="polite">
+              {offsetText(t, prevResult)}
+            </span>
+          )}
+        </div>
+
+        <div className={cn(FOCUS_KEYS, 'overflow-x-auto')}>
+          {/* 声部进行图与键盘同宽对齐 */}
+          <div
+            className="mx-auto min-w-[440px] space-y-2"
+            style={{ maxWidth: keyboardMaxWidth(range.low, range.high) }}
+          >
+            {showHints && !countIn && !isLast && (
+              <VoiceLeading
+                from={step.chord.notes}
+                to={next.chord.notes}
+                low={range.low}
+                high={range.high}
+              />
             )}
-          </div>
-        )}
-
-        <LoopStrip n={n} loop={countIn ? 0 : loop} results={results} current={countIn ? -1 : k} />
-        {prevResult && !countIn && (
-          <span className="sr-only" aria-live="polite">
-            {offsetText(t, prevResult)}
-          </span>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        {showHints && !countIn && !isLast && (
-          <div className="mx-auto max-w-4xl overflow-x-auto">
-            <VoiceLeading
-              from={step.chord.notes}
-              to={next.chord.notes}
+            <PlayableKeyboard
               low={range.low}
               high={range.high}
-              className="min-w-[440px]"
+              labels="c"
+              {...(marks ? { marks } : {})}
             />
           </div>
-        )}
-        <div className="mx-auto max-w-4xl overflow-x-auto">
-          <PlayableKeyboard
-            low={range.low}
-            high={range.high}
-            labels="c"
-            className="min-w-[440px]"
-            {...(marks ? { marks } : {})}
-          />
         </div>
       </div>
     </div>

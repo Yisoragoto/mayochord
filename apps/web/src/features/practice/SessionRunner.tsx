@@ -13,6 +13,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChordName } from '@/design/ChordName';
+import { FOCUS_BODY, FOCUS_CUE, FOCUS_KEYS, FOCUS_PAGE } from '@/design/focus-layout';
 import type { KeyMark } from '@/design/keyboard/Keyboard';
 import { Button } from '@/design/ui/button';
 import { judgeMarks, referenceMarks } from '@/features/chords/voicing-view';
@@ -71,7 +72,7 @@ export function SessionRunner({ title }: SessionRunnerProps) {
     view.feedback === 'minimal' && midiConnected && !judged && !trial.hintVisible;
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+    <div className={FOCUS_PAGE}>
       {/* 顶栏：结束、进度、连对 */}
       <div className="flex items-center gap-4">
         <Button
@@ -126,65 +127,67 @@ export function SessionRunner({ title }: SessionRunnerProps) {
         </p>
       )}
 
-      {/* 题目 */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 py-6">
-        <ReasonLabel view={view} />
-        <Cue view={view} />
-        <ListeningControls view={view} />
-        <TimeBar trial={trial} hidden={spec.hints === 'always' || view.listening} />
-        <Feedback view={view} />
-        <ShortTapNotice active={trial.status !== 'done'} />
-      </div>
+      <div className={FOCUS_BODY}>
+        {/* 题目（左右两栏时在右边） */}
+        <div className={cn(FOCUS_CUE, 'gap-6')}>
+          <ReasonLabel view={view} />
+          <Cue view={view} />
+          <ListeningControls view={view} />
+          <TimeBar trial={trial} hidden={spec.hints === 'always' || view.listening} />
+          <Feedback view={view} />
+          <ShortTapNotice active={trial.status !== 'done'} />
+        </div>
 
-      {/* 键盘与操作 */}
-      <div className="space-y-3">
-        {collapseKeyboard ? (
-          <p className="text-center text-sm text-subtle-foreground">
-            {t('practice.keyboardHidden')}
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <PlayableKeyboard
-              low={range.low}
-              high={range.high}
-              labels="c"
-              showComputerHints
-              hidePressed={hidePressed}
-              className="mx-auto max-w-5xl sm:min-w-[520px]"
-              aria-label={t('chords.trialTitle')}
-              {...marksFor(trial)}
-            />
-          </div>
-        )}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {spec.hints !== 'never' && (
+        {/* 键盘与操作（左右两栏时在左边） */}
+        <div className={FOCUS_KEYS}>
+          {collapseKeyboard ? (
+            <p className="text-center text-sm text-subtle-foreground">
+              {t('practice.keyboardHidden')}
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <PlayableKeyboard
+                low={range.low}
+                high={range.high}
+                labels="c"
+                showComputerHints
+                hidePressed={hidePressed}
+                className="mx-auto sm:min-w-[520px]"
+                aria-label={t('chords.trialTitle')}
+                {...marksFor(trial)}
+              />
+            </div>
+          )}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {spec.hints !== 'never' && (
+              <Button
+                variant="outline"
+                onClick={() => practice.hint()}
+                disabled={
+                  !(
+                    (trial.status === 'awaiting' && !trial.hintVisible) ||
+                    (trial.status === 'setup' && !trial.setupHintVisible)
+                  )
+                }
+              >
+                <Lightbulb />
+                {t('practice.hint')}
+              </Button>
+            )}
             <Button
               variant="outline"
-              onClick={() => practice.hint()}
-              disabled={
-                !(
-                  (trial.status === 'awaiting' && !trial.hintVisible) ||
-                  (trial.status === 'setup' && !trial.setupHintVisible)
-                )
-              }
+              onClick={() => practice.skip()}
+              disabled={trial.status === 'done'}
             >
-              <Lightbulb />
-              {t('practice.hint')}
+              <SkipForward />
+              {t('practice.skip')}
             </Button>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => practice.skip()}
-            disabled={trial.status === 'done'}
-          >
-            <SkipForward />
-            {t('practice.skip')}
-          </Button>
-          {latch && (
-            <Button variant="ghost" onClick={() => releaseOnscreenNotes()}>
-              {t('practice.clearOnscreen')}
-            </Button>
-          )}
+            {latch && (
+              <Button variant="ghost" onClick={() => releaseOnscreenNotes()}>
+                {t('practice.clearOnscreen')}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

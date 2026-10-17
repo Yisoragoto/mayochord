@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { type KeyMark, keyboardLayout } from '@/design/keyboard/Keyboard';
+import { type KeyMark, keyboardLayout, keyboardMaxWidth } from '@/design/keyboard/Keyboard';
 import { Button } from '@/design/ui/button';
 import { Slider } from '@/design/ui/slider';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
@@ -312,7 +312,7 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
 
   // 弹奏时视图填满屏幕；选项、结果显示时页面可以滚动，视图用固定高度
   const fill = running;
-  // 键盘每个白键最宽约 30 px，免得音域窄时键盘太高
+  // 键盘每个白键最宽约 30 px，免得音域窄时键盘太高；也不超过 --kb-max-h（瀑布流与键盘同宽）
   const keyboardMax = (keyboardLayout(range.low, range.high).width / 24) * 30;
   const views = (
     <>
@@ -341,7 +341,7 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
             'mx-auto w-full min-w-[440px]',
             prefs.view === 'waterfall' && fill && 'flex min-h-0 flex-1 flex-col',
           )}
-          style={{ maxWidth: keyboardMax }}
+          style={{ maxWidth: `min(${keyboardMax}px, ${keyboardMaxWidth(range.low, range.high)})` }}
         >
           {prefs.view === 'waterfall' && (
             <WaterfallView

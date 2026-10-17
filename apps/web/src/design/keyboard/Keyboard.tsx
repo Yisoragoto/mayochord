@@ -89,6 +89,14 @@ export function keyboardLayout(low: number, high: number): { keys: KeyGeom[]; wi
   return { keys, width: whiteIndex * W };
 }
 
+/**
+ * 键盘的最大宽度（CSS）：高度不超过 `--kb-max-h`（默认整个视口高）。
+ * 与键盘对齐的图层（声部进行、瀑布流）的外框也用它，保证同宽。
+ */
+export function keyboardMaxWidth(low: number, high: number): string {
+  return `calc(var(--kb-max-h) * ${(keyboardLayout(low, high).width / (H + BED)).toFixed(4)})`;
+}
+
 function noteFromTarget(target: EventTarget | null): number | null {
   if (!(target instanceof Element)) return null;
   const el = target.closest('[data-note]');
@@ -183,6 +191,7 @@ export function Keyboard({
       ref={svgRef}
       viewBox={`0 0 ${width} ${H + BED}`}
       className={cn('mc-keyboard block h-auto w-full select-none', className)}
+      style={{ maxWidth: keyboardMaxWidth(low, high) }}
       role={interactive ? 'group' : 'img'}
       aria-label={label}
       data-interactive={interactive || undefined}

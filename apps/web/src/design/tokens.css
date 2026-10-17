@@ -20,9 +20,12 @@
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* 谱架距离（约 1 米）可读的和弦名字号 */
-  --text-chord-stage: clamp(5.5rem, 16vw, 12rem);
-  --text-chord-lg: clamp(3rem, 8vw, 5.5rem);
+  /* 谱架距离（约 1 米）可读的和弦名字号；屏幕矮（平板横放）时也按高度缩小 */
+  --text-chord-stage: clamp(5rem, min(16vw, 22dvh), 12rem);
+  --text-chord-lg: clamp(2.75rem, min(8vw, 11dvh), 5.5rem);
+  /* 屏幕键盘最高多少（Keyboard 按比例限制宽度，平板横放时键盘不会把页面撑出屏幕）；
+     专注模式左右两栏时放宽（宽度已经受栏宽限制） */
+  --kb-max-h: max(9rem, 36dvh);
 }
 
 @media (prefers-reduced-motion: reduce) {
