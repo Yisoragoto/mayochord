@@ -50,7 +50,35 @@ export interface IntervalCard {
   interval: IntervalName;
 }
 
-export type AnyCard = ChordCard | TransitionCard | NoteCard | IntervalCard;
+export type StaffClef = 'treble' | 'bass';
+
+/** 看谱认音：谱表上一个音（带谱号、调号），弹出这个八度的这个音（M10） */
+export interface StaffNoteCard {
+  kind: 'staffNote';
+  id: string;
+  topicId: string | null;
+  clef: StaffClef;
+  /** 带八度的音名（保留拼写），例如 'F#4'、'Bb2' */
+  pitch: string;
+  /** 调号用的大调主音（例如 'D' = 两个升号）；null = 没有调号 */
+  key: string | null;
+}
+
+/** 节奏读谱：看一小节节奏，跟着节拍器在任意键上按出（M10） */
+export interface RhythmCard {
+  kind: 'rhythm';
+  id: string;
+  topicId: string | null;
+  rhythmId: string;
+}
+
+export type AnyCard =
+  | ChordCard
+  | TransitionCard
+  | NoteCard
+  | IntervalCard
+  | StaffNoteCard
+  | RhythmCard;
 
 export function chordCardId(
   chordId: string,
@@ -124,6 +152,34 @@ export function intervalCard(
   topicId: string | null = null,
 ): IntervalCard {
   return { kind: 'interval', id: intervalCardId(root, interval), topicId, root, interval };
+}
+
+export function staffNoteCardId(clef: StaffClef, pitch: string, key: string | null = null): string {
+  return `staffnote:${clef}:${slugNote(pitch)}${key ? `@${slugNote(key)}` : ''}`;
+}
+
+export function staffNoteCard(
+  clef: StaffClef,
+  pitch: string,
+  opts: { key?: string | null; topicId?: string | null } = {},
+): StaffNoteCard {
+  const key = opts.key ?? null;
+  return {
+    kind: 'staffNote',
+    id: staffNoteCardId(clef, pitch, key),
+    topicId: opts.topicId ?? null,
+    clef,
+    pitch,
+    key,
+  };
+}
+
+export function rhythmCardId(rhythmId: string): string {
+  return `rhythm:${rhythmId}`;
+}
+
+export function rhythmCard(rhythmId: string, topicId: string | null = null): RhythmCard {
+  return { kind: 'rhythm', id: rhythmCardId(rhythmId), topicId, rhythmId };
 }
 
 /** 一组和弦 → 每个和弦一张卡片（去重，保持顺序）。 */

@@ -101,6 +101,8 @@
 | `transitions` | `progressions`, `voicingMode` | 进行里相邻和弦的切换卡（循环） |
 | `contrast` | `pairs: [["c7", "cmaj7"], …]` | 对比配对：听声音，从一对里选 |
 | `progression` | `progression`, `bpm`, `beatsPerChord?`, `voicingMode` | 跟拍主题：课程各阶段都是跟着节拍器弹这条进行；每日复习用它的切换卡 |
+| `staffNotes` | `items: [{ clef: treble/bass, pitch: "F#4", key? }]` | 看谱认音：一行谱表上一个音（`key` = 调号的大调主音，调内音不画升降号），弹出这个八度的这个音 |
+| `rhythms` | `rhythms: ["r-four-q", …]` | 节奏读谱：看一小节节奏，跟着节拍器在任意键上按出每个音的起点（有自己的练习界面；每日复习单独成为任务） |
 
 ### 课程 `lesson`
 
@@ -109,6 +111,16 @@
 - `independent.requiredCorrect`：独立练习首次答对多少题完成（跟拍主题：干净地弹对多少个和弦）。
 - `mastery`：掌握检查的题数、正确率门槛、每题时限（跟拍主题：和弦数与干净率门槛，不用时限）。
 - `minutes`：预计时长，每日任务编排用。
+- 读谱课程（M10）的讲解步骤还可以有 `staff`（`{ clef: treble/bass/grand, key?, notes: ["C4", …], labels }`，一行谱表上依次画几个全音符，可以标音名）和 `rhythm`（节奏型 ID，显示这一小节并可以播放）。
+
+## 节奏型 `rhythms`（M10，可省略）
+
+```json
+{ "id": "r-syncope", "time": [4, 4], "bpm": 66, "notes": "8 q 8 q q" }
+```
+
+- `time`：拍号（下面的数是 4 或 8）；`bpm`：练习速度（四分音符每分钟，6/8 也按四分音符算）。
+- `notes`：一小节的节奏，记号用空格分开：`w h q 8 16` = 全音符、二分、四分、八分、十六分；`.` 附点（可以两个）；`r` 休止符；`t` 三连音（三个 `8t` 占一拍）；`~` 连到下一个音（下一个音不按）。例如 `q. 8 q q`、`8 8~ 8 8 h`、`8t 8t 8t q h`。总时值必须正好一小节，校验时会检查。
 
 ## 用户自己的内容包
 

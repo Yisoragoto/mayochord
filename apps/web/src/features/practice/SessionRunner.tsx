@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { ChordName } from '@/design/ChordName';
 import { FOCUS_BODY, FOCUS_CUE, FOCUS_KEYS, FOCUS_PAGE } from '@/design/focus-layout';
 import type { KeyMark } from '@/design/keyboard/Keyboard';
+import { StaffLine } from '@/design/staff/StaffLine';
 import { Button } from '@/design/ui/button';
 import { judgeMarks, referenceMarks } from '@/features/chords/voicing-view';
 import { MidiConnectButton } from '@/features/midi/MidiDevicePanel';
@@ -295,6 +296,23 @@ function CardFace({
           <span className="text-sm text-muted-foreground">{t('practice.intervalCaption')}</span>
         </span>
       );
+    case 'staffNote':
+      return (
+        <span className="flex flex-col items-center gap-3">
+          <StaffLine
+            clef={card.clef}
+            musicKey={card.key}
+            notes={[card.pitch]}
+            labels={revealed}
+            label={t('practice.staffNoteLabel')}
+            className="w-[min(18rem,70vw)] split:w-[min(18rem,32vw)]"
+          />
+          <span className="text-sm text-muted-foreground">{t('practice.staffNoteCaption')}</span>
+        </span>
+      );
+    case 'rhythm':
+      // 节奏读谱有自己的练习界面，不进这里
+      return null;
   }
 }
 

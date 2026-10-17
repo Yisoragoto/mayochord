@@ -45,6 +45,9 @@ export const DEFAULT_ADAPTIVE: Record<DrillType, { params: AdaptiveParams; initi
   'roman-to-chord': { params: { ...BASE, minMs: 1500, maxMs: 15000 }, initialMs: 6000 },
   transition: { params: { ...BASE, minMs: 1000, maxMs: 12000 }, initialMs: 5000 },
   'name-to-note': { params: { ...BASE, minMs: 1000, maxMs: 10000 }, initialMs: 4000 },
+  'staff-to-note': { params: { ...BASE, minMs: 1500, maxMs: 12000 }, initialMs: 6000 },
+  // 节奏读谱跟着节拍器弹，没有反应时限；这一项只是为了类型完整
+  'rhythm-reading': { params: { ...BASE, minMs: 1000, maxMs: 20000 }, initialMs: 10000 },
   interval: { params: { ...BASE, minMs: 1500, maxMs: 12000 }, initialMs: 5000 },
 };
 

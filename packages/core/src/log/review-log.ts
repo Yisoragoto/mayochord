@@ -3,7 +3,14 @@
  * 卡片的记忆状态、统计数据都可以由日志重放得到。
  */
 export type EvidenceKind = 'explicit' | 'implicit';
-export type CardKind = 'chord' | 'transition' | 'note' | 'interval' | 'topic';
+export type CardKind =
+  | 'chord'
+  | 'transition'
+  | 'note'
+  | 'interval'
+  | 'staff-note'
+  | 'rhythm'
+  | 'topic';
 export type InputSourceKind = 'midi' | 'onscreen' | 'keyboard' | 'manual';
 /** FSRS 评分：1 Again、2 Hard、3 Good、4 Easy */
 export type Rating = 1 | 2 | 3 | 4;

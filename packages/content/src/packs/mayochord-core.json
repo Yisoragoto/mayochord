@@ -1,6 +1,6 @@
 {
   "id": "mayochord-core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "schemaVersion": 1,
   "name": {
     "zh-CN": "MayoChord 内置内容",
@@ -5004,6 +5004,1236 @@
         },
         "minutes": 8
       }
+    },
+    {
+      "id": "staff-basics",
+      "title": {
+        "zh-CN": "认识五线谱",
+        "en": "Meet the staff"
+      },
+      "summary": {
+        "zh-CN": "五条线、高音谱号、中央 C：看懂谱上音的高低。",
+        "en": "Five lines, the treble clef and middle C: see how notes go up and down."
+      },
+      "prerequisites": ["keyboard-names"],
+      "practice": {
+        "kind": "staffNotes",
+        "items": [
+          {
+            "clef": "treble",
+            "pitch": "C4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "D4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "E4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "F4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "G4"
+          }
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "五线谱有五条线、四个间。音符在线上或间里，位置越高，音越高；每往上一格（线→间→线）就是琴上往右一个白键。",
+              "en": "The staff has five lines and four spaces. A note sits on a line or in a space; the higher it is, the higher the pitch. Each step up (line → space → line) is the next white key to the right."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "开头的符号是高音谱号（𝄞），它的圈绕着第二线，表示第二线是 G4（中央 C 右边的那个 G）。所以高音谱号也叫 G 谱号。",
+              "en": "The symbol at the start is the treble clef (𝄞). Its curl wraps the second line, marking that line as G4 – the G just right of middle C. That is why it is also called the G clef."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["G4"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "中央 C（C4）在五线谱下面，要加一条短线（加线）。从中央 C 往上：C D E F G，正好是右手五个手指的位置。",
+              "en": "Middle C (C4) sits below the staff on its own short line, a ledger line. Going up from middle C: C D E F G – one note under each right-hand finger."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["C4", "D4", "E4", "F4", "G4"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "钢琴谱通常是两行：上面高音谱表（多半是右手），下面低音谱表（多半是左手），用大括号连起来叫大谱表。中央 C 正好在两行中间。",
+              "en": "Piano music usually has two staves joined by a brace – the grand staff: treble on top (mostly right hand), bass below (mostly left hand). Middle C sits right between them."
+            },
+            "staff": {
+              "clef": "grand",
+              "notes": ["C4"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 5
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 8000
+        },
+        "minutes": 7
+      },
+      "encompasses": []
+    },
+    {
+      "id": "treble-notes",
+      "title": {
+        "zh-CN": "高音谱表认音",
+        "en": "Reading the treble staff"
+      },
+      "summary": {
+        "zh-CN": "线上 E G B D F，间里 F A C E：看到就能弹出来。",
+        "en": "Lines E G B D F, spaces F A C E – read them and play them."
+      },
+      "prerequisites": ["staff-basics"],
+      "practice": {
+        "kind": "staffNotes",
+        "items": [
+          {
+            "clef": "treble",
+            "pitch": "E4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "F4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "G4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "A4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "B4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "C5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "D5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "E5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "F5"
+          }
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "高音谱表五条线从下往上是 E4 G4 B4 D5 F5。可以记成一个个往上跳三度。",
+              "en": "The five treble lines, bottom to top, are E4 G4 B4 D5 F5 – each a third above the last."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["E4", "G4", "B4", "D5", "F5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "四个间从下往上是 F4 A4 C5 E5，连起来正好是英文单词 FACE。",
+              "en": "The four spaces, bottom to top, are F4 A4 C5 E5 – they spell FACE."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["F4", "A4", "C5", "E5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "认音时先找附近的\"路标\"：第二线 G4、第三间 C5。从路标往上或往下数几格，比从最下面一格一格数快。",
+              "en": "Use landmarks: G4 on the second line and C5 in the third space. Count a step or two from the nearest landmark instead of from the bottom."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["G4", "C5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "谱上是哪个八度就弹哪个八度：这一课要求按到谱上的那个键（例如 C5 不能弹成 C4）。",
+              "en": "Play the exact octave written: this lesson wants the very key on the staff (C5 is not C4)."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["C4", "C5"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 9
+        },
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 12,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 9
+      },
+      "encompasses": []
+    },
+    {
+      "id": "bass-notes",
+      "title": {
+        "zh-CN": "低音谱表认音",
+        "en": "Reading the bass staff"
+      },
+      "summary": {
+        "zh-CN": "左手用的低音谱表：线上 G B D F A，间里 A C E G。",
+        "en": "The bass staff for the left hand: lines G B D F A, spaces A C E G."
+      },
+      "prerequisites": ["staff-basics"],
+      "practice": {
+        "kind": "staffNotes",
+        "items": [
+          {
+            "clef": "bass",
+            "pitch": "G2"
+          },
+          {
+            "clef": "bass",
+            "pitch": "A2"
+          },
+          {
+            "clef": "bass",
+            "pitch": "B2"
+          },
+          {
+            "clef": "bass",
+            "pitch": "C3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "D3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "E3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "F3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "G3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "A3"
+          }
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "低音谱号（𝄢）的两个点夹着第四线，表示第四线是 F3（中央 C 左边的 F），所以也叫 F 谱号。",
+              "en": "The two dots of the bass clef (𝄢) surround the fourth line, marking it as F3 – the F below middle C. It is also called the F clef."
+            },
+            "staff": {
+              "clef": "bass",
+              "notes": ["F3"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "低音谱表五条线从下往上是 G2 B2 D3 F3 A3。",
+              "en": "Bass lines, bottom to top: G2 B2 D3 F3 A3."
+            },
+            "staff": {
+              "clef": "bass",
+              "notes": ["G2", "B2", "D3", "F3", "A3"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "四个间从下往上是 A2 C3 E3 G3。注意：同一个位置在两种谱表里是不同的音，低音谱表要比高音谱表\"往下错一格\"再降两个八度。",
+              "en": "Spaces, bottom to top: A2 C3 E3 G3. The same spot means different notes in the two clefs – do not read the bass staff as if it were treble."
+            },
+            "staff": {
+              "clef": "bass",
+              "notes": ["A2", "C3", "E3", "G3"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "路标：第四线 F3、第二间 C3（中央 C 往下一个八度）。",
+              "en": "Landmarks: F3 on the fourth line and C3 in the second space, an octave below middle C."
+            },
+            "staff": {
+              "clef": "bass",
+              "notes": ["C3", "F3"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 9
+        },
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 12,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 9
+      },
+      "encompasses": []
+    },
+    {
+      "id": "ledger-notes",
+      "title": {
+        "zh-CN": "加线与中央 C",
+        "en": "Ledger lines and middle C"
+      },
+      "summary": {
+        "zh-CN": "超出五条线的音：数加线，中央 C 在两种谱表里的位置。",
+        "en": "Notes beyond the five lines: count ledger lines, and find middle C in both clefs."
+      },
+      "prerequisites": ["treble-notes", "bass-notes"],
+      "practice": {
+        "kind": "staffNotes",
+        "items": [
+          {
+            "clef": "treble",
+            "pitch": "A3"
+          },
+          {
+            "clef": "treble",
+            "pitch": "B3"
+          },
+          {
+            "clef": "treble",
+            "pitch": "C4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "G5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "A5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "B5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "C6"
+          },
+          {
+            "clef": "bass",
+            "pitch": "E2"
+          },
+          {
+            "clef": "bass",
+            "pitch": "F2"
+          },
+          {
+            "clef": "bass",
+            "pitch": "B3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "C4"
+          },
+          {
+            "clef": "bass",
+            "pitch": "D4"
+          }
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "五条线不够用时，在上面或下面加短线（加线），继续\"线、间、线\"往外数。",
+              "en": "When five lines are not enough, short ledger lines extend the staff; keep counting line, space, line."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["G5", "A5", "B5", "C6"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "高音谱表下面：第一加线是中央 C4，加线下面是 B3，再往下是 A3（第二加线）。",
+              "en": "Below the treble staff: middle C4 is on the first ledger line, B3 hangs below it, A3 is on the second ledger line."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["C4", "B3", "A3"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "低音谱表上面：第一加线也是中央 C4，上面是 D4。同一个中央 C，在高音谱表写在下面，在低音谱表写在上面。",
+              "en": "Above the bass staff: middle C4 is again on the first ledger line, with D4 above. The same middle C hangs below the treble staff and sits above the bass staff."
+            },
+            "staff": {
+              "clef": "bass",
+              "notes": ["B3", "C4", "D4"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "低音谱表下面：F2 在下第一间，E2 在第一加线。流行歌左手的低音常在这里。",
+              "en": "Below the bass staff: F2 just under it, E2 on the first ledger line – pop bass lines often live here."
+            },
+            "staff": {
+              "clef": "bass",
+              "notes": ["F2", "E2"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 8
+        },
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 12,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 7000
+        },
+        "minutes": 9
+      },
+      "encompasses": []
+    },
+    {
+      "id": "accidentals-reading",
+      "title": {
+        "zh-CN": "升降号与还原号",
+        "en": "Sharps, flats and naturals"
+      },
+      "summary": {
+        "zh-CN": "♯ 升高半音、♭ 降低半音，在同一小节里一直有效。",
+        "en": "♯ raises a semitone, ♭ lowers one, and both last to the end of the bar."
+      },
+      "prerequisites": ["treble-notes", "half-whole-steps"],
+      "practice": {
+        "kind": "staffNotes",
+        "items": [
+          {
+            "clef": "treble",
+            "pitch": "F#4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Bb4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "C#5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Eb5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "G#4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Ab4"
+          },
+          {
+            "clef": "bass",
+            "pitch": "F#3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "Bb2"
+          }
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "音符左边的 ♯（升号）表示升高半音：往右找最近的键（多半是黑键）。♭（降号）降低半音：往左找最近的键。",
+              "en": "A ♯ (sharp) before a note raises it a semitone – the nearest key to the right, usually black. A ♭ (flat) lowers it – the nearest key to the left."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["F4", "F#4", "B4", "Bb4"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "临时记号从它出现的地方一直有效到这一小节结束，同一行的同一个音都算。下一小节自动取消。",
+              "en": "An accidental lasts from where it appears to the end of the bar, for that note in that octave. The next bar starts fresh."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["C#5", "C#5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "♮（还原号）取消前面的升降号，回到白键。E♯ 就是 F、C♭ 就是 B：升降号说的是\"往哪边走半音\"，不一定是黑键。",
+              "en": "A ♮ (natural) cancels an earlier sharp or flat. E♯ is the F key and C♭ the B key – an accidental means \"a semitone that way\", not always a black key."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["E#4", "Cb5"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 8
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 7000
+        },
+        "minutes": 8
+      },
+      "encompasses": []
+    },
+    {
+      "id": "key-signatures",
+      "title": {
+        "zh-CN": "调号",
+        "en": "Key signatures"
+      },
+      "summary": {
+        "zh-CN": "谱号旁边的一组升降号：整首曲子里这些音都要升或降。",
+        "en": "The sharps or flats next to the clef apply to those notes throughout the piece."
+      },
+      "prerequisites": ["accidentals-reading"],
+      "practice": {
+        "kind": "staffNotes",
+        "items": [
+          {
+            "clef": "treble",
+            "pitch": "F#4",
+            "key": "G"
+          },
+          {
+            "clef": "treble",
+            "pitch": "F#5",
+            "key": "G"
+          },
+          {
+            "clef": "treble",
+            "pitch": "C#5",
+            "key": "D"
+          },
+          {
+            "clef": "treble",
+            "pitch": "F#4",
+            "key": "D"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Bb4",
+            "key": "F"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Eb5",
+            "key": "Bb"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Bb4",
+            "key": "Bb"
+          },
+          {
+            "clef": "treble",
+            "pitch": "G#4",
+            "key": "A"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Ab4",
+            "key": "Eb"
+          },
+          {
+            "clef": "bass",
+            "pitch": "F#3",
+            "key": "G"
+          },
+          {
+            "clef": "bass",
+            "pitch": "Bb2",
+            "key": "F"
+          }
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "谱号后面的一组升降号叫调号。它对每个八度都有效，整首曲子一直有效，音符前面就不再写升降号了。",
+              "en": "The sharps or flats right after the clef are the key signature. They apply in every octave for the whole piece, so the notes themselves carry no accidentals."
+            },
+            "staff": {
+              "clef": "treble",
+              "key": "G",
+              "notes": ["F#4", "F#5"],
+              "labels": true
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "一个升号（F♯）= G 大调 / E 小调；两个升号（F♯ C♯）= D 大调。升号总是按 F C G D A E B 的顺序加上去。",
+              "en": "One sharp (F♯) is G major / E minor; two sharps (F♯ C♯) is D major. Sharps are always added in the order F C G D A E B."
+            },
+            "staff": {
+              "clef": "treble",
+              "key": "D",
+              "notes": ["F#4", "C#5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "一个降号（B♭）= F 大调 / D 小调；两个降号（B♭ E♭）= B♭ 大调。降号的顺序正好反过来：B E A D G C F。",
+              "en": "One flat (B♭) is F major / D minor; two flats (B♭ E♭) is B♭ major. Flats come in the reverse order: B E A D G C F."
+            },
+            "staff": {
+              "clef": "treble",
+              "key": "Bb",
+              "notes": ["Bb4", "Eb5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "看谱前先看调号，记住\"这首曲子里哪些音要变\"。这一课的题目带调号：音符旁边没有升降号，但要按调号弹黑键。",
+              "en": "Check the key signature before you start and remember which notes change. In this lesson the note has no accidental of its own – the key signature tells you to play the black key."
+            },
+            "staff": {
+              "clef": "treble",
+              "key": "Eb",
+              "notes": ["Ab4"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 8
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 10,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 8000
+        },
+        "minutes": 9
+      },
+      "encompasses": []
+    },
+    {
+      "id": "note-values",
+      "title": {
+        "zh-CN": "音符时值与休止符",
+        "en": "Note values and rests"
+      },
+      "summary": {
+        "zh-CN": "全音符、二分、四分音符和休止符：每个音占几拍。",
+        "en": "Whole, half and quarter notes and their rests: how many beats each one lasts."
+      },
+      "prerequisites": ["staff-basics"],
+      "practice": {
+        "kind": "rhythms",
+        "rhythms": [
+          "r-four-q",
+          "r-halves",
+          "r-h-q-q",
+          "r-whole",
+          "r-q-rest",
+          "r-rest-q",
+          "r-dotted-half",
+          "r-q-h-q"
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "音符的样子决定它占几拍：实心带符干的四分音符 1 拍，空心带符干的二分音符 2 拍，空心没符干的全音符 4 拍。",
+              "en": "A note's shape tells its length: a filled note with a stem (quarter) is 1 beat, a hollow one with a stem (half) is 2 beats, a hollow one without a stem (whole) is 4 beats."
+            },
+            "rhythm": "r-h-q-q"
+          },
+          {
+            "text": {
+              "zh-CN": "练习时跟着节拍器，只在每个音开始的地方按一下任意键，不用按住。先听一小节预备拍。",
+              "en": "With the metronome, press any key once where each note starts – no need to hold. A bar of count-in comes first."
+            },
+            "rhythm": "r-four-q"
+          },
+          {
+            "text": {
+              "zh-CN": "休止符表示这一拍不弹，但拍子照样走：心里继续数\"1 2 3 4\"。",
+              "en": "A rest means silence, but the beat keeps going: keep counting 1 2 3 4 in your head."
+            },
+            "rhythm": "r-q-rest"
+          },
+          {
+            "text": {
+              "zh-CN": "音符后面的小点（附点）让它多出一半：附点二分音符 = 2 + 1 = 3 拍。",
+              "en": "A dot after a note adds half its value: a dotted half note is 2 + 1 = 3 beats."
+            },
+            "rhythm": "r-dotted-half"
+          }
+        ],
+        "guided": {
+          "count": 4
+        },
+        "independent": {
+          "requiredCorrect": 6
+        },
+        "mastery": {
+          "questions": 6,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 6000
+        },
+        "minutes": 7
+      },
+      "encompasses": []
+    },
+    {
+      "id": "counting-beats",
+      "title": {
+        "zh-CN": "拍号与数拍",
+        "en": "Time signatures and counting"
+      },
+      "summary": {
+        "zh-CN": "4/4、3/4、6/8 拍号，八分音符和附点四分音符。",
+        "en": "4/4, 3/4 and 6/8, eighth notes and dotted quarters."
+      },
+      "prerequisites": ["note-values"],
+      "practice": {
+        "kind": "rhythms",
+        "rhythms": [
+          "r-8-8-q",
+          "r-q-8-8",
+          "r-dotted-q",
+          "r-eighths-h",
+          "r-8-rest",
+          "r-waltz",
+          "r-waltz-h",
+          "r-waltz-8",
+          "r-six-eight",
+          "r-six-eight-q"
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "拍号的上面一个数是每小节几拍，下面一个数是以什么音符为一拍：4/4 = 每小节 4 个四分音符，3/4 = 3 个。",
+              "en": "The top number of a time signature is beats per bar, the bottom one the note that gets a beat: 4/4 is four quarters a bar, 3/4 is three."
+            },
+            "rhythm": "r-waltz"
+          },
+          {
+            "text": {
+              "zh-CN": "八分音符（一条符尾，或两个连在一起的符杠）是半拍。数的时候说\"1 和 2 和\"，\"和\"就是拍子的后半。",
+              "en": "An eighth note (one flag, or beamed in pairs) is half a beat. Count \"1 and 2 and\" – the \"and\" is the second half of the beat."
+            },
+            "rhythm": "r-8-8-q"
+          },
+          {
+            "text": {
+              "zh-CN": "附点四分音符 = 1 拍半，后面常跟一个八分音符补齐那一拍：数\"1 (和) 2 和\"。",
+              "en": "A dotted quarter lasts a beat and a half, usually followed by an eighth to complete the beat: \"1 (and) 2 and\"."
+            },
+            "rhythm": "r-dotted-q"
+          },
+          {
+            "text": {
+              "zh-CN": "6/8 是每小节 6 个八分音符，分成两组（1 2 3 4 5 6），感觉像两大拍。这里节拍器按四分音符响，每响一下是两个八分音符。",
+              "en": "6/8 has six eighths a bar in two groups (1 2 3 4 5 6), felt as two big beats. Here the metronome clicks on quarter notes – two eighths per click."
+            },
+            "rhythm": "r-six-eight"
+          }
+        ],
+        "guided": {
+          "count": 5
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.8,
+          "timeLimitMs": 6000
+        },
+        "minutes": 9
+      },
+      "encompasses": []
+    },
+    {
+      "id": "syncopation-reading",
+      "title": {
+        "zh-CN": "切分、十六分音符与三连音",
+        "en": "Syncopation, sixteenths and triplets"
+      },
+      "summary": {
+        "zh-CN": "流行歌里最多的节奏：在拍子之间开始的音、十六分音符和三连音。",
+        "en": "The rhythms pop songs are full of: notes that start between beats, sixteenths and triplets."
+      },
+      "prerequisites": ["counting-beats"],
+      "practice": {
+        "kind": "rhythms",
+        "rhythms": [
+          "r-syncope",
+          "r-syncope-tie",
+          "r-sixteenths",
+          "r-8-16-16",
+          "r-16-8-16",
+          "r-dotted-8",
+          "r-push",
+          "r-triplet"
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "切分：音在\"和\"上开始、一直延续过下一拍。8 – 4 – 8 这样的节奏，第二个音在 1 拍的后半开始，第 2 拍不再按。",
+              "en": "Syncopation: a note starts on an \"and\" and carries over the next beat. In eighth – quarter – eighth the second note starts halfway through beat 1, and nothing new happens on beat 2."
+            },
+            "rhythm": "r-syncope"
+          },
+          {
+            "text": {
+              "zh-CN": "连音线把两个同样的音连成一个：后面那个不再按，只是延长。",
+              "en": "A tie joins two notes of the same pitch into one: do not play the second, just let it ring."
+            },
+            "rhythm": "r-syncope-tie"
+          },
+          {
+            "text": {
+              "zh-CN": "十六分音符（两条符尾/符杠）是四分之一拍。数\"1 e 和 a\"，四个音平均分一拍。",
+              "en": "Sixteenth notes (two flags or beams) are a quarter of a beat. Count \"1 e and a\" – four even notes in one beat."
+            },
+            "rhythm": "r-sixteenths"
+          },
+          {
+            "text": {
+              "zh-CN": "三连音（上面写着 3）：一拍里平均分成三个音，数\"1 la li\"。和八分音符不一样，不是前后各半拍。",
+              "en": "A triplet (marked 3) splits a beat into three equal notes – count \"1 la li\". It is not two halves like eighths."
+            },
+            "rhythm": "r-triplet"
+          }
+        ],
+        "guided": {
+          "count": 5
+        },
+        "independent": {
+          "requiredCorrect": 8
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.75,
+          "timeLimitMs": 6000
+        },
+        "minutes": 10
+      },
+      "encompasses": []
+    },
+    {
+      "id": "score-symbols",
+      "title": {
+        "zh-CN": "谱上的其他记号与综合认音",
+        "en": "Other score markings and mixed reading"
+      },
+      "summary": {
+        "zh-CN": "反复、跳房子、D.S.、踏板、力度、8va 的读法；两种谱表混合认音。",
+        "en": "How to read repeats, endings, D.S., pedal, dynamics and 8va; mixed reading across both staves."
+      },
+      "prerequisites": ["ledger-notes", "key-signatures"],
+      "practice": {
+        "kind": "staffNotes",
+        "items": [
+          {
+            "clef": "treble",
+            "pitch": "D4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "A4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "E5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "B5"
+          },
+          {
+            "clef": "treble",
+            "pitch": "F#4"
+          },
+          {
+            "clef": "treble",
+            "pitch": "Bb4"
+          },
+          {
+            "clef": "bass",
+            "pitch": "E2"
+          },
+          {
+            "clef": "bass",
+            "pitch": "C3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "G3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "D4"
+          },
+          {
+            "clef": "bass",
+            "pitch": "Eb3"
+          },
+          {
+            "clef": "bass",
+            "pitch": "F#2"
+          }
+        ]
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "反复记号：‖: 和 :‖ 之间弹两遍。上面标\"1.\"、\"2.\"的括号（跳房子）：第一遍弹 1，第二遍跳过 1 直接弹 2。导入的谱在 MayoChord 里会按这个顺序自动展开。",
+              "en": "Repeat signs: play what is between ‖: and :‖ twice. Brackets marked 1. and 2. are endings: take 1 the first time, skip to 2 the second. MayoChord unfolds imported scores in this order for you."
+            },
+            "staff": {
+              "clef": "grand"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "D.C. = 从头再来；D.S. = 回到 𝄋 记号；To Coda / 𝄌 = 跳到尾声；Fine = 在这里结束。这些跳转只发生一次。",
+              "en": "D.C. = back to the start; D.S. = back to the 𝄋 sign; To Coda / 𝄌 = jump to the coda; Fine = end here. Each jump happens once."
+            },
+            "staff": {
+              "clef": "grand"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "低音谱表下面的 Ped. 和横线表示踩延音踏板，到 * 或横线的缺口处放开再踩。力度记号 p（弱）、mf（中强）、f（强），< > 是渐强、渐弱。",
+              "en": "Ped. with a line under the bass staff means hold the sustain pedal; lift at * or at a notch in the line. Dynamics: p soft, mf medium loud, f loud; < and > are crescendo and diminuendo."
+            },
+            "staff": {
+              "clef": "grand"
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "8va 加虚线：虚线下的音实际要高一个八度弹（写在下面是 8vb，低一个八度）。这样写是为了少画加线。",
+              "en": "8va with a dashed line: play everything under it an octave higher (8vb below the staff: an octave lower). It saves drawing lots of ledger lines."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["C6"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "最后把两种谱表混在一起练：先看谱号，再看调号，再认音。",
+              "en": "Now mix both clefs: check the clef, then the key signature, then read the note."
+            },
+            "staff": {
+              "clef": "grand",
+              "notes": ["E2", "G3", "D4", "B5"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 8
+        },
+        "independent": {
+          "requiredCorrect": 12
+        },
+        "mastery": {
+          "questions": 12,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 6000
+        },
+        "minutes": 9
+      },
+      "encompasses": []
+    },
+    {
+      "id": "staff-more-keys",
+      "title": {
+        "zh-CN": "看五线谱弹和弦：F 调与 G 调",
+        "en": "Reading chords: F and G major"
+      },
+      "summary": {
+        "zh-CN": "带升降号的和弦：F 调的 B♭、G 调的 D、Bm。",
+        "en": "Chords with accidentals: B♭ in F major, D and Bm in G major."
+      },
+      "prerequisites": ["staff-c-triads", "key-signatures"],
+      "practice": {
+        "kind": "chords",
+        "chords": ["f", "bb", "c", "dm", "gm", "g", "d", "em", "bm"],
+        "cue": "staff",
+        "voicingMode": "reference"
+      },
+      "lesson": {
+        "explain": [
+          {
+            "text": {
+              "zh-CN": "和弦在谱上是竖着叠在一起的几个音。先认最低的音，再往上数：隔一个线或间就是三度。",
+              "en": "A chord on the staff is notes stacked vertically. Read the lowest note first, then count up: line to line or space to space is a third."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["F4", "A4", "C5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "F 调的 IV 级是 B♭：B♭ D F，注意 B 前面的降号。",
+              "en": "IV in F major is B♭: B♭ D F – watch the flat on the B."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["Bb4", "D5", "F5"]
+            }
+          },
+          {
+            "text": {
+              "zh-CN": "G 调的 V 级是 D：D F♯ A；III 级是 Bm：B D F♯。",
+              "en": "V in G major is D: D F♯ A; iii is Bm: B D F♯."
+            },
+            "staff": {
+              "clef": "treble",
+              "notes": ["D4", "F#4", "A4"]
+            }
+          }
+        ],
+        "guided": {
+          "count": 6
+        },
+        "independent": {
+          "requiredCorrect": 10
+        },
+        "mastery": {
+          "questions": 8,
+          "minAccuracy": 0.85,
+          "timeLimitMs": 10000
+        },
+        "minutes": 9
+      },
+      "encompasses": []
+    }
+  ],
+  "rhythms": [
+    {
+      "id": "r-four-q",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "q q q q"
+    },
+    {
+      "id": "r-halves",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "h h"
+    },
+    {
+      "id": "r-h-q-q",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "h q q"
+    },
+    {
+      "id": "r-whole",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "w"
+    },
+    {
+      "id": "r-q-rest",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "q qr q qr"
+    },
+    {
+      "id": "r-rest-q",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "qr q qr q"
+    },
+    {
+      "id": "r-dotted-half",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "h. q"
+    },
+    {
+      "id": "r-q-h-q",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "q h q"
+    },
+    {
+      "id": "r-8-8-q",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "8 8 q 8 8 q"
+    },
+    {
+      "id": "r-q-8-8",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "q 8 8 q 8 8"
+    },
+    {
+      "id": "r-dotted-q",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "q. 8 q q"
+    },
+    {
+      "id": "r-eighths-h",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "8 8 8 8 h"
+    },
+    {
+      "id": "r-8-rest",
+      "time": [4, 4],
+      "bpm": 72,
+      "notes": "8r 8 8r 8 q q"
+    },
+    {
+      "id": "r-waltz",
+      "time": [3, 4],
+      "bpm": 72,
+      "notes": "q q q"
+    },
+    {
+      "id": "r-waltz-h",
+      "time": [3, 4],
+      "bpm": 72,
+      "notes": "h q"
+    },
+    {
+      "id": "r-waltz-8",
+      "time": [3, 4],
+      "bpm": 72,
+      "notes": "q 8 8 8 8"
+    },
+    {
+      "id": "r-six-eight",
+      "time": [6, 8],
+      "bpm": 60,
+      "notes": "8 8 8 8 8 8"
+    },
+    {
+      "id": "r-six-eight-q",
+      "time": [6, 8],
+      "bpm": 60,
+      "notes": "q 8 q 8"
+    },
+    {
+      "id": "r-syncope",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "8 q 8 q q"
+    },
+    {
+      "id": "r-syncope-tie",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "q 8 8~ 8 8 q"
+    },
+    {
+      "id": "r-sixteenths",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "16 16 16 16 q h"
+    },
+    {
+      "id": "r-8-16-16",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "8 16 16 8 16 16 h"
+    },
+    {
+      "id": "r-16-8-16",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "16 8 16 q 16 8 16 q"
+    },
+    {
+      "id": "r-dotted-8",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "8. 16 8. 16 h"
+    },
+    {
+      "id": "r-push",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "q q q. 8"
+    },
+    {
+      "id": "r-triplet",
+      "time": [4, 4],
+      "bpm": 66,
+      "notes": "8t 8t 8t q 8t 8t 8t q"
     }
   ]
 }

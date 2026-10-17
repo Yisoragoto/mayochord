@@ -316,6 +316,27 @@ describe('每日任务编排', () => {
     expect(plan.tasks).toHaveLength(1);
   });
 
+  it('单独界面的主题（节奏读谱）：复习单独成为任务，不进热身、测验', () => {
+    const sep = new Map(topics);
+    sep.set('thirds', { ...info('thirds'), separate: true });
+    const progress = new Map<string, TopicProgress>(
+      ['keys', 'steps', 'thirds', 'major'].map((id) => [id, mastered(id, T0 - 60 * DAY)]),
+    );
+    const plan = planDay({
+      ...base,
+      topics: sep,
+      topicProgress: progress,
+      recentCardIds: ['thirds:card0', 'keys:card0'],
+      params: { coverWeight: 2, quizMinTopics: 1, quizWindowDays: 365 },
+    });
+    const reviews = plan.tasks.filter((t) => t.kind === 'review');
+    const alone = reviews.find((t) => t.topicIds.includes('thirds'));
+    expect(alone?.topicIds).toEqual(['thirds']);
+    expect(reviews.some((t) => t.topicIds.length > 1 && !t.topicIds.includes('thirds'))).toBe(true);
+    expect(plan.tasks.find((t) => t.kind === 'warmup')?.cardIds).toEqual(['keys:card0']);
+    expect(plan.tasks.find((t) => t.kind === 'quiz')?.topicIds).not.toContain('thirds');
+  });
+
   it('热身 + 到期复习（优先覆盖更多到期主题）+ 时长限制', () => {
     const progress = new Map<string, TopicProgress>(
       ['keys', 'steps', 'thirds', 'major', 'minor', 'c-triads'].map((id) => [

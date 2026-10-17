@@ -23,7 +23,10 @@ import type { SessionResult, SessionSpec } from '../practice/controller';
 import { LoadingScreen, useEscapeToFinish } from '../practice/PracticeSessionPage';
 import { practice, usePractice } from '../practice/practice';
 import { CenteredMessage, SessionRunner } from '../practice/SessionRunner';
+import { RhythmRunner } from '../reading/RhythmRunner';
+import { rhythmSession, useRhythmSession } from '../reading/rhythm';
 import type { TopicOutcome } from './learning';
+import { RhythmDemo, StaffDemo } from './ReadingDemos';
 import { RhythmLesson } from './RhythmLesson';
 import { learning, refreshLearning } from './service';
 import { guidedSpec, independentSpec, masterySpec } from './specs';
@@ -57,11 +60,19 @@ function DrillLesson({ topicId, taskId }: { topicId: string; taskId?: string | u
   const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>({ kind: 'explain' });
   const xp = useRef(0);
-  const status = usePractice((v) => v.status);
+  // 节奏读谱主题（M10）用自己的控制器，其余用练习控制器；两者的 start / onFinish 一样
+  const rhythmTopic = topic?.practice.kind === 'rhythms';
+  const controller = rhythmTopic ? rhythmSession : practice;
+  const practiceStatus = usePractice((v) => v.status);
+  const rhythmStatus = useRhythmSession((v) => v.status);
+  const status = rhythmTopic ? rhythmStatus : practiceStatus;
 
   useEffect(() => {
     if (topic) void learning.recordLessonStart(topic.id);
-    return () => practice.dispose();
+    return () => {
+      practice.dispose();
+      rhythmSession.dispose();
+    };
   }, [topic]);
 
   const leave = useCallback(() => void navigate({ to: '/' }), [navigate]);
@@ -72,8 +83,8 @@ function DrillLesson({ topicId, taskId }: { topicId: string; taskId?: string | u
       if (!topic) return;
       setStage({ kind: 'running', spec });
       // start() 会先 dispose()（清掉旧的回调），所以先 start 再订阅
-      void practice.start(spec);
-      const off = practice.onFinish((result: SessionResult) => {
+      void controller.start(spec);
+      const off = controller.onFinish((result: SessionResult) => {
         off();
         xp.current += result.xp;
         if (!result.completed) {
@@ -93,7 +104,7 @@ function DrillLesson({ topicId, taskId }: { topicId: string; taskId?: string | u
         }
       });
     },
-    [topic, taskId],
+    [topic, taskId, controller],
   );
 
   const startStage = useCallback(
@@ -142,9 +153,8 @@ function DrillLesson({ topicId, taskId }: { topicId: string; taskId?: string | u
       );
     case 'running':
       if (status === 'running') {
-        return (
-          <SessionRunner title={`${t(`learn.stage.${stage.spec.kind}`)} · ${pick(topic.title)}`} />
-        );
+        const title = `${t(`learn.stage.${stage.spec.kind}`)} · ${pick(topic.title)}`;
+        return rhythmTopic ? <RhythmRunner title={title} /> : <SessionRunner title={title} />;
       }
       return <LoadingScreen />;
     case 'paused':
@@ -262,6 +272,8 @@ export function Explain({
           {pick(step.text)}
         </p>
         {step.demo && <Demo demo={step.demo} />}
+        {step.staff && <StaffDemo staff={step.staff} />}
+        {step.rhythm && <RhythmDemo rhythmId={step.rhythm} />}
       </motion.div>
       <div className="mt-10 flex flex-wrap items-center gap-3">
         <Button variant="outline" onClick={() => setI(i - 1)} disabled={i === 0}>

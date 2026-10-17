@@ -211,7 +211,8 @@ describe('LearningService', () => {
     expect(plan.dueTopics.length).toBeGreaterThan(0);
     // 大三、小三和弦公式同属一个干扰组：只排一个，另一个在备选里
     const lessons = plan.tasks.filter((t) => t.kind === 'lesson').map((t) => t.topicIds[0]);
-    expect(lessons).toEqual(['major-triad-formula']);
+    // 认识键盘之后，三和弦公式与认识五线谱（M10）都解锁了；每天最多两节
+    expect(lessons).toEqual(['major-triad-formula', 'staff-basics']);
     expect(plan.spareLessons).toContain('minor-triad-formula');
     const lessonTask = plan.tasks.find((t) => t.kind === 'lesson');
     const replaced = await s.replaceLesson(plan.date, lessonTask?.id as string);

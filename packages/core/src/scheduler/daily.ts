@@ -19,6 +19,11 @@ export interface TopicPlanInfo {
   cardIds: readonly string[];
   /** 一节课的预计时长（分钟） */
   lessonMinutes: number;
+  /**
+   * 这个主题的卡片要用单独的练习界面（M10 节奏读谱）：复习单独成为一个任务，
+   * 不和其他主题的卡片交错；热身、针对性补救、测验不包含这些卡片
+   */
+  separate?: boolean;
 }
 
 export interface PlanParams {
@@ -143,8 +148,8 @@ export function planDay(input: PlanInput): DailyPlanDraft {
   const taskId = (kind: TaskKind) =>
     `${date}:${kind}:${tasks.filter((t) => t.kind === kind).length + 1}`;
 
-  // 1. 热身
-  const known = new Set([...topics.values()].flatMap((t) => t.cardIds));
+  // 1. 热身（单独界面的主题不参与）
+  const known = new Set([...topics.values()].filter((t) => !t.separate).flatMap((t) => t.cardIds));
   const warm = [...new Set(input.recentCardIds)]
     .filter((id) => known.has(id))
     .slice(-p.warmupCards);
@@ -201,8 +206,17 @@ export function planDay(input: PlanInput): DailyPlanDraft {
     remaining.delete(chosen.id);
     for (const c of chosen.covers) remaining.delete(c);
   }
-  for (let i = 0; i < selected.length; i += p.topicsPerReviewTask) {
-    const group = selected.slice(i, i + p.topicsPerReviewTask);
+  const isSeparate = (id: string) => topics.get(id)?.separate === true;
+  const reviewGroups: (typeof selected)[] = [];
+  for (const list of [
+    selected.filter((x) => !isSeparate(x.id)),
+    selected.filter((x) => isSeparate(x.id)),
+  ]) {
+    for (let i = 0; i < list.length; i += p.topicsPerReviewTask) {
+      reviewGroups.push(list.slice(i, i + p.topicsPerReviewTask));
+    }
+  }
+  for (const group of reviewGroups) {
     const cardIds = interleave(
       group.map((g) =>
         selectReviewCards(
@@ -231,7 +245,7 @@ export function planDay(input: PlanInput): DailyPlanDraft {
   const recent = graph.order
     .filter((id) => {
       const at = topicProgress.get(id)?.masteredAt ?? null;
-      return at !== null && topics.has(id) && now - at <= p.quizWindowDays * DAY;
+      return at !== null && topics.has(id) && !isSeparate(id) && now - at <= p.quizWindowDays * DAY;
     })
     .sort(
       (a, b) =>

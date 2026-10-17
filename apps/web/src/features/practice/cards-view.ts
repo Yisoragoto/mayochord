@@ -6,6 +6,7 @@ import {
   intervalCardTarget,
   noteCardTarget,
   prettyAccidentals,
+  staffNoteCardTarget,
   type Trial,
   type Voicing,
   voicingMidi,
@@ -38,6 +39,10 @@ export function targetVoicing(card: AnyCard): Voicing | undefined {
       return pseudoVoicing(card.id, noteCardTarget(card));
     case 'interval':
       return pseudoVoicing(card.id, intervalCardTarget(card));
+    case 'staffNote':
+      return pseudoVoicing(card.id, staffNoteCardTarget(card));
+    case 'rhythm':
+      return undefined;
   }
 }
 
@@ -72,5 +77,11 @@ export function cardLabel(card: AnyCard, intervalLabel: (i: IntervalName) => str
       return prettyAccidentals(card.note);
     case 'interval':
       return `${prettyAccidentals(card.root)} ↑ ${intervalLabel(card.interval)}`;
+    case 'staffNote':
+      return `${card.clef === 'treble' ? '𝄞' : '𝄢'} ${prettyAccidentals(card.pitch)}`;
+    case 'rhythm': {
+      const r = BUILTIN_PACK.rhythmById.get(card.rhythmId);
+      return r ? r.notes : card.rhythmId;
+    }
   }
 }

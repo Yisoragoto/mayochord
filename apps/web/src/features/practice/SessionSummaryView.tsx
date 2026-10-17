@@ -1,5 +1,5 @@
 import { BUILTIN_PACK } from '@mayochord/content';
-import type { CardSpeed } from '@mayochord/core';
+import type { CardSpeed, SessionSummary } from '@mayochord/core';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
@@ -43,6 +43,7 @@ export function SessionSummaryView({
   backTo = '/practice',
   backLabel,
   children,
+  data,
 }: {
   onAgain: () => void;
   againLabel?: string | undefined;
@@ -50,12 +51,17 @@ export function SessionSummaryView({
   backLabel?: string;
   /** 额外内容（例如复习后各主题的结果） */
   children?: ReactNode;
+  /** 不是练习控制器的一轮（节奏读谱）：直接给出总结；省略时读练习控制器 */
+  data?: { summary: SessionSummary | null; saveError: boolean; xp: number };
 }) {
   const { t } = useTranslation();
   const reduce = useReducedMotion();
-  const summary = usePractice((v) => v.summary);
-  const saveError = usePractice((v) => v.saveError);
-  const xp = usePractice((v) => v.xp);
+  const practiceSummary = usePractice((v) => v.summary);
+  const practiceSaveError = usePractice((v) => v.saveError);
+  const practiceXp = usePractice((v) => v.xp);
+  const summary = data ? data.summary : practiceSummary;
+  const saveError = data ? data.saveError : practiceSaveError;
+  const xp = data ? data.xp : practiceXp;
   if (!summary) return null;
   const pct = Math.round(summary.accuracy * 100);
 

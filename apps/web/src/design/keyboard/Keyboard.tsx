@@ -190,8 +190,9 @@ export function Keyboard({
     <svg
       ref={svgRef}
       viewBox={`0 0 ${width} ${H + BED}`}
-      className={cn('mc-keyboard block h-auto w-full select-none', className)}
-      style={{ maxWidth: keyboardMaxWidth(low, high) }}
+      className={cn('mc-keyboard block h-auto select-none', className)}
+      // 用 width 而不是 max-width 限制高度：调用方的 max-w-* 类仍然有效
+      style={{ width: `min(100%, ${keyboardMaxWidth(low, high)})` }}
       role={interactive ? 'group' : 'img'}
       aria-label={label}
       data-interactive={interactive || undefined}

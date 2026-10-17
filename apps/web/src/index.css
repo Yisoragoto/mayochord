@@ -94,3 +94,17 @@
   font-variant-numeric: tabular-nums;
   line-height: 0.9;
 }
+
+/* 节奏读谱（M10）：每个要按的起点按结果着色 */
+.mc-rhythm [data-mark="current"] {
+  color: var(--primary);
+}
+.mc-rhythm [data-mark="ok"] {
+  color: var(--mark-correct);
+}
+.mc-rhythm [data-mark="off"] {
+  color: var(--warning);
+}
+.mc-rhythm [data-mark="missed"] {
+  color: var(--mark-extra);
+}

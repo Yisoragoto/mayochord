@@ -15,6 +15,8 @@ import { LoadingScreen, useEscapeToFinish } from '../practice/PracticeSessionPag
 import { practice, usePractice } from '../practice/practice';
 import { CenteredMessage, SessionRunner } from '../practice/SessionRunner';
 import { SessionSummaryView } from '../practice/SessionSummaryView';
+import { RhythmRunner } from '../reading/RhythmRunner';
+import { rhythmSession, useRhythmSession } from '../reading/rhythm';
 import type { TopicOutcome } from './learning';
 import { learning, refreshLearning, useLearning } from './service';
 import { taskSpec } from './specs';
@@ -87,7 +89,15 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
   const [task] = useState(initialTask);
   useDocumentTitle(t(`today.kind.${task.kind}`));
   const navigate = useNavigate();
-  const status = usePractice((v) => v.status);
+  // 节奏读谱的复习任务（M10）只有节奏卡，用节奏读谱的控制器
+  const rhythmTask = useMemo(() => {
+    const cards = learning.cardsByIds(task.cardIds);
+    return cards.length > 0 && cards.every((c) => c.kind === 'rhythm');
+  }, [task]);
+  const controller = rhythmTask ? rhythmSession : practice;
+  const practiceStatus = usePractice((v) => v.status);
+  const rhythm = useRhythmSession((v) => v);
+  const status = rhythmTask ? rhythm.status : practiceStatus;
   const [outcomes, setOutcomes] = useState<TopicOutcome[] | null>(null);
   const [wrong, setWrong] = useState<string[] | null>(null);
   const [follow, setFollow] = useState<RunnableTask | null>(null);
@@ -96,8 +106,8 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
   const start = useCallback(() => {
     setOutcomes(null);
     const cards = learning.cardsByIds(task.cardIds);
-    void practice.start(taskSpec(task.kind, cards, { taskId: task.id, topicIds: task.topicIds }));
-    const off = practice.onFinish((result: SessionResult) => {
+    void controller.start(taskSpec(task.kind, cards, { taskId: task.id, topicIds: task.topicIds }));
+    const off = controller.onFinish((result: SessionResult) => {
       off();
       setCompleted(result.completed);
       if (!result.completed) return;
@@ -121,12 +131,15 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
         setOutcomes(o);
       })();
     });
-  }, [task]);
+  }, [task, controller]);
 
   // start 只依赖固定的 task，所以只在挂载时执行一次
   useEffect(() => {
     start();
-    return () => practice.dispose();
+    return () => {
+      practice.dispose();
+      rhythmSession.dispose();
+    };
   }, [start]);
 
   useEscapeToFinish(useCallback(() => void navigate({ to: '/' }), [navigate]));
@@ -140,6 +153,9 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
         againLabel={completed ? undefined : t('today.continueTask')}
         backTo="/"
         backLabel={t('learn.backToToday')}
+        {...(rhythmTask
+          ? { data: { summary: rhythm.summary, saveError: rhythm.saveError, xp: rhythm.xp } }
+          : {})}
       >
         {outcomes && outcomes.length > 0 && <TopicOutcomes outcomes={outcomes} />}
         {wrong && (
@@ -164,11 +180,8 @@ function TaskRunner({ task: initialTask }: { task: RunnableTask }) {
     );
   }
   if (status !== 'running') return <LoadingScreen />;
-  return (
-    <SessionRunner
-      title={`${t(`today.kind.${task.kind}`)}${task.topicIds.length > 0 ? ` · ${task.topicIds.map(topicTitle).join(listSep())}` : ''}`}
-    />
-  );
+  const title = `${t(`today.kind.${task.kind}`)}${task.topicIds.length > 0 ? ` · ${task.topicIds.map(topicTitle).join(listSep())}` : ''}`;
+  return rhythmTask ? <RhythmRunner title={title} /> : <SessionRunner title={title} />;
 }
 
 /** 测验答错的卡片：马上补练，或者明天出现在"针对性补救"任务里 */

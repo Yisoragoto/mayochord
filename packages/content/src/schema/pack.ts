@@ -6,6 +6,7 @@ import {
   chordTones,
   nameToMidi,
   parseNoteName,
+  parseRhythm,
   validateTopicGraph,
 } from '@mayochord/core';
 import { z } from 'zod';
@@ -70,6 +71,18 @@ export const ProgressionSchema = z.object({
   description: I18nTextSchema.optional(),
 });
 
+/**
+ * 节奏型（M10 节奏读谱）：一小节。notes 的记号见 core 的 parseRhythm：
+ * w h q 8 16，`.` 附点，`r` 休止，`t` 三连音，`~` 连到下一个音。
+ */
+export const RhythmSchema = z.object({
+  id: ID,
+  time: z.tuple([z.number().int().min(1).max(12), z.union([z.literal(4), z.literal(8)])]),
+  /** 练习速度（四分音符每分钟；6/8 也按四分音符算） */
+  bpm: z.number().int().min(40).max(160),
+  notes: z.string().min(1),
+});
+
 /** 课程讲解里的一步：文字 + 可选的键盘示范 */
 export const ExplainStepSchema = z.object({
   text: I18nTextSchema,
@@ -89,6 +102,19 @@ export const ExplainStepSchema = z.object({
       show: z.enum(['keyboard', 'staff', 'both']).default('keyboard'),
     })
     .optional(),
+  /** 读谱课程的示范（M10）：一行谱表上的几个音，或一个节奏型（可以播放） */
+  staff: z
+    .object({
+      clef: z.enum(['treble', 'bass', 'grand']).default('treble'),
+      /** 调号（大调主音）；省略 = 没有调号 */
+      key: PitchName.optional(),
+      /** 依次画出的音（全音符），可以为空（只画谱表） */
+      notes: z.array(NoteName).default([]),
+      /** 每个音下面标音名 */
+      labels: z.boolean().default(true),
+    })
+    .optional(),
+  rhythm: ID.optional(),
 });
 
 const IntervalNameSchema = z.enum(['m2', 'M2', 'm3', 'M3', 'P4', 'P5']);
@@ -117,6 +143,21 @@ export const TopicPracticeSchema = z.discriminatedUnion('kind', [
     kind: z.literal('contrast'),
     pairs: z.array(z.tuple([ID, ID])).min(1),
   }),
+  /** 看谱认音（M10）：一行谱表上一个音，弹出这个八度的这个音 */
+  z.object({
+    kind: z.literal('staffNotes'),
+    items: z
+      .array(
+        z.object({
+          clef: z.enum(['treble', 'bass']),
+          pitch: NoteName,
+          key: PitchName.optional(),
+        }),
+      )
+      .min(1),
+  }),
+  /** 节奏读谱（M10）：看一小节节奏，跟着节拍器在任意键上按出 */
+  z.object({ kind: z.literal('rhythms'), rhythms: z.array(ID).min(1) }),
   z.object({
     kind: z.literal('transitions'),
     /** 用这些进行里相邻和弦的切换（循环） */
@@ -183,6 +224,8 @@ const ContentPackBase = z.object({
   progressions: z.array(ProgressionSchema),
   /** 知识图谱的主题节点（M3 起） */
   topics: z.array(TopicSchema).default([]),
+  /** 节奏型（M10，可省略） */
+  rhythms: z.array(RhythmSchema).default([]),
 });
 
 type PackInput = z.infer<typeof ContentPackBase>;
@@ -212,6 +255,7 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
     ['chords', pack.chords],
     ['voicings', pack.voicings],
     ['progressions', pack.progressions],
+    ['rhythms', pack.rhythms],
   ] as const) {
     for (const id of duplicates(list.map((x) => x.id))) issue([key], `重复的 ID：${id}`);
   }
@@ -263,6 +307,14 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
       issue(['voicings'], `和弦 ${c.id} 应恰好有一个参考键位，现有 ${refs.length} 个`);
   }
 
+  pack.rhythms.forEach((r, i) => {
+    try {
+      parseRhythm(r.notes, r.time);
+    } catch (e) {
+      issue(['rhythms', i, 'notes'], (e as Error).message);
+    }
+  });
+  const rhythmIds = new Set(pack.rhythms.map((r) => r.id));
   const progressionIds = new Set(pack.progressions.map((p) => p.id));
   for (const id of duplicates(pack.topics.map((t) => t.id))) issue(['topics'], `重复的 ID：${id}`);
   const nodes = pack.topics.map((t) => ({
@@ -291,6 +343,19 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
           issue(['topics', i, 'practice', 'pairs', j], `一对里的两个和弦相同：${pair[0]}`);
       });
     }
+    if (pr.kind === 'rhythms') {
+      pr.rhythms.forEach((id, j) => {
+        if (!rhythmIds.has(id))
+          issue(['topics', i, 'practice', 'rhythms', j], `不存在的节奏型：${id}`);
+      });
+    }
+    if (pr.kind === 'staffNotes') {
+      pr.items.forEach((it, j) => {
+        if (nameToMidi(it.pitch) === null) {
+          issue(['topics', i, 'practice', 'items', j, 'pitch'], `无效音名：${it.pitch}`);
+        }
+      });
+    }
     if (pr.kind === 'progression' && !progressionIds.has(pr.progression)) {
       issue(['topics', i, 'practice', 'progression'], `不存在的进行：${pr.progression}`);
     }
@@ -305,6 +370,9 @@ function crossCheck(pack: PackInput, ctx: z.RefinementCtx) {
       const chord = step.demo?.chord;
       if (chord !== undefined && !chords.has(chord)) {
         issue(['topics', i, 'lesson', 'explain', j, 'demo', 'chord'], `不存在的和弦：${chord}`);
+      }
+      if (step.rhythm !== undefined && !rhythmIds.has(step.rhythm)) {
+        issue(['topics', i, 'lesson', 'explain', j, 'rhythm'], `不存在的节奏型：${step.rhythm}`);
       }
     });
   });
@@ -334,3 +402,4 @@ export type TopicData = z.infer<typeof TopicSchema>;
 export type LessonData = z.infer<typeof LessonSchema>;
 export type ExplainStep = z.infer<typeof ExplainStepSchema>;
 export type TopicPractice = z.infer<typeof TopicPracticeSchema>;
+export type RhythmData = z.infer<typeof RhythmSchema>;

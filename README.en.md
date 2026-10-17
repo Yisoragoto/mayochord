@@ -10,7 +10,7 @@ Every answer is measured over MIDI — right or wrong, reaction time, whether th
 
 ![Today: daily tasks, XP and streak](docs/screenshots/today.png)
 
-> M0–M9 are done. See the roadmap below for what comes next.
+> M0–M9 are done; M10 (reading sheet music) is being tested. See the roadmap below.
 
 ## What you need
 
@@ -35,7 +35,7 @@ All data stays in your browser (IndexedDB) and is never uploaded. Export a backu
 **The system plans what to practise**
 
 - **Today**: warm-up, targeted fixes, due reviews, quizzes and new lessons, fitted to your daily time. Skip tasks or swap a new lesson.
-- **Knowledge map**: 48 topics from finding the keys to the Marunouchi Sadistic progression, sus/add9/ninth chords, II–V–I in all 12 keys, the Canon progression and secondary dominants, with prerequisites and each topic's status. Skip ahead when you already know a topic.
+- **Knowledge map**: 59 topics from finding the keys to the Marunouchi Sadistic progression, sus/add9/ninth chords, II–V–I in all 12 keys, the Canon progression and secondary dominants, with prerequisites and each topic's status. Skip ahead when you already know a topic.
 - **Lessons**: explanation and demo → guided practice → independent practice → mastery check.
 - **Placement test**: find your starting point in a few minutes.
 - **Quizzes and targeted fixes**: a regular quiz across recent topics; the chords and changes you miss are practised again the next day.
@@ -90,7 +90,7 @@ All data stays in your browser (IndexedDB) and is never uploaded. Export a backu
 | M7 | Import sheet music (MusicXML / MIDI) to play along, staff and falling-notes views | Done |
 | M8 | Repeat signs and automatic chord labels for imported scores | Done |
 | M9 | More chords (sus, add9, 6, dim/aug, dim7, ninths, seventh inversions), II–V–I in 12 keys and common progressions | Done |
-| M10 | Reading sheet music (notes, key signatures, rhythm, counting) | Planned |
+| M10 | Reading sheet music (notes on both staves, ledger lines, accidentals and key signatures, note values, counting, syncopation and triplets) | Testing |
 | M11 | Better score practice (note names, simplified parts, section plan, tempo ramp, rhythm only) | Planned |
 
 ## Development

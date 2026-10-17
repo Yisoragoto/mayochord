@@ -14,7 +14,11 @@ import {
   nearestBass,
   noteCard,
   parseNoteName,
+  parseRhythm,
+  type RhythmPattern,
   rankRightHandVoicings,
+  rhythmCard,
+  staffNoteCard,
   symbolFromNames,
   type TopicGraph,
   type TopicNode,
@@ -41,6 +45,15 @@ export interface ChordEntry {
   tones: string[];
   reference: Voicing;
   voicings: Voicing[];
+}
+
+/** 节奏型（已解析） */
+export interface RhythmEntry {
+  id: string;
+  time: [number, number];
+  bpm: number;
+  notes: string;
+  pattern: RhythmPattern;
 }
 
 export interface ProgressionEntry {
@@ -72,6 +85,8 @@ export interface LoadedPack {
   voicingById: ReadonlyMap<string, Voicing>;
   progressions: ProgressionEntry[];
   progressionById: ReadonlyMap<string, ProgressionEntry>;
+  rhythms: RhythmEntry[];
+  rhythmById: ReadonlyMap<string, RhythmEntry>;
   /** 每个键位的设计说明（例如"待确认"的原因） */
   voicingNotes: ReadonlyMap<string, I18nText>;
   topics: TopicEntry[];
@@ -222,6 +237,13 @@ export function loadContentPack(input: unknown): LoadResult {
   });
 
   const progressionById = new Map(progressions.map((p) => [p.id, p]));
+  const rhythms: RhythmEntry[] = data.rhythms.map((r) => ({
+    id: r.id,
+    time: [r.time[0], r.time[1]],
+    bpm: r.bpm,
+    notes: r.notes,
+    pattern: parseRhythm(r.notes, r.time),
+  }));
   // 听声音的卡片：作答时可以从这些和弦里选（多个主题用到同一张卡时合并）
   const choicesByCard = new Map<string, string[]>();
   const addChoices = (cardId: string, chordIds: readonly string[]) => {
@@ -235,6 +257,14 @@ export function loadContentPack(input: unknown): LoadResult {
     switch (pr.kind) {
       case 'notes':
         cards = pr.notes.map((n) => noteCard(n, t.id));
+        break;
+      case 'staffNotes':
+        cards = pr.items.map((it) =>
+          staffNoteCard(it.clef, it.pitch, { key: it.key ?? null, topicId: t.id }),
+        );
+        break;
+      case 'rhythms':
+        cards = pr.rhythms.map((id) => rhythmCard(id, t.id));
         break;
       case 'intervals':
         cards = pr.items.map((i) => intervalCard(i.root, i.interval, t.id));
@@ -316,6 +346,8 @@ export function loadContentPack(input: unknown): LoadResult {
       voicingById,
       progressions,
       progressionById,
+      rhythms,
+      rhythmById: new Map(rhythms.map((r) => [r.id, r])),
       voicingNotes,
       topics,
       topicById: new Map(topics.map((t) => [t.id, t])),

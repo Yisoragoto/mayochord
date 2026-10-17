@@ -17,7 +17,7 @@
 | M7 导入乐谱跟弹 | 完成（commit e125bbb，用户 2026-10-15 确认） |
 | M8 反复记号与自动标和弦 | 完成（commit 90053a8，用户 2026-10-15 确认） |
 | M9 课程扩展：和弦词汇、调性与进行 | 完成（用户 2026-10-17 确认） |
-| M10 五线谱教程 | 进行中 |
+| M10 五线谱教程 | 已推送，等待用户测试 |
 | M11 曲谱练习优化 | 计划中 |
 | M12 左手伴奏型与节奏、M13 听觉进阶、电吉他 | 之后 |
 
@@ -80,11 +80,12 @@ packages/core/src/
                 自动标和弦（chords.ts）、跟弹判定（等待/跟拍）与按小节统计
   timing/       音频时钟↔performance.now() 换算（clock.ts）、节拍网格与"在拍上"容差（beat-grid.ts）、
                 延迟校准（latency.ts）、统计（平均、标准差、直方图）
+  drill/rhythm-reading.ts   节奏读谱：节奏型记号解析（parseRhythm）、判定（judgeRhythm）、评分（M10）
   drill/progression-run.ts  跟拍弹进行的判定（纯函数状态机）、证据、评分、总结、BPM 的 85% 规则
 packages/content/src/
   schema/       Zod：内容包（含跨字段校验）、设备配置
   scores/       示例曲谱（欢乐颂，自编简易版）
-  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦（共 108 个）+ 23 条进行 + 48 个主题）
+  packs/        内置内容包 mayochord-core.json（第 11 节 + 课程用的和弦（共 108 个）+ 23 条进行 + 26 个节奏型 + 59 个主题）
   devices/      设备配置 JSON（JUNO-D7、通用 88 键）
   load.ts       校验 + 加载成 LoadedPack（ChordEntry、ProgressionEntry）
 apps/web/src/
@@ -96,7 +97,7 @@ apps/web/src/
   features/     shell、today（每日任务）、graph（知识图谱）、learn（LearningService、课程、每日任务运行）、
                 practice（PracticeController、SessionRunner、ChordCues 题面、自由练习、轮次总结）、stats（统计页）、
                 progression（进行练习器：ProgressionRunController、ProgressionRunner、总结、声部进行图 VoiceLeading）、
-                chords（和弦库、详情、试弹）、scores（乐谱库、跟弹页面、五线谱排版、瀑布流）、midi（设备面板）、monitor、settings、design-gallery
+                chords（和弦库、详情、试弹）、scores（乐谱库、跟弹页面、五线谱排版、瀑布流）、reading（节奏读谱的控制器与界面，M10）、midi（设备面板）、monitor、settings、design-gallery
   input/        webmidi.ts、hub.ts（输入汇流）、live.ts（实时按住音 + 和弦尝试）、calibration.ts、
                 computer-keyboard.ts、PlayableKeyboard.tsx（屏幕键盘）
   audio/        tone.ts（懒加载 Tone.js，钢琴与节拍器共用一个原生 AudioContext；outputStamp 时钟换算）、
@@ -502,6 +503,27 @@ M3 新增 version 2（dailyPlans 表），M7 新增 version 3（scores、scoreRu
 - 内容包 0.6.0：和弦 108 个（新增 sus4/sus2、add9、6/m6、dim/aug、dim7、九和弦，以及七和弦转位的斜杠和弦）、进行 23 条、主题 48 个（新增 18 个）。内容由 `scratchpad` 里的脚本生成后手工核对，不在仓库里。
 - 新主题：sus、add9、六和弦、九和弦（干扰组 color-tones）；减与增三和弦（triad-quality）；减七（seventh-quality）；七和弦转位；对比配对 sus4/大三、dim/aug、add9/M7(9)；降号调与升号调的 II–V–I、1625、小室进行、卡农进行、副属和弦、借用和弦、经过减七（切换练习，宽松判定）。
 - **进行的步可以不写键位**（`voicingId` 可选）：`voiceLeadProgression()` 在加载时推出——第一个和弦用参考键位（复制一份，ID `<进行>-<序号>`，status generated），之后右手取 `rankRightHandVoicings` 的第一名（三音组合找不到时用 4 个音），左手 `nearestBass`。生成的键位不进 `voicingById`。`content.test.ts` 检查：只用和弦音、最低音是低音/根音、右手最高音每步不超过 5 个半音。
+
+## 五线谱显示改进（2026-10-17，用户导入官方 .mxl 后反馈"少了很多信息、重叠了"）
+
+- MusicXML 现在还读：`<stem>`、第一层 `<beam>`、`<notations>` 里的奏法（accent、staccato、tenuto、strong-accent、staccatissimo）、`<fermata>`、`<arpeggiate>`、`<slur>`；`<direction>` 里的力度、文字、排练号、`<wedge>`、`<pedal>`、`<octave-shift>`（存在 `Score.directions`，tick 含 `<offset>`）。和弦里每个音的记号合并到这个音符上。
+- **8va/8vb**：MusicXML 的 pitch 是实际音高；`octave-shift type="down"`（8va）范围里的音显示低一个八度（`NotationElement.octaveShift = -1`），`up`（8vb）高一个八度；演奏用的音不变。
+- 排版（`features/scores/score-layout.ts`，纯函数有测试）：每行按实际最高、最低的音（加线、符干 35 px、奏法）和记号行算每个谱表上下的空间，谱表之间至少 40 px；和弦名在最上面一行（`MeasureBox.labelY`）；每行开头标小节号。
+- 画法（`render-score.ts`）：谱上有符杠连法时按它画（否则自动分组），有符干方向时照着画；连线用 `Curve`（跨行分两段）；力度、文字、Ped./* 用文字；渐强渐弱画发夹；8va 画虚线括号；排练号画方框。
+- 还不支持：装饰音、跨谱表的符杠、颤音等装饰记号、谱里自带的和弦标记。
+- 测试用的谱放在 `local-packs/`（不提交）。
+
+## 五线谱教程（M10）
+
+- **新卡片**：
+  - 看谱认音 `staffnote:<treble|bass>:<音>[@<调>]`（`StaffNoteCard`，cardKind `staff-note`，练习类型 `staff-to-note`）：严格判定，**八度也要对**；走普通的出题、评分、复习流程（85% 时限初始 6 秒）。同一个中央 C 在两种谱表里是两张卡。
+  - 节奏读谱 `rhythm:<节奏型>`（`RhythmCard`，cardKind `rhythm`，练习类型 `rhythm-reading`）：不走 PracticeController，有自己的控制器 `features/reading/rhythm-session.ts`（单例 `rhythm.ts`，界面 `RhythmRunner.tsx`）。结束时给出同样的 `SessionResult`，课程、每日复习照常记录。
+- **单音题不再检测"整体平移"**（`trial.ts`）：目标只有一个音时，弹错任何音都"像"平移，以前会显示"OCTAVE/TRANSPOSE 可能被改动"而不判错（认音名题也是）。现在只对两个音以上的目标检测。e2e 测试发现的。
+- **节奏读谱的流程**：每张卡先停 0.9 秒（引导练习、第一次见到的卡先放示范：节拍器 + 每个起点敲一下，记为看了提示）→ 预备一小节（节拍器按四分音符响，6/8 一小节 3 下）→ 自己按一小节 → 判定：每个起点与时间最近、距离在窗口内（相邻起点间隔的一半，60–250 ms）的按键配对，扣延迟校准；`|偏差| ≤ onBeatToleranceMs` 算在拍上；预备拍里、小节外 250 ms 以上的按键不算；多按、漏按算错。评分：错 Again，全部在拍上 Good，否则 Hard（看了示范最多 Hard）。日志记平均偏差 `beatOffsetMs`。答错的卡 2 张之后再来（retryWrong）。
+- **每日任务**：`TopicPlanInfo.separate`（节奏主题为 true）→ 复习单独成为任务（`TaskPage` 看到全是节奏卡就用节奏读谱的界面），热身、针对性补救、测验不包含节奏卡；诊断测试不测节奏主题（由先修推断）。
+- **谱表绘制**（`design/staff/render-staff.ts`，VexFlow 懒加载）：`renderStaffLine`（一行谱表或大谱表上几个全音符，调号里的音不画升降号、调号升降过的字母写成本位时画还原号，可以标音名）、`renderRhythm`（打击乐谱号，音符都在第三线、符干向上，符杠按拍号分组，三连音、连音线、附点、休止符）。排版前等 Bravura 字体（`staffFontsReady`）。VexFlow 给 SVG 写的固定 style 要去掉，否则不缩放。React 组件 `design/staff/StaffLine.tsx`（`StaffLine`、`RhythmStaff`，最多放大到自然大小的 2 倍）。
+- **内容**：11 个主题——认识五线谱 → 高音谱表 / 低音谱表认音 → 加线与中央 C；升降号与还原号 → 调号；音符时值与休止符 → 拍号与数拍 → 切分、十六分音符与三连音；谱上的其他记号与综合认音（反复、D.S.、踏板、力度、8va 只讲解，练习是两种谱表混合认音）；看五线谱弹和弦：F 调与 G 调。26 个节奏型（自编）。讲解文字都是自己写的。
+- 屏幕键盘的高度上限改用 `width: min(100%, …)`（不再用 inline `max-width`，否则会盖掉调用方的 `max-w-*` 类）。
 
 ## 设计系统
 

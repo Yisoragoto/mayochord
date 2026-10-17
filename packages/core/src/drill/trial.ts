@@ -33,7 +33,9 @@ export type DrillType =
   | 'roman-to-chord'
   | 'transition'
   | 'name-to-note'
-  | 'interval';
+  | 'interval'
+  | 'staff-to-note'
+  | 'rhythm-reading';
 
 export interface Trial {
   id: string;
@@ -225,7 +227,10 @@ function applyAttempt(state: TrialState, attempt: ChordAttempt): TrialState {
   }
 
   const judge = judgeNotes(attempt.notes, trial.target, trial.mode);
-  const shift = judge.correct ? null : findUniformShift(attempt.notes, trial.target);
+  // 整体平移只对两个音以上的目标有意义：单音题（认音名、看谱认音）弹错任何一个音都"像"平移，
+  // 那就是弹错了（例如看谱弹错八度）
+  const shift =
+    judge.correct || trial.target.length < 2 ? null : findUniformShift(attempt.notes, trial.target);
   const feedback: AttemptFeedback = { stage: 'target', attempt, judge, shift };
 
   if (state.status === 'retry') {

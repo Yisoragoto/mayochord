@@ -1,6 +1,6 @@
 import { nameToMidi, spellInterval } from '../theory/notes';
 import type { VoicedNote } from '../voicing/types';
-import type { IntervalCard, IntervalName, NoteCard } from './cards';
+import type { IntervalCard, IntervalName, NoteCard, StaffNoteCard } from './cards';
 
 /** 音程名 → 度数与半音数 */
 export const INTERVALS: Readonly<Record<IntervalName, { degree: number; semitones: number }>> = {
@@ -40,4 +40,11 @@ export function intervalCardTarget(card: IntervalCard): VoicedNote[] {
       finger: degree <= 2 ? 2 : 3,
     },
   ];
+}
+
+/** 看谱认音题的目标：谱上这个音本身（八度也要对）。右手谱表用右手，低音谱表用左手 */
+export function staffNoteCardTarget(card: StaffNoteCard): VoicedNote[] {
+  const midi = nameToMidi(card.pitch);
+  if (midi === null) throw new Error(`Invalid note ${card.pitch}`);
+  return [{ name: card.pitch, midi, hand: card.clef === 'treble' ? 'right' : 'left', finger: 2 }];
 }

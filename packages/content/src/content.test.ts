@@ -74,9 +74,9 @@ describe('内置内容包', () => {
     ]);
   });
 
-  it('知识图谱：48 个主题，先修关系无环，卡片由练习内容生成', () => {
+  it('知识图谱：59 个主题，先修关系无环，卡片由练习内容生成', () => {
     const { graph, topicById, cardById, topicsOfCard } = BUILTIN_PACK;
-    expect(BUILTIN_PACK.topics).toHaveLength(48);
+    expect(BUILTIN_PACK.topics).toHaveLength(59);
     expect(graph.order[0]).toBe('keyboard-names');
     expect(graph.order.indexOf('c-major-triads')).toBeGreaterThan(
       graph.order.indexOf('minor-triad-formula'),
@@ -250,6 +250,39 @@ describe('内置内容包', () => {
       4, 4, 4, 2, 2,
     ]);
     expect(BUILTIN_PACK.voicingById.size).toBe(108);
+  });
+
+  it('读谱主题（M10）：看谱认音卡带谱号与调号，节奏型都能解析', () => {
+    const key = BUILTIN_PACK.topicById.get('key-signatures');
+    expect(key?.cards[0]).toMatchObject({
+      kind: 'staffNote',
+      id: 'staffnote:treble:fs4@g',
+      clef: 'treble',
+      pitch: 'F#4',
+      key: 'G',
+    });
+    const ledger = BUILTIN_PACK.topicById.get('ledger-notes')?.cards.map((c) => c.id) ?? [];
+    // 同一个中央 C 在两种谱表里是不同的卡片
+    expect(ledger).toContain('staffnote:treble:c4');
+    expect(ledger).toContain('staffnote:bass:c4');
+    expect(BUILTIN_PACK.rhythms).toHaveLength(26);
+    expect(BUILTIN_PACK.rhythmById.get('r-syncope-tie')?.pattern.onsets.length).toBe(5);
+    const rhythmTopic = BUILTIN_PACK.topicById.get('syncopation-reading');
+    expect(rhythmTopic?.cards.every((c) => c.kind === 'rhythm')).toBe(true);
+  });
+
+  it('不存在的节奏型、写错的节奏型会被发现', () => {
+    expect(
+      variant((p) => {
+        (p.rhythms[0] as { notes: string }).notes = 'q q q';
+      }).join(),
+    ).toContain('不符');
+    expect(
+      variant((p) => {
+        const t = p.topics.find((x) => x.id === 'note-values');
+        if (t?.practice.kind === 'rhythms') t.practice.rhythms = ['zz'];
+      }).join(),
+    ).toContain('不存在的节奏型：zz');
   });
 
   it('没有给键位的进行：按就近转位推出，只用和弦音、低音正确、右手移动小', () => {

@@ -13,6 +13,7 @@ import {
   intervalCardId,
   noteCard,
   noteCardId,
+  staffNoteCard,
 } from './cards';
 import {
   type DrillContext,
@@ -20,8 +21,9 @@ import {
   intervalDrill,
   nameToChordDrill,
   nameToNoteDrill,
+  staffToNoteDrill,
 } from './drill';
-import { intervalCardTarget, noteCardTarget } from './targets';
+import { intervalCardTarget, noteCardTarget, staffNoteCardTarget } from './targets';
 
 const on = (note: number, t: number): InputEvent => ({
   kind: 'noteOn',
@@ -114,6 +116,37 @@ describe('认音名、音程', () => {
       cardKind: 'note',
       drillType: 'name-to-note',
     });
+  });
+
+  it('认音名：弹错的音不当作整体平移（单音题），直接判错', () => {
+    const trial = nameToNoteDrill.createTrial(noteCard('C'), ctx());
+    const s = nameToNoteDrill.evaluate(trial, 0, [on(62, 500)], {}, 1000);
+    expect(s.feedback?.shift).toBeNull();
+    expect(s.status).toBe('retry');
+    expect(s.outcome?.correct).toBe(false);
+  });
+
+  it('看谱认音：八度也要对；卡片 ID 带谱号与调号', () => {
+    const card = staffNoteCard('treble', 'F#4', { key: 'G' });
+    expect(card.id).toBe('staffnote:treble:fs4@g');
+    expect(staffNoteCard('bass', 'C4').id).toBe('staffnote:bass:c4');
+    expect(drillForCard(card)).toBe(staffToNoteDrill);
+    expect(staffNoteCardTarget(staffNoteCard('bass', 'Bb2'))).toEqual([
+      { name: 'Bb2', midi: 46, hand: 'left', finger: 2 },
+    ]);
+    const trial = staffToNoteDrill.createTrial(card, ctx());
+    expect(trial.mode).toBe('strict');
+    expect(trial.target).toEqual([66]);
+    const ok = staffToNoteDrill.evaluate(trial, 0, [on(66, 400)], {}, 1000);
+    expect(ok.outcome).toMatchObject({ correct: true, reactionMs: 400 });
+    expect(
+      staffToNoteDrill.toEvidence(trial, ok.outcome as NonNullable<typeof ok.outcome>)[0],
+    ).toMatchObject({ cardKind: 'staff-note', drillType: 'staff-to-note' });
+    // 高一个八度：判错（不是"OCTAVE 被改动"的提示）
+    const octave = staffToNoteDrill.evaluate(trial, 0, [on(78, 400)], {}, 1000);
+    expect(octave.feedback?.shift).toBeNull();
+    expect(octave.outcome?.correct).toBe(false);
+    expect(octave.outcome?.extraNotes).toEqual([78]);
   });
 
   it('音程：最低音必须是根音', () => {

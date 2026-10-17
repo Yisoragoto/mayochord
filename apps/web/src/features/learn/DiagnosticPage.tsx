@@ -38,8 +38,9 @@ export function diagnosticSpec(topic: TopicEntry): SessionSpec {
   };
 }
 
-/** 能用来诊断的主题：跟拍主题要节拍器、时间较长，不参与（由先修关系推断） */
-export const diagnosable = (t: TopicEntry) => t.practice.kind !== 'progression';
+/** 能用来诊断的主题：跟拍（M4）、节奏读谱（M10）主题要节拍器、时间较长，不参与（由先修关系推断） */
+export const diagnosable = (t: TopicEntry) =>
+  t.practice.kind !== 'progression' && t.practice.kind !== 'rhythms';
 
 type Stage =
   | { kind: 'intro' }

@@ -146,7 +146,12 @@ export class LearningService {
     const topics = new Map<string, TopicPlanInfo>(
       this.deps.pack.topics.map((t) => [
         t.id,
-        { id: t.id, cardIds: t.cards.map((c) => c.id), lessonMinutes: t.lesson.minutes },
+        {
+          id: t.id,
+          cardIds: t.cards.map((c) => c.id),
+          lessonMinutes: t.lesson.minutes,
+          separate: t.practice.kind === 'rhythms',
+        },
       ]),
     );
     const draft = planDay({

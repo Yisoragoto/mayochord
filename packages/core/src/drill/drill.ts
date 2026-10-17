@@ -8,10 +8,11 @@ import type {
   Cue,
   IntervalCard,
   NoteCard,
+  StaffNoteCard,
   TransitionCard,
   VoicingMode,
 } from './cards';
-import { intervalCardTarget, noteCardTarget } from './targets';
+import { intervalCardTarget, noteCardTarget, staffNoteCardTarget } from './targets';
 import {
   type DrillType,
   evaluateTrial,
@@ -191,6 +192,33 @@ export const intervalDrill: Drill<IntervalCard> = {
   },
 };
 
+/** 看谱认音：谱表上一个音，弹出这个八度的这个音（严格判定，M10） */
+export const staffToNoteDrill: Drill<StaffNoteCard> = {
+  type: 'staff-to-note',
+  accepts: (card): card is StaffNoteCard => card.kind === 'staffNote',
+  createTrial(card, ctx) {
+    return {
+      id: ctx.trialId,
+      drillType: 'staff-to-note',
+      card,
+      targetChordId: card.id,
+      target: staffNoteCardTarget(card).map((n) => n.midi),
+      fromChordId: null,
+      from: null,
+      mode: 'strict',
+      timeLimitMs: ctx.timeLimitMs,
+      onsetWindowMs: ctx.onsetWindowMs,
+      hintAtStart: ctx.hintAtStart,
+    };
+  },
+  evaluate: evaluateTrial,
+  toEvidence(trial, outcome) {
+    return [
+      { ...outcome, cardId: trial.card.id, cardKind: 'staff-note', drillType: 'staff-to-note' },
+    ];
+  },
+};
+
 const registry = new Map<DrillType, Drill>();
 
 /** 注册练习类型。 */
@@ -200,7 +228,8 @@ export function registerDrill(
     | Drill<ChordCard>
     | Drill<TransitionCard>
     | Drill<NoteCard>
-    | Drill<IntervalCard>,
+    | Drill<IntervalCard>
+    | Drill<StaffNoteCard>,
 ) {
   registry.set(drill.type, drill as Drill);
 }
@@ -225,3 +254,4 @@ registerDrill(romanToChordDrill);
 registerDrill(transitionDrill);
 registerDrill(nameToNoteDrill);
 registerDrill(intervalDrill);
+registerDrill(staffToNoteDrill);
