@@ -27,3 +27,7 @@
   fill: var(--mark-extra);
   stroke: var(--mark-extra);
 }
+/* 谱面标题：与谱上文字同一种衬线字体 */
+.mc-paper-title {
+  font-family: Academico, Georgia, "Noto Serif SC", serif;
+}

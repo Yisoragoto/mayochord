@@ -4,9 +4,12 @@ export * from './follow';
 export * from './import';
 export * from './midi-file';
 export {
+  type BarStyle,
   type Clef,
+  type ClefChange,
   DURATION_TYPES,
   type DurationType,
+  type GraceGroup,
   hasRepeats,
   measureAt,
   type NotationElement,

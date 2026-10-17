@@ -1046,3 +1046,66 @@ describe('parseMusicXml：记谱细节（表情记号、连线、奏法、8va）
     ]);
   });
 });
+
+describe('parseMusicXml：换行、换谱号、装饰音、小节线', () => {
+  const n = (step: string, octave: number, extra = '', staff = 1, pre = '') =>
+    `<note>${pre}<pitch><step>${step}</step><octave>${octave}</octave></pitch><duration>1</duration><voice>${staff}</voice><type>quarter</type>${extra}<staff>${staff}</staff></note>`;
+  const grace = (step: string, octave: number, chord = false, acc = '') =>
+    `<note><grace slash="yes"/>${chord ? '<chord/>' : ''}<pitch><step>${step}</step>${acc ? '<alter>1</alter>' : ''}<octave>${octave}</octave></pitch><voice>1</voice><type>16th</type>${acc}<staff>1</staff></note>`;
+  const rest = (staff: number, at = '') =>
+    `<note><rest>${at}</rest><duration>1</duration><voice>${staff}</voice><type>quarter</type><staff>${staff}</staff></note>`;
+  const time = '<time symbol="common"><beats>4</beats><beat-type>4</beat-type></time>';
+  const xml = xmlScore(
+    `<part id="P1"><measure number="1"><attributes><divisions>1</divisions><key><fifths>0</fifths></key>${time}<staves>2</staves><clef number="1"><sign>G</sign></clef><clef number="2"><sign>F</sign></clef></attributes>` +
+      grace('D', 5) +
+      grace('F', 5, true, '<accidental>sharp</accidental>') +
+      n('C', 5) +
+      n('D', 5) +
+      rest(1, '<display-step>E</display-step><display-octave>5</display-octave>') +
+      n('E', 5) +
+      `<backup><duration>4</duration></backup>` +
+      n('C', 3, '', 2) +
+      n('C', 3, '', 2) +
+      `<attributes><clef number="2"><sign>G</sign></clef></attributes>` +
+      n('B', 4, '', 2) +
+      n('A', 4, '', 2) +
+      `<attributes><clef number="2"><sign>F</sign></clef></attributes>` +
+      `<barline location="right"><bar-style>light-light</bar-style></barline></measure>` +
+      `<measure number="2"><print new-system="yes"/>${n('C', 5)}${rest(1)}${rest(1)}${rest(1)}` +
+      `<backup><duration>4</duration></backup>${n('C', 3, '', 2)}${rest(2)}${rest(2)}${rest(2)}</measure></part>`,
+    '<score-part id="P1"><part-name>Piano</part-name></score-part>',
+  );
+  const s = parseMusicXml(xml);
+
+  it('装饰音挂在后面的音上（和弦、斜线、写出的临时记号），不进演奏的音', () => {
+    const first = s.elements.find((e) => e.staff === 1 && e.start === 0);
+    expect(first?.graces).toEqual([
+      { spelled: ['D5', 'F#5'], accidentals: [null, '#'], type: '16th', slash: true },
+    ]);
+    expect(s.notes.filter((x) => x.hand === 'right' && x.measure === 0)).toHaveLength(3);
+  });
+
+  it('小节中间换谱号：之后的音按新谱号；小节末尾换回来，下一小节开头是低音谱号', () => {
+    const left = s.elements.filter((e) => e.staff === 2 && e.measure === 0);
+    expect(left.map((e) => e.clef)).toEqual(['bass', 'bass', 'treble', 'treble']);
+    const [m1, m2] = s.measures;
+    expect(m1?.clefs).toEqual(['treble', 'bass']);
+    expect(m1?.clefChanges?.map((c) => [c.staff, c.tick / TPQ, c.clef])).toEqual([
+      [2, 2, 'treble'],
+      [2, 4, 'bass'],
+    ]);
+    expect(m2?.clefs).toEqual(['treble', 'bass']);
+    expect(m2?.clefChanges).toBeUndefined();
+  });
+
+  it('原谱的换行、C 拍号、双小节线、休止符位置', () => {
+    const [m1, m2] = s.measures;
+    expect(m1?.systemBreak).toBeUndefined();
+    expect(m2?.systemBreak).toBe(true);
+    expect(m1?.timeSymbol).toBe('common');
+    expect(m1?.barRight).toBe('double');
+    expect(m2?.barRight).toBeUndefined();
+    const rests = s.elements.filter((e) => e.rest && e.measure === 0);
+    expect(rests.map((e) => e.restAt)).toEqual(['E5']);
+  });
+});

@@ -1,4 +1,5 @@
 import {
+  type Clef,
   type DurationType,
   type NotationElement,
   type Score,
@@ -11,10 +12,13 @@ import {
   Articulation,
   BarlineType,
   Beam,
+  ClefNote,
   Curve,
   Dot,
   Formatter,
   GhostNote,
+  GraceNote,
+  GraceNoteGroup,
   Modifier,
   Renderer,
   Stave,
@@ -22,10 +26,10 @@ import {
   StaveNote,
   StaveTie,
   Stem,
-  Stroke,
   type Tickable,
   Tuplet,
   Voice,
+  VoltaType,
 } from 'vexflow/bravura';
 import { rowY, type StaffSpace, staffSpaces, systemLayout } from './score-layout';
 
@@ -34,7 +38,8 @@ import { rowY, type StaffSpace, staffSpaces, systemLayout } from './score-layout
  * - 横向：小节宽度按音符数估计，再拉伸填满一行（最后一行太空时不拉伸）。
  * - 竖向：每一行按实际最高、最低的音和表情记号算高度（score-layout.ts），不会互相重叠。
  * - MusicXML 的记谱细节：符干方向、符杠连法、奏法、琶音、连线、力度、渐强渐弱、文字、
- *   排练号、踏板、8va/8vb（范围里的音按谱上的八度显示）。MIDI 没有这些信息。
+ *   排练号、踏板、8va/8vb（范围里的音按谱上的八度显示）、原谱的换行、小节中间换谱号、装饰音、
+ *   休止符位置、C 拍号、双小节线与反复记号、跳房子。MIDI 没有这些信息。
  * 只在曲谱页面懒加载。
  */
 
@@ -77,6 +82,19 @@ const ARTICULATION_CODE: Record<string, string> = {
   staccatissimo: 'av',
   'detached-legato': 'a-',
 };
+
+/** 这个小节结束时每个谱表的谱号（小节中间换过谱号时是最后一个） */
+function endClef(m: ScoreMeasure, s: number): Clef {
+  let clef = m.clefs[s] ?? (s === 0 ? 'treble' : 'bass');
+  for (const c of m.clefChanges ?? []) if (c.staff === s + 1) clef = c.clef;
+  return clef;
+}
+
+function timeSig(m: ScoreMeasure): string {
+  if (m.timeSymbol === 'common' && m.beats === 4 && m.beatType === 4) return 'C';
+  if (m.timeSymbol === 'cut' && m.beats === 2 && m.beatType === 2) return 'C|';
+  return `${m.beats}/${m.beatType}`;
+}
 
 /** 'Bb4' → 'bb/4'（VexFlow 只用字母和八度定位，临时记号另外加）；shift = 显示时移动的八度 */
 function vexKey(spelled: string, shift = 0): string {
@@ -174,7 +192,8 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
     return !prev || prev.beats !== m.beats || prev.beatType !== m.beatType;
   };
 
-  // 分行
+  // 分行：原谱写了换行就照着换（放不下时再自动换行）；否则按宽度自动换行
+  const followBreaks = score.measures.some((m) => m.systemBreak);
   type Line = { measures: number[]; widths: number[] };
   const lines: Line[] = [];
   let line: Line = { measures: [], widths: [] };
@@ -183,7 +202,10 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
     const body = measureMinWidth(score, byMeasure.get(i) ?? []);
     const first = line.measures.length === 0;
     const w = body + (first ? headerWidth(m, timeChanged(i)) : timeChanged(i) ? 30 : 0);
-    if (!first && used + w > available) {
+    const forced = followBreaks && m.systemBreak === true;
+    // 照着原谱换行时允许稍微挤一点
+    const limit = followBreaks ? available * 1.15 : available;
+    if (!first && (forced || used + w > limit)) {
       lines.push(line);
       line = { measures: [], widths: [] };
       const head = body + headerWidth(m, timeChanged(i));
@@ -225,7 +247,7 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
     const sysTop = tops[li] as number;
     const total = ln.widths.reduce((a, b) => a + b, 0);
     const isLast = li === lines.length - 1;
-    const stretch = isLast && total < available * 0.6 ? 1 : available / total;
+    const stretch = isLast && total < available * 0.6 && !followBreaks ? 1 : available / total;
     let x = x0;
     ln.measures.forEach((mi, pos) => {
       const m = score.measures[mi] as ScoreMeasure;
@@ -234,14 +256,24 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
       const staveList: Stave[] = [];
       for (let s = 0; s < staves; s++) {
         const stave = new Stave(x, sysTop + (lay.lineY[s] as number) - STAVE_PAD, w);
+        const clef = m.clefs[s] ?? (s === 0 ? 'treble' : 'bass');
         if (pos === 0) {
-          stave.addClef(m.clefs[s] ?? (s === 0 ? 'treble' : 'bass'));
+          stave.addClef(clef);
           stave.addKeySignature(keyName(m.fifths));
-        } else if (prev && prev.fifths !== m.fifths) {
-          stave.addKeySignature(keyName(m.fifths), keyName(prev.fifths));
+        } else {
+          // 上一个小节结尾换了谱号（或这个小节开头换）：小号谱号
+          if (prev && endClef(prev, s) !== clef) stave.addClef(clef, 'small');
+          if (prev && prev.fifths !== m.fifths) {
+            stave.addKeySignature(keyName(m.fifths), keyName(prev.fifths));
+          }
         }
-        if (timeChanged(mi)) stave.addTimeSignature(`${m.beats}/${m.beatType}`);
-        if (mi === lastIndex) stave.setEndBarType(BarlineType.END);
+        if (timeChanged(mi)) stave.addTimeSignature(timeSig(m));
+        stave.setBegBarType(m.flow?.repeatStart ? BarlineType.REPEAT_BEGIN : BarlineType.SINGLE);
+        stave.setEndBarType(endBar(m, mi === lastIndex));
+        if (s === 0) {
+          const volta = voltaOf(score.measures, mi);
+          if (volta) stave.setVoltaType(volta.type, volta.label, -4);
+        }
         stave.setContext(ctx).draw();
         staveList.push(stave);
       }
@@ -253,10 +285,20 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
             new StaveConnector(top, bottom).setType(type).setContext(ctx).draw();
           }
         }
+        const bar = endBar(m, mi === lastIndex);
         new StaveConnector(top, bottom)
-          .setType(mi === lastIndex ? 'boldDoubleRight' : 'singleRight')
+          .setType(
+            bar === BarlineType.END || bar === BarlineType.REPEAT_END
+              ? 'boldDoubleRight'
+              : bar === BarlineType.DOUBLE
+                ? 'thinDouble'
+                : 'singleRight',
+          )
           .setContext(ctx)
           .draw();
+        if (m.flow?.repeatStart && pos > 0) {
+          new StaveConnector(top, bottom).setType('boldDoubleLeft').setContext(ctx).draw();
+        }
       }
       // 每行开头标小节号
       if (pos === 0) {
@@ -272,9 +314,16 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
         labelY: sysTop + lay.labelY,
       };
       boxes.push(box);
-      box.noteX = drawMeasure(m, byMeasure.get(mi) ?? [], staveList, ctx, (e, note) =>
-        noteOf.set(e, { note, line: li }),
-      );
+      const placed: [NotationElement, StaveNote][] = [];
+      try {
+        box.noteX = drawMeasure(m, byMeasure.get(mi) ?? [], staveList, ctx, (e, note) =>
+          placed.push([e, note]),
+        );
+        for (const [e, note] of placed) noteOf.set(e, { note, line: li });
+      } catch (err) {
+        // 一个小节画不出来时只空着这个小节，不影响后面的
+        console.warn(`measure ${m.number} failed to render`, err);
+      }
       x += w;
     });
   });
@@ -323,6 +372,37 @@ export function renderScore(el: HTMLElement, score: Score, width: number): Score
     svg.setAttribute('aria-hidden', 'true');
   }
   return { width, height, measures: boxes, noteEls, tickX };
+}
+
+/** 小节结尾的小节线：反复记号优先，其次谱上的样式 */
+function endBar(m: ScoreMeasure, last: boolean): number {
+  if (m.flow?.repeatEnd) return BarlineType.REPEAT_END;
+  switch (m.barRight) {
+    case 'double':
+      return BarlineType.DOUBLE;
+    case 'final':
+      return BarlineType.END;
+    case 'none':
+      return BarlineType.NONE;
+  }
+  return last ? BarlineType.END : BarlineType.SINGLE;
+}
+
+/** 跳房子的括号：同一组结尾编号连续的小节画成一个 */
+function voltaOf(
+  measures: readonly ScoreMeasure[],
+  i: number,
+): { type: number; label: string } | null {
+  const key = (k: number) => measures[k]?.flow?.endings?.join(',') ?? null;
+  const own = key(i);
+  if (!own) return null;
+  const begins = key(i - 1) !== own;
+  const ends = key(i + 1) !== own;
+  const label = `${own}.`;
+  if (begins && ends) return { type: VoltaType.BEGIN_END, label };
+  if (begins) return { type: VoltaType.BEGIN, label };
+  if (ends) return { type: VoltaType.END, label: '' };
+  return { type: VoltaType.MID, label: '' };
 }
 
 function text(
@@ -468,13 +548,21 @@ function drawMeasure(
   const voices: { voice: Voice; stave: Stave }[] = [];
   const beams: Beam[] = [];
   const tuplets: Tuplet[] = [];
+  /** 琶音自己画（VexFlow 的 Stroke 会读取同一时刻其他谱表上还没排好的音，报错） */
+  const arpeggios: { note: StaveNote; acc: boolean }[] = [];
   const groups = Beam.getDefaultBeamGroups(`${m.beats}/${m.beatType}`);
 
+  const end = m.start + m.length;
   staveList.forEach((stave, s) => {
-    const clef = m.clefs[s] ?? (s === 0 ? 'treble' : 'bass');
+    const startClef = m.clefs[s] ?? (s === 0 ? 'treble' : 'bass');
     const mine = els.filter((e) => e.staff === s + 1);
     const voiceIds = [...new Set(mine.map((e) => e.voice))].sort();
+    /** 小节中间换谱号：画在第一个声部里 */
+    const changes = (m.clefChanges ?? []).filter(
+      (c) => c.staff === s + 1 && c.tick > m.start && c.tick < end,
+    );
     voiceIds.forEach((vid, vi) => {
+      const pendingClefs = vi === 0 ? [...changes] : [];
       const list = mine.filter((e) => e.voice === vid).sort((a, b) => a.start - b.start);
       const multi = voiceIds.length > 1;
       const tickables: Tickable[] = [];
@@ -497,6 +585,11 @@ function drawMeasure(
         tupletRun = null;
       };
       for (const e of list) {
+        const clef = e.clef ?? startClef;
+        while (pendingClefs[0] && pendingClefs[0].tick <= e.start) {
+          const c = pendingClefs.shift() as (typeof pendingClefs)[number];
+          tickables.push(new ClefNote(c.clef, 'small'));
+        }
         if (e.start > cursor) {
           flushTuplet();
           for (const p of splitTicks(e.start - cursor)) {
@@ -516,7 +609,7 @@ function drawMeasure(
             : null;
         const note = new StaveNote({
           keys: e.rest
-            ? [REST_KEY[clef] ?? 'b/4']
+            ? [e.restAt ? vexKey(e.restAt) : (REST_KEY[clef] ?? 'b/4')]
             : e.pitches.map((p) => vexKey(p.spelled, e.octaveShift ?? 0)),
           duration,
           clef,
@@ -527,9 +620,25 @@ function drawMeasure(
           if (p.accidental) note.addModifier(new Accidental(p.accidental), i);
         });
         if (e.dots) Dot.buildAndAttach([note], { all: true });
-        if (e.arpeggio && !e.rest) {
-          note.addModifier(new Stroke(Stroke.Type.ARPEGGIO_DIRECTIONLESS), 0);
+        if (e.graces?.length) {
+          const graceNotes = e.graces.map((g) => {
+            const gn = new GraceNote({
+              keys: g.spelled.map((k) => vexKey(k, e.octaveShift ?? 0)),
+              duration: CODE[g.type === 'whole' || g.type === 'half' ? 'eighth' : g.type],
+              clef,
+              slash: g.slash,
+            });
+            g.accidentals.forEach((a, i) => {
+              if (a) gn.addModifier(new Accidental(a), i);
+            });
+            return gn;
+          });
+          const group = new GraceNoteGroup(graceNotes, graceNotes.length > 1);
+          if (graceNotes.length > 1) group.beamNotes();
+          note.addModifier(group, 0);
         }
+        if (e.arpeggio && !e.rest)
+          arpeggios.push({ note, acc: e.pitches.some((p) => p.accidental) });
         const up = note.getStemDirection() === Stem.UP;
         for (const a of e.articulations ?? []) {
           if (a === 'fermata') {
@@ -577,6 +686,7 @@ function drawMeasure(
         }
       }
       flushTuplet();
+      for (const c of pendingClefs) tickables.push(new ClefNote(c.clef, 'small'));
       if (tickables.length === 0) return;
       const voice = new Voice({ numBeats: m.beats, beatValue: m.beatType }).setMode(
         Voice.Mode.SOFT,
@@ -610,7 +720,23 @@ function drawMeasure(
   for (const v of voices) v.voice.draw(ctx, v.stave);
   for (const b of beams) b.setContext(ctx).draw();
   for (const t of tuplets) t.setContext(ctx).draw();
+  for (const a of arpeggios) drawArpeggio(ctx, a.note, a.acc);
   return startX;
+}
+
+/** 琶音：和弦左边一条竖的波浪线 */
+function drawArpeggio(ctx: Ctx, note: StaveNote, acc: boolean) {
+  const ys = note.getYs();
+  const top = Math.min(...ys) - 6;
+  const bottom = Math.max(...ys) + 6;
+  const x = note.getNoteHeadBeginX() - (acc ? 18 : 8);
+  ctx.save();
+  ctx.setLineWidth(1.2);
+  ctx.beginPath();
+  ctx.moveTo(x, top);
+  for (let y = top, i = 0; y < bottom; y += 4, i++) ctx.lineTo(x + (i % 2 ? -2 : 2), y + 4);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawTies(score: Score, noteOf: Map<NotationElement, Placed>, ctx: Ctx) {

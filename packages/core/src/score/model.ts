@@ -71,7 +71,35 @@ export interface NotationElement {
   slurs?: { type: 'start' | 'stop'; number: number; placement?: 'above' | 'below' }[];
   /** 显示时移动几个八度（8va 记号下的音写低一个八度 = -1；8vb = +1） */
   octaveShift?: number;
+  /** 这个音符所在位置的谱号（小节中间换了谱号时与小节开头不同） */
+  clef?: Clef;
+  /** 前面的装饰音（倚音），只显示，不弹 */
+  graces?: GraceGroup[];
+  /** 休止符画在哪个音的位置（谱上指定了时），例如 'E5' */
+  restAt?: string;
 }
+
+/** 一个装饰音（可以是几个音的和弦） */
+export interface GraceGroup {
+  /** 拼写过的音名，低到高 */
+  spelled: string[];
+  /** 谱上写出的临时记号（与 spelled 对应）：'#'、'b'、'n'…；没写为 null */
+  accidentals: (string | null)[];
+  type: DurationType;
+  /** 带斜线的短倚音 */
+  slash: boolean;
+}
+
+/** 小节中间换谱号 */
+export interface ClefChange {
+  staff: number;
+  /** 绝对 tick */
+  tick: number;
+  clef: Clef;
+}
+
+/** 小节线样式 */
+export type BarStyle = 'regular' | 'double' | 'final' | 'heavy-light' | 'dashed' | 'none';
 
 /** 谱上的表情记号、文字等（只有 MusicXML 有），画在某个谱表某个时刻的上方或下方 */
 export type ScoreDirection = {
@@ -103,6 +131,15 @@ export interface ScoreMeasure {
   clefs: Clef[];
   /** 反复记号、跳房子、D.C./D.S. 等（只有 MusicXML 有） */
   flow?: MeasureFlow;
+  /** 以下只有 MusicXML 有 */
+  /** 原谱在这个小节换行（<print new-system/new-page>） */
+  systemBreak?: boolean;
+  /** 拍号写成 C（4/4）或 ¢（2/2） */
+  timeSymbol?: 'common' | 'cut';
+  /** 小节结尾的小节线（反复记号另外画） */
+  barRight?: BarStyle;
+  /** 小节中间（不在开头）换谱号 */
+  clefChanges?: ClefChange[];
 }
 
 export interface Score {

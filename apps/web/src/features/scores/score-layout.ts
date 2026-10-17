@@ -63,7 +63,7 @@ export function staffSpaces(
   for (const e of elements) {
     const s = out[e.staff - 1];
     if (!s || e.rest || e.pitches.length === 0) continue;
-    const clef = clefs[e.staff - 1] ?? (e.staff === 1 ? 'treble' : 'bass');
+    const clef = e.clef ?? clefs[e.staff - 1] ?? (e.staff === 1 ? 'treble' : 'bass');
     const top = TOP_LINE[clef];
     const bottom = top - 8;
     const ds = e.pitches.map((p) => diatonic(p.spelled, e.octaveShift ?? 0));

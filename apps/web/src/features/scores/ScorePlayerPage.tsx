@@ -15,11 +15,13 @@ import {
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
   ArrowLeft,
+  ChevronDown,
   Gauge,
   Info,
   Music,
   Play,
   RotateCcw,
+  SlidersHorizontal,
   Square,
   TriangleAlert,
 } from 'lucide-react';
@@ -32,7 +34,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
 import { keyboardRange } from '@/features/chords/voicing-view';
 import { MidiConnectButton } from '@/features/midi/MidiDevicePanel';
 import { CenteredMessage } from '@/features/practice/SessionRunner';
-import { Option, SwitchRow } from '@/features/progression/ProgressionSetupPage';
+import { SwitchRow } from '@/features/progression/ProgressionSetupPage';
 import { PlayableKeyboard, releaseOnscreenNotes } from '@/input/PlayableKeyboard';
 import { useDocumentTitle } from '@/lib/use-document-title';
 import { cn } from '@/lib/utils';
@@ -183,10 +185,16 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
   }, [record.id]);
   useEffect(loadHistory, [loadHistory]);
 
+  // 谱上没写速度（例如识谱软件转出来的）时可以自己定原速
+  const playScore = useMemo(
+    () => (prefs.baseBpm ? { ...score, tempo: prefs.baseBpm, tempoMarked: true } : score),
+    [score, prefs.baseBpm],
+  );
+
   const start = useCallback(() => {
     void scorePlayer.start({
       scoreId: record.id,
-      score,
+      score: playScore,
       mode: prefs.mode,
       hands: prefs.hands,
       otherHand: prefs.otherHand,
@@ -198,7 +206,7 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
       expandRepeats: prefs.repeats,
       latencyMs: useSettings.getState().settings.latencyOffsetMs,
     });
-  }, [record.id, score, prefs, from, to]);
+  }, [record.id, playScore, prefs, from, to]);
 
   // 结束后刷新历史
   useEffect(() => {
@@ -308,7 +316,8 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
   );
 
   const measureLabel = (i: number) => score.measures[i]?.number ?? String(i + 1);
-  const bpm = effectiveBpm(score, prefs.speed);
+  const bpm = effectiveBpm(playScore, prefs.speed);
+  const firstMeasure = score.measures[0];
 
   // 弹奏时视图填满屏幕；选项、结果显示时页面可以滚动，视图用固定高度
   const fill = running;
@@ -327,7 +336,10 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
           chords={chords}
           focusMeasure={focusMeasure}
           onMeasureClick={onMeasureClick}
-          className={fill ? 'min-h-0 flex-1' : 'h-[55vh] min-h-[16rem] shrink-0'}
+          active={running}
+          title={record.title}
+          composer={score.composer}
+          className={fill ? 'min-h-0 flex-1' : 'h-[68vh] min-h-[18rem] shrink-0'}
         />
       )}
       <div
@@ -367,10 +379,10 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
         fill ? 'h-dvh' : 'min-h-dvh',
       )}
     >
-      <div className="flex items-center gap-3">
+      <header className="flex items-center gap-3">
         {running ? (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => scorePlayer.stop()}
             title={t('scores.stopLabel')}
@@ -379,17 +391,28 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
             {t('scores.stop')}
           </Button>
         ) : (
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost" size="sm" className="-ml-2">
             <Link to="/scores">
               <ArrowLeft />
               {t('scores.back')}
             </Link>
           </Button>
         )}
-        <h1 className="min-w-0 flex-1 truncate font-medium">{record.title}</h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-semibold tracking-tight">{record.title}</h1>
+          <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+            <span className="font-mono tabular-nums">♩ = {playScore.tempo}</span>
+            {firstMeasure && (
+              <span className="font-mono tabular-nums">
+                {firstMeasure.beats}/{firstMeasure.beatType}
+              </span>
+            )}
+            <span>{t('scores.measureCount', { n: score.measures.length })}</span>
+          </p>
+        </div>
         {running && (
           <span
-            className="font-mono text-sm text-muted-foreground tabular-nums"
+            className="rounded-full bg-surface-2 px-3 py-1 font-mono text-sm tabular-nums"
             data-testid="play-status"
             data-start-t={clock?.startT}
             data-ms-per-tick={clock?.msPerTick}
@@ -402,7 +425,7 @@ function Player({ record, score }: { record: ScoreRecord; score: Score }) {
           </span>
         )}
         <MidiConnectButton />
-      </div>
+      </header>
 
       {status === 'summary' && summary ? (
         <SummaryPanel
@@ -449,33 +472,62 @@ function RunningHint({ mode, hands }: { mode: ScorePrefs['mode']; hands: HandsMo
   );
 }
 
+/** 工具栏里的一项：上面一行小字标签 */
+function Field({
+  label,
+  value,
+  children,
+  className,
+}: {
+  label: string;
+  value?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn('min-w-0 space-y-1.5', className)}>
+      <div className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground">
+        <span>{label}</span>
+        {value}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function Segmented<T extends string>({
   label,
   value,
   options,
   onChange,
+  className,
 }: {
   label: string;
   value: T;
   options: { value: T; label: ReactNode }[];
   onChange: (v: T) => void;
+  className?: string;
 }) {
   return (
-    <Option label={label}>
+    <Field label={label} {...(className ? { className } : {})}>
       <ToggleGroup
         type="single"
         value={value}
         onValueChange={(v) => v && onChange(v as T)}
         aria-label={label}
-        className="w-full rounded-md border border-border p-0.5"
+        className="w-full rounded-lg bg-surface-2 p-0.5"
       >
         {options.map((o) => (
-          <ToggleGroupItem key={o.value} value={o.value} className="flex-1">
+          <ToggleGroupItem
+            key={o.value}
+            value={o.value}
+            className="h-8 flex-1 rounded-md px-3 data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm"
+          >
             {o.label}
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
-    </Option>
+    </Field>
   );
 }
 
@@ -495,13 +547,13 @@ function MeasureSelect({
   onChange: (v: number) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
+    <label className="flex items-center gap-1.5 text-sm">
       <span className="text-muted-foreground">{label}</span>
       <select
         aria-label={label}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-8 rounded-md border border-border-strong bg-card px-2 font-mono tabular-nums"
+        className="h-8 rounded-md border border-border bg-surface-2 px-2 font-mono tabular-nums"
       >
         {Array.from({ length: count - min }, (_, j) => j + min).map((i) => (
           <option key={i} value={i}>
@@ -546,26 +598,31 @@ function SetupPanel({
   error: 'empty' | 'audio' | null;
 }) {
   const { t } = useTranslation();
+  const [more, setMore] = useState(false);
   const count = score.measures.length;
+  const notices = [
+    ...(error ? [{ key: 'error', icon: TriangleAlert, text: t(`scores.playError.${error}`) }] : []),
+    ...score.warnings.map((w) => ({
+      key: w.kind,
+      icon: TriangleAlert,
+      text:
+        w.kind === 'parts-ignored'
+          ? t('scores.warning.parts-ignored', { parts: w.parts.join(', ') })
+          : t(`scores.warning.${w.kind}`, { bpm: score.tempo }),
+    })),
+  ];
   return (
-    <div
-      className="space-y-4 rounded-xl border border-border bg-card p-4"
+    <section
+      className="rounded-2xl border border-border bg-card shadow-sm"
+      aria-label={t('scores.setupLabel')}
       data-testid="score-setup"
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Segmented
-          label={t('scores.view')}
-          value={prefs.view}
-          onChange={(view) => setPrefs({ view })}
-          options={[
-            { value: 'staff', label: t('scores.viewStaff') },
-            { value: 'waterfall', label: t('scores.viewWaterfall') },
-          ]}
-        />
+      <div className="flex flex-wrap items-end gap-x-5 gap-y-3 p-3 sm:p-4">
         <Segmented
           label={t('scores.mode')}
           value={prefs.mode}
           onChange={(mode) => setPrefs({ mode })}
+          className="w-full sm:w-56"
           options={[
             { value: 'wait', label: t('scores.modeWait') },
             { value: 'tempo', label: t('scores.modeTempo') },
@@ -576,25 +633,34 @@ function SetupPanel({
           label={t('scores.handsLabel')}
           value={prefs.hands}
           onChange={(hands) => setPrefs({ hands })}
+          className="w-full sm:w-52"
           options={(['both', 'right', 'left'] as const).map((h) => ({
             value: h,
             label: t(`scores.hands.${h}`),
           }))}
         />
-        <Segmented
-          label={t('scores.otherHand')}
-          value={prefs.otherHand}
-          onChange={(otherHand) => setPrefs({ otherHand })}
-          options={[
-            { value: 'play', label: t('scores.otherPlay') },
-            { value: 'mute', label: t('scores.otherMute') },
-          ]}
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Option label={t('scores.range')}>
-          <div className="flex flex-wrap items-center gap-3">
+        <Field
+          label={t('scores.speed')}
+          className="w-full sm:w-48"
+          value={
+            <span className="font-mono text-foreground tabular-nums">
+              {t('scores.speedValue', { pct: Math.round(prefs.speed * 100), bpm })}
+            </span>
+          }
+        >
+          <div className="flex h-9 items-center">
+            <Slider
+              min={25}
+              max={150}
+              step={5}
+              value={[Math.round(prefs.speed * 100)]}
+              onValueChange={([v]) => v !== undefined && setPrefs({ speed: v / 100 })}
+              aria-label={t('scores.speed')}
+            />
+          </div>
+        </Field>
+        <Field label={t('scores.range')}>
+          <div className="flex h-9 items-center gap-3">
             <MeasureSelect
               label={t('scores.from')}
               value={from}
@@ -612,123 +678,166 @@ function SetupPanel({
               onChange={(v) => setPrefs({ to: v === count - 1 ? null : v })}
             />
           </div>
-        </Option>
-        <Option
-          label={t('scores.speed')}
-          value={
-            <span className="font-mono tabular-nums">
-              {t('scores.speedValue', { pct: Math.round(prefs.speed * 100), bpm })}
-            </span>
-          }
-        >
-          <Slider
-            min={25}
-            max={150}
-            step={5}
-            value={[Math.round(prefs.speed * 100)]}
-            onValueChange={([v]) => v !== undefined && setPrefs({ speed: v / 100 })}
-            aria-label={t('scores.speed')}
-          />
-        </Option>
-        <Segmented
-          label={t('scores.loops')}
-          value={String(prefs.loops)}
-          onChange={(v) => setPrefs({ loops: Number(v) })}
-          options={[1, 2, 4, 0].map((n) => ({
-            value: String(n),
-            label: n === 0 ? t('progression.loopsEndless') : t('progression.loopsN', { n }),
-          }))}
-        />
-        <div className="space-y-3">
-          <SwitchRow
-            id="score-metronome"
-            label={t('scores.metronome')}
-            checked={prefs.metronome}
-            onChange={(metronome) => setPrefs({ metronome })}
-          />
-          <SwitchRow
-            id="score-hints"
-            label={t('scores.keyHints')}
-            checked={prefs.keyHints}
-            onChange={(keyHints) => setPrefs({ keyHints })}
-          />
-          <SwitchRow
-            id="score-chords"
-            label={t('scores.showChords')}
-            hint={t('scores.showChordsHint')}
-            checked={prefs.chords}
-            onChange={(chords) => setPrefs({ chords })}
-          />
-          {hasRepeats(score) && (
-            <SwitchRow
-              id="score-repeats"
-              label={t('scores.repeats')}
-              hint={t('scores.repeatsHint', { n: score.playback.length, m: score.measures.length })}
-              checked={prefs.repeats}
-              onChange={(repeats) => setPrefs({ repeats })}
+        </Field>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => setMore((m) => !m)}
+            aria-expanded={more}
+            aria-controls="score-more"
+          >
+            <SlidersHorizontal />
+            {t('scores.more')}
+            <ChevronDown
+              className={cn(
+                'transition-transform duration-[var(--dur-fast)]',
+                more && 'rotate-180',
+              )}
             />
-          )}
+          </Button>
+          <Button size="lg" onClick={onStart} data-testid="score-start">
+            <Play />
+            {t(`scores.start.${prefs.mode}`)}
+          </Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button size="lg" onClick={onStart} data-testid="score-start">
-          <Play />
-          {t(`scores.start.${prefs.mode}`)}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onPracticeChords}
-          disabled={chordCount < 2}
-          title={t('scores.practiceChordsHint')}
-          data-testid="practice-chords"
+      {more && (
+        <div
+          id="score-more"
+          className="grid gap-x-6 gap-y-4 border-t border-border p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-4"
         >
-          <Music />
-          {t('scores.practiceChords', { n: chordCount })}
-        </Button>
-        <p className="flex min-w-0 flex-1 items-start gap-2 text-sm text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-          {t(`scores.modeHint.${prefs.mode}`)}
-        </p>
-      </div>
-
-      {error && (
-        <p className="text-sm text-warning" role="alert">
-          {t(`scores.playError.${error}`)}
-        </p>
+          <Segmented
+            label={t('scores.view')}
+            value={prefs.view}
+            onChange={(view) => setPrefs({ view })}
+            options={[
+              { value: 'staff', label: t('scores.viewStaff') },
+              { value: 'waterfall', label: t('scores.viewWaterfall') },
+            ]}
+          />
+          <Segmented
+            label={t('scores.otherHand')}
+            value={prefs.otherHand}
+            onChange={(otherHand) => setPrefs({ otherHand })}
+            options={[
+              { value: 'play', label: t('scores.otherPlay') },
+              { value: 'mute', label: t('scores.otherMute') },
+            ]}
+          />
+          <Segmented
+            label={t('scores.loops')}
+            value={String(prefs.loops)}
+            onChange={(v) => setPrefs({ loops: Number(v) })}
+            options={[1, 2, 4, 0].map((n) => ({
+              value: String(n),
+              label: n === 0 ? t('progression.loopsEndless') : t('progression.loopsN', { n }),
+            }))}
+          />
+          <Field
+            label={t('scores.baseTempo')}
+            value={
+              !score.tempoMarked && prefs.baseBpm === null ? (
+                <span className="text-warning">{t('scores.tempoUnmarked')}</span>
+              ) : undefined
+            }
+          >
+            <BaseTempoInput
+              value={prefs.baseBpm ?? score.tempo}
+              onChange={(v) =>
+                setPrefs({ baseBpm: v === score.tempo && score.tempoMarked ? null : v })
+              }
+            />
+          </Field>
+          <div className="space-y-3 sm:col-span-2">
+            <SwitchRow
+              id="score-metronome"
+              label={t('scores.metronome')}
+              checked={prefs.metronome}
+              onChange={(metronome) => setPrefs({ metronome })}
+            />
+            <SwitchRow
+              id="score-hints"
+              label={t('scores.keyHints')}
+              checked={prefs.keyHints}
+              onChange={(keyHints) => setPrefs({ keyHints })}
+            />
+          </div>
+          <div className="space-y-3 sm:col-span-2">
+            <SwitchRow
+              id="score-chords"
+              label={t('scores.showChords')}
+              hint={t('scores.showChordsHint')}
+              checked={prefs.chords}
+              onChange={(chords) => setPrefs({ chords })}
+            />
+            {hasRepeats(score) && (
+              <SwitchRow
+                id="score-repeats"
+                label={t('scores.repeats')}
+                hint={t('scores.repeatsHint', {
+                  n: score.playback.length,
+                  m: score.measures.length,
+                })}
+                checked={prefs.repeats}
+                onChange={(repeats) => setPrefs({ repeats })}
+              />
+            )}
+          </div>
+          <div className="sm:col-span-2 lg:col-span-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onPracticeChords}
+              disabled={chordCount < 2}
+              title={t('scores.practiceChordsHint')}
+              data-testid="practice-chords"
+            >
+              <Music />
+              {t('scores.practiceChords', { n: chordCount })}
+            </Button>
+          </div>
+        </div>
       )}
-      {prefs.mode === 'tempo' && !latencyCalibrated && (
-        <p className="flex gap-2 text-sm text-warning">
-          <Gauge className="mt-0.5 size-4 shrink-0" aria-hidden />
+
+      <div className="space-y-2 border-t border-border px-3 py-2.5 text-sm text-muted-foreground sm:px-4">
+        <p className="flex items-start gap-2">
+          <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
           <span>
-            {t('progression.notCalibrated')}{' '}
-            <Link to="/settings" hash="latency" className="underline underline-offset-2">
-              {t('progression.calibrateLink')}
-            </Link>
+            {t(`scores.modeHint.${prefs.mode}`)}{' '}
+            <span className="text-subtle-foreground">{t('scores.clickMeasureHint')}</span>
           </span>
         </p>
-      )}
-      {score.warnings.length > 0 && (
-        <ul className="space-y-1 text-sm text-muted-foreground">
-          {score.warnings.map((w) => (
-            <li key={w.kind} className="flex items-start gap-2">
-              <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-              {w.kind === 'parts-ignored'
-                ? t('scores.warning.parts-ignored', { parts: w.parts.join(', ') })
-                : t(`scores.warning.${w.kind}`, { bpm: score.tempo })}
-            </li>
-          ))}
-        </ul>
-      )}
-      {worst.length > 0 && (
-        <div className="space-y-2" data-testid="worst-measures">
-          <p className="text-sm font-medium">{t('scores.worstTitle')}</p>
-          <div className="flex flex-wrap gap-2">
+        {prefs.mode === 'tempo' && !latencyCalibrated && (
+          <p className="flex gap-2 text-warning">
+            <Gauge className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>
+              {t('progression.notCalibrated')}{' '}
+              <Link to="/settings" hash="latency" className="underline underline-offset-2">
+                {t('progression.calibrateLink')}
+              </Link>
+            </span>
+          </p>
+        )}
+        {notices.map((n) => (
+          <p
+            key={n.key}
+            className={cn('flex items-start gap-2', n.key === 'error' && 'text-warning')}
+            role={n.key === 'error' ? 'alert' : undefined}
+          >
+            <n.icon className="mt-0.5 size-4 shrink-0" aria-hidden />
+            {n.text}
+          </p>
+        ))}
+        {worst.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2" data-testid="worst-measures">
+            <span>{t('scores.worstTitle')}</span>
             {worst.map((m) => (
               <Button
                 key={m.measure}
                 size="sm"
                 variant="outline"
+                className="h-7"
                 onClick={() => onPractice(m.measure, m.measure)}
               >
                 {t('scores.measureN', { n: label(m.measure) })}
@@ -738,10 +847,38 @@ function SetupPanel({
               </Button>
             ))}
           </div>
-        </div>
-      )}
-      <p className="text-xs text-subtle-foreground">{t('scores.clickMeasureHint')}</p>
-    </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** 原速（♩ =）：输入完（失去焦点或回车）才保存 */
+function BaseTempoInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const n = Math.round(Number(draft));
+    if (Number.isFinite(n) && n >= 20 && n <= 300) onChange(n);
+    else setDraft(String(value));
+  };
+  return (
+    <label className="flex h-9 items-center gap-2 text-sm">
+      <span className="font-mono">♩ =</span>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={20}
+        max={300}
+        value={draft}
+        aria-label={t('scores.baseTempo')}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        className="h-8 w-20 rounded-md border border-border bg-surface-2 px-2 font-mono tabular-nums"
+      />
+    </label>
   );
 }
 

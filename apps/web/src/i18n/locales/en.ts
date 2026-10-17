@@ -700,6 +700,11 @@ export const en: Strings<TranslationShape> = {
     missing: 'This score could not be found. It may have been deleted.',
     openError: 'This score could not be opened.',
     back: 'Scores',
+    measureCount: '{{n}} bars',
+    setupLabel: 'Practice options',
+    more: 'More options',
+    baseTempo: 'Base tempo',
+    tempoUnmarked: 'No tempo in the file, set it from the original',
     stop: 'Stop',
     stopLabel: 'Stop this run (Esc)',
     countIn: 'Count-in {{n}}',
@@ -750,7 +755,7 @@ export const en: Strings<TranslationShape> = {
     },
     warning: {
       'tempo-changes': 'The tempo changes in the piece. Tempo mode keeps a steady ♩ = {{bpm}}.',
-      'grace-notes': 'Grace notes are not shown or judged.',
+      'grace-notes': 'Grace notes are shown but not judged.',
       'parts-ignored':
         'Only the piano (or the first two) parts were used. Not imported: {{parts}}.',
       quantized:

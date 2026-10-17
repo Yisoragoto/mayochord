@@ -24,6 +24,8 @@ export const ScorePrefsSchema = z
     chords: z.boolean().catch(true),
     /** 键盘上标出要弹的音 */
     keyHints: z.boolean().catch(true),
+    /** 原速（♩ =），null = 用谱上的速度 */
+    baseBpm: z.number().int().min(20).max(300).nullable().catch(null),
   })
   .catch({
     view: 'staff',
@@ -38,6 +40,7 @@ export const ScorePrefsSchema = z
     repeats: true,
     chords: true,
     keyHints: true,
+    baseBpm: null,
   });
 export type ScorePrefs = z.infer<typeof ScorePrefsSchema>;
 

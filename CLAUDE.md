@@ -518,8 +518,16 @@ M3 新增 version 2（dailyPlans 表），M7 新增 version 3（scores、scoreRu
 - **8va/8vb**：MusicXML 的 pitch 是实际音高；`octave-shift type="down"`（8va）范围里的音显示低一个八度（`NotationElement.octaveShift = -1`），`up`（8vb）高一个八度；演奏用的音不变。
 - 排版（`features/scores/score-layout.ts`，纯函数有测试）：每行按实际最高、最低的音（加线、符干 35 px、奏法）和记号行算每个谱表上下的空间，谱表之间至少 40 px；和弦名在最上面一行（`MeasureBox.labelY`）；每行开头标小节号。
 - 画法（`render-score.ts`）：谱上有符杠连法时按它画（否则自动分组），有符干方向时照着画；连线用 `Curve`（跨行分两段）；力度、文字、Ped./* 用文字；渐强渐弱画发夹；8va 画虚线括号；排练号画方框。
-- 还不支持：装饰音、跨谱表的符杠、颤音等装饰记号、谱里自带的和弦标记。
-- 测试用的谱放在 `local-packs/`（不提交）。
+- 还不支持：跨谱表的符杠、颤音等装饰记号、谱里自带的和弦标记。
+- 测试用的谱放在 `local-packs/`（不提交）。用户的官谱是 PDF（`E:\piano\ztmy\`），用 **Audiveris** 识别成 .mxl：识谱结果没有标题、作者、速度、排练号（这些在文件里就没有），速度默认 120。
+
+### 第二轮（2026-10-18，用户："后面的五线谱加载失败、还是少信息、没有当前位置的标记、看起来廉价"）
+
+- **加载失败**：VexFlow 的琶音 `Stroke` 画的时候会读取同一时刻**所有**音（包括另一个谱表上还没排好的音）的 y，报 NoYValues，整首谱都画不出来。琶音改成自己画（`drawArpeggio`，和弦左边的竖波浪线）。另外每个小节单独 try/catch：画不出来的小节空着，不影响后面（`console.warn` 记下是第几小节）。
+- **MusicXML 新读的**（`score/musicxml.ts`）：`<print new-system/new-page>` → `ScoreMeasure.systemBreak`；`<time symbol>` → `timeSymbol`；右侧 `<bar-style>` → `barRight`；`<clef>` 记下在小节里的位置 → 小节开头的谱号 `clefs`、小节中间的 `clefChanges`，每个音符带 `clef`（之后的音按新谱号画、排版）；装饰音挂在同谱表同声部的下一个音符上（`graces`，含写出的临时记号、斜线，不进演奏的音）；休止符的 `display-step/octave` → `restAt`。
+- **排版**（`render-score.ts`）：原谱有换行就照着换（放不下时允许挤到 115%，再不行自动换行）；小节中间换谱号用 `ClefNote`（小号），上一小节末尾换了谱号时这一小节开头画小号谱号；反复记号、跳房子括号（`setVoltaType`）、双小节线、终止线（两行谱表的连线也跟着变）。
+- **页面**（`ScorePlayerPage.tsx`）：顶部标题 + ♩/拍号/小节数；工具栏只放模式、手、速度、小节范围和开始，其余（视图、另一只手、遍数、原速、开关、送和弦到进行练习器）收在"更多选项"；谱面是白纸（局部 `data-theme="light"`，深色模式也是），纸上有衬线字体的标题；弹奏时有播放光标（`score-cursor`，罩住当前这组音的符头，跨两个谱表），当前小节有底色。
+- **原速** `prefs.baseBpm`：谱上没速度时提示去改；开始弹时用改过速度的 score 副本。
 
 ## 五线谱教程（M10）
 

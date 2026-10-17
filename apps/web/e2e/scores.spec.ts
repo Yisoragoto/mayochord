@@ -9,6 +9,12 @@ async function tap(page: Page, ...notes: number[]) {
   for (const n of notes) await sendMidi(page, [0x90, n, 90], [0x80, n, 0]);
 }
 
+/** 打开"更多选项"（另一只手、遍数、视图、反复记号等收在这里） */
+async function openMore(page: Page) {
+  const more = page.getByRole('button', { name: '更多选项' });
+  if ((await more.getAttribute('aria-expanded')) !== 'true') await more.click();
+}
+
 /** 最小的 MIDI 文件：一条轨道，C4 E4 G4 各一拍 */
 function tinyMidi(): Buffer {
   const vlq = (n: number) => (n < 128 ? [n] : [0x80 | (n >> 7), n & 0x7f]);
@@ -37,6 +43,7 @@ test('曲谱跟弹：添加示例，等待模式弹两个小节，看每个小�
   await expect(connect).toBeHidden();
   await page.getByTestId('score-start').click();
   await expect(page.getByTestId('play-status')).toHaveText('第 1 小节');
+  await expect(page.getByTestId('score-cursor')).toBeVisible();
 
   // 第 1 小节 E E F G：第二个 E 之前按错一个音
   await tap(page, 64, 61, 64, 65, 67);
@@ -56,6 +63,7 @@ test('曲谱跟弹：添加示例，等待模式弹两个小节，看每个小�
   await expect(page.getByTestId('score-setup')).toBeVisible();
   await expect(page.getByLabel('从', { exact: true })).toHaveValue('0');
   await expect(page.getByLabel('到', { exact: true })).toHaveValue('0');
+  await openMore(page);
   await expect(page.getByRole('radio', { name: '一直弹' })).toHaveAttribute('data-state', 'on');
 
   // 回到乐谱库：可以删除
@@ -72,6 +80,7 @@ test('跟拍模式：预备一小节后按拍点弹，记录早晚', async ({ pa
   await page.getByRole('button', { name: '添加示例：欢乐颂' }).click();
   await page.getByRole('radio', { name: '跟拍' }).click();
   await page.getByRole('radio', { name: '右手' }).click();
+  await openMore(page);
   await page.getByRole('radio', { name: '静音' }).click();
   const connect = page.getByRole('button', { name: '连接 MIDI 设备' });
   await connect.click();
@@ -127,6 +136,7 @@ test('导入 MIDI 文件；不认识的文件给出提示', async ({ page }) => 
   await expect(page).toHaveURL(/scores\/[\w-]+$/);
   await expect(page.getByRole('heading', { name: 'Tiny Song' })).toBeVisible();
   await expect(page.getByText('MIDI 文件按 16 分音符对齐')).toBeVisible();
+  await openMore(page);
   await page.getByRole('radio', { name: '瀑布流' }).click();
   await expect(page.getByTestId('waterfall-view')).toBeVisible();
 });
@@ -142,6 +152,7 @@ test('反复记号：按演奏顺序弹，也可以关掉', async ({ page }) => 
     buffer: Buffer.from(REPEAT_XML),
   });
   await expect(page.getByRole('heading', { name: 'Repeat test' })).toBeVisible();
+  await openMore(page);
   await expect(page.getByText('展开后共 4 小节（谱面 2 小节）')).toBeVisible();
   const connect = page.getByRole('button', { name: '连接 MIDI 设备' });
   await connect.click();
@@ -158,6 +169,7 @@ test('反复记号：按演奏顺序弹，也可以关掉', async ({ page }) => 
 
   // 关掉反复：只弹一遍
   await page.getByRole('button', { name: '回到选项' }).click();
+  await openMore(page);
   await page.getByRole('switch', { name: /按反复记号弹/ }).click();
   await page.getByTestId('score-start').click();
   await expect(status).toHaveText('第 1 小节');
@@ -170,6 +182,7 @@ test('自动标和弦：显示在五线谱上，送到进行练习器', async ({
   await page.getByRole('button', { name: '添加示例：欢乐颂' }).click();
   await expect(page.getByTestId('chord-label').first()).toHaveText('C');
   await page.getByLabel('到', { exact: true }).selectOption({ value: '3' });
+  await openMore(page);
   await expect(page.getByTestId('practice-chords')).toHaveText('用这段的和弦练跟拍（4 个）');
   await page.getByTestId('practice-chords').click();
   await expect(page).toHaveURL(/practice\/progression$/);
@@ -177,6 +190,7 @@ test('自动标和弦：显示在五线谱上，送到进行练习器', async ({
 
   // 可以关掉
   await page.goBack();
+  await openMore(page);
   await page.getByRole('switch', { name: /显示和弦/ }).click();
   await expect(page.getByTestId('chord-label')).toHaveCount(0);
 });

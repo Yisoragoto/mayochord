@@ -1,9 +1,12 @@
 import { strFromU8, unzipSync } from 'fflate';
 import { assignAccidentals, buildNotes } from './finalize';
 import {
+  type BarStyle,
   type Clef,
+  type ClefChange,
   DURATION_TYPES,
   type DurationType,
+  type GraceGroup,
   type Hand,
   type NotationElement,
   type NotationPitch,
@@ -42,6 +45,37 @@ export class ScoreImportError extends Error {
 }
 
 const STEP_PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
+/** <accidental> 的文字 → 'n'、'#'、'b'… */
+const ACCIDENTAL_TEXT: Record<string, string> = {
+  natural: 'n',
+  sharp: '#',
+  flat: 'b',
+  'double-sharp': '##',
+  'sharp-sharp': '##',
+  'flat-flat': 'bb',
+};
+
+const BAR_STYLE: Record<string, BarStyle> = {
+  regular: 'regular',
+  'light-light': 'double',
+  'light-heavy': 'final',
+  'heavy-light': 'heavy-light',
+  dashed: 'dashed',
+  none: 'none',
+};
+
+/** <pitch> → 拼写过的音名 'Bb4' 与 MIDI 号 */
+function readPitch(pitchEl: XmlElement): { spelled: string; pitch: number } {
+  const step = childText(pitchEl, 'step') ?? 'C';
+  const alter = Math.round(childNumber(pitchEl, 'alter') ?? 0);
+  const octave = childNumber(pitchEl, 'octave') ?? 4;
+  const acc = alter > 0 ? '#'.repeat(alter) : 'b'.repeat(-alter);
+  return {
+    spelled: `${step}${acc}${octave}`,
+    pitch: (octave + 1) * 12 + (STEP_PC[step] ?? 0) + alter,
+  };
+}
 
 function clefOf(el: XmlElement): Clef {
   const sign = childText(el, 'sign');
@@ -159,8 +193,12 @@ interface PartMeasure {
   beats: number | null;
   beatType: number | null;
   fifths: number | null;
-  clefs: Map<number, Clef>;
+  /** 换谱号（tick 相对小节开始，按出现顺序） */
+  clefs: { staff: number; tick: number; clef: Clef }[];
   elements: NotationElement[];
+  systemBreak: boolean;
+  timeSymbol: 'common' | 'cut' | null;
+  barRight: BarStyle | null;
   directions: PartDirection[];
   flow: MeasureFlow;
 }
@@ -194,8 +232,11 @@ function parsePart(part: XmlElement): ParsedPart {
       beats: null,
       beatType: null,
       fifths: null,
-      clefs: new Map(),
+      clefs: [],
       elements: [],
+      systemBreak: false,
+      timeSymbol: null,
+      barRight: null,
       directions: [],
       flow: { ...EMPTY_FLOW, endings: ending },
     };
@@ -203,6 +244,9 @@ function parsePart(part: XmlElement): ParsedPart {
     let pos = 0;
     let maxPos = 0;
     let last: NotationElement | null = null;
+    /** 还没挂到主音符上的装饰音（谱表:声部 → 列表） */
+    const graces = new Map<string, GraceGroup[]>();
+    let lastGrace: GraceGroup | null = null;
     const ticks = (d: number | undefined) => Math.round(((d ?? 0) * TPQ) / divisions);
     for (const el of m.children) {
       switch (el.name) {
@@ -219,17 +263,49 @@ function parsePart(part: XmlElement): ParsedPart {
             // 复合拍号 "3+2" 取和
             pm.beats = beats.split('+').reduce((s, x) => s + (Number(x) || 0), 0);
             pm.beatType = beatType;
+            const symbol = time?.attrs.symbol;
+            pm.timeSymbol = symbol === 'common' || symbol === 'cut' ? symbol : null;
           }
           for (const c of childrenNamed(el, 'clef')) {
-            pm.clefs.set(Number(c.attrs.number ?? 1), clefOf(c));
+            pm.clefs.push({
+              staff: Number(c.attrs.number ?? 1),
+              tick: Math.max(0, pos),
+              clef: clefOf(c),
+            });
           }
           break;
         }
+        case 'print':
+          if (el.attrs['new-system'] === 'yes' || el.attrs['new-page'] === 'yes') {
+            pm.systemBreak = true;
+          }
+          break;
         case 'note': {
-          if (child(el, 'grace')) {
+          const graceEl = child(el, 'grace');
+          if (graceEl) {
             out.grace = true;
+            const pitchEl = child(el, 'pitch');
+            if (!pitchEl) break;
+            const { spelled } = readPitch(pitchEl);
+            const accText = childText(el, 'accidental');
+            const acc = accText ? (ACCIDENTAL_TEXT[accText] ?? null) : null;
+            if (child(el, 'chord') && lastGrace) {
+              lastGrace.spelled.push(spelled);
+              lastGrace.accidentals.push(acc);
+              break;
+            }
+            const typeText = childText(el, 'type') as DurationType | undefined;
+            lastGrace = {
+              spelled: [spelled],
+              accidentals: [acc],
+              type: typeText && DURATION_TYPES.includes(typeText) ? typeText : 'eighth',
+              slash: graceEl.attrs.slash === 'yes',
+            };
+            const key = `${childNumber(el, 'staff') ?? 1}:${childText(el, 'voice') ?? '1'}`;
+            graces.set(key, [...(graces.get(key) ?? []), lastGrace]);
             break;
           }
+          lastGrace = null;
           const isChord = child(el, 'chord') !== undefined;
           const dur = ticks(childNumber(el, 'duration'));
           const start: number = isChord && last ? last.start : pos;
@@ -241,13 +317,10 @@ function parsePart(part: XmlElement): ParsedPart {
           const tieTypes = childrenNamed(el, 'tie').map((t) => t.attrs.type);
           const pitch: NotationPitch | null = pitchEl
             ? (() => {
-                const step = childText(pitchEl, 'step') ?? 'C';
-                const alter = Math.round(childNumber(pitchEl, 'alter') ?? 0);
-                const octave = childNumber(pitchEl, 'octave') ?? 4;
-                const acc = alter > 0 ? '#'.repeat(alter) : 'b'.repeat(-alter);
+                const { spelled, pitch } = readPitch(pitchEl);
                 return {
-                  pitch: (octave + 1) * 12 + (STEP_PC[step] ?? 0) + alter,
-                  spelled: `${step}${acc}${octave}`,
+                  pitch,
+                  spelled,
                   noteId: -1,
                   tieStart: tieTypes.includes('start'),
                   tieStop: tieTypes.includes('stop'),
@@ -271,10 +344,17 @@ function parsePart(part: XmlElement): ParsedPart {
           const type =
             typeText && DURATION_TYPES.includes(typeText) ? typeText : (derived?.type ?? 'whole');
           const dots = typeText ? childrenNamed(el, 'dot').length : (derived?.dots ?? 0);
+          const voice = childText(el, 'voice') ?? '1';
+          const restEl = child(el, 'rest');
+          const restStep = childText(restEl, 'display-step');
+          const restOctave = childText(restEl, 'display-octave');
+          const graceKey = `${staff}:${voice}`;
+          const before = graces.get(graceKey);
+          graces.delete(graceKey);
           last = {
             measure: out.measures.length,
             staff,
-            voice: childText(el, 'voice') ?? '1',
+            voice,
             start,
             dur,
             rest: !pitch,
@@ -282,6 +362,8 @@ function parsePart(part: XmlElement): ParsedPart {
             dots,
             tuplet,
             pitches: pitch ? [pitch] : [],
+            ...(before && pitch ? { graces: before } : {}),
+            ...(!pitch && restStep && restOctave ? { restAt: `${restStep}${restOctave}` } : {}),
           };
           mergeNotations(last, extra);
           pm.elements.push(last);
@@ -308,6 +390,8 @@ function parsePart(part: XmlElement): ParsedPart {
           readSound(el, out.tempos, pm.flow);
           break;
         case 'barline': {
+          const style = BAR_STYLE[childText(el, 'bar-style') ?? ''];
+          if (style && (el.attrs.location ?? 'right') === 'right') pm.barRight = style;
           const repeat = child(el, 'repeat');
           if (repeat?.attrs.direction === 'forward') pm.flow.repeatStart = true;
           if (repeat?.attrs.direction === 'backward') {
@@ -479,17 +563,33 @@ export function parseMusicXml(text: string, fallbackTitle = ''): Score {
     beats = first.beats ?? beats;
     beatType = first.beatType ?? beatType;
     fifths = first.fifths ?? fifths;
-    pms.forEach((pm, partIdx) => {
-      for (const [n, clef] of pm?.clefs ?? []) {
-        const s = mapStaff(partIdx, n);
-        // 钢琴声部的第 3 行以后不改第 2 行的谱号
-        if (grand && n > 2) continue;
-        clefs[s - 1] = clef;
-      }
-    });
     const timeLength = Math.round((beats * 4 * TPQ) / beatType);
     const contentLength = Math.max(0, ...pms.map((pm) => pm?.length ?? 0));
     const length = contentLength > 0 ? contentLength : timeLength;
+    // 谱号：小节开头的直接生效；小节中间的记为换谱号，之后的音按新谱号画
+    const events: ClefChange[] = [];
+    pms.forEach((pm, partIdx) => {
+      for (const c of pm?.clefs ?? []) {
+        // 钢琴声部的第 3 行以后不改第 2 行的谱号
+        if (grand && c.staff > 2) continue;
+        events.push({ staff: mapStaff(partIdx, c.staff), tick: c.tick, clef: c.clef });
+      }
+    });
+    for (const c of events) if (c.tick === 0) clefs[c.staff - 1] = c.clef;
+    const startClefs = [...clefs];
+    const changes = events
+      .filter((c) => c.tick > 0)
+      .sort((a, b) => a.tick - b.tick)
+      .map((c) => ({ ...c, tick: start + c.tick }));
+    const clefAt = (staff: number, tick: number): Clef => {
+      let clef = startClefs[staff - 1] ?? 'treble';
+      for (const c of changes) if (c.staff === staff && c.tick <= tick) clef = c.clef;
+      return clef;
+    };
+    for (const c of changes) clefs[c.staff - 1] = c.clef;
+    const breakHere = pms.some((pm) => pm?.systemBreak) && i > 0;
+    const timeSymbol = first.timeSymbol;
+    const barRight = pms.find((pm) => pm?.barRight)?.barRight;
     measures.push({
       index: i,
       number: first.number,
@@ -498,12 +598,18 @@ export function parseMusicXml(text: string, fallbackTitle = ''): Score {
       beats,
       beatType,
       fifths,
-      clefs: [...clefs],
+      clefs: startClefs,
       flow: first.flow,
+      ...(breakHere ? { systemBreak: true } : {}),
+      ...(timeSymbol ? { timeSymbol } : {}),
+      ...(barRight ? { barRight } : {}),
+      ...(changes.some((c) => c.tick < start + length) ? { clefChanges: changes } : {}),
     });
     pms.forEach((pm, partIdx) => {
       for (const el of pm?.elements ?? []) {
-        elements.push({ ...el, start: start + el.start, staff: mapStaff(partIdx, el.staff) });
+        const staff = mapStaff(partIdx, el.staff);
+        const at = start + el.start;
+        elements.push({ ...el, start: at, staff, clef: clefAt(staff, at) });
       }
       for (const d of pm?.directions ?? []) {
         directions.push({
